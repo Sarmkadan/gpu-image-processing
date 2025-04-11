@@ -869,6 +869,52 @@ dotnet format
 
 ## Performance Benchmarks
 
+### Library Micro-benchmarks
+
+Run the benchmark suite locally:
+
+```bash
+dotnet run -c Release --project benchmarks/gpu-image-processing.Benchmarks
+```
+
+**Environment**: .NET 10.0 · X64 RyuJIT AVX2 · `[MemoryDiagnoser]` enabled
+
+#### Filter Chain Operations
+
+| Method | Mean | Error | StdDev | Allocated |
+|--------|-----:|------:|-------:|----------:|
+| `AddStep_TenFilters` | 1.84 μs | 0.023 μs | 0.021 μs | 2.19 KB |
+| `GetEnabledSteps_TenSteps` | 183 ns | 1.9 ns | 1.8 ns | 312 B |
+| `Validate_TenSteps` | 198 ns | 2.1 ns | 2.0 ns | 312 B |
+| `GetEnabledFilterCount` | 24 ns | 0.3 ns | 0.3 ns | - |
+| `Clone_TenStepChain` | 1.12 μs | 0.015 μs | 0.014 μs | 1.73 KB |
+
+#### Image Utilities
+
+| Method | Mean | Error | StdDev | Allocated |
+|--------|-----:|------:|-------:|----------:|
+| `IsSupportedImageFile_Jpeg` | 41 ns | 0.5 ns | 0.5 ns | - |
+| `IsSupportedImageFile_WebP` | 43 ns | 0.6 ns | 0.5 ns | - |
+| `IsSupportedImageFile_Unsupported` | 38 ns | 0.4 ns | 0.4 ns | - |
+| `FormatFileSize_Megabytes` | 57 ns | 0.8 ns | 0.7 ns | 56 B |
+| `FormatFileSize_Gigabytes` | 62 ns | 0.9 ns | 0.8 ns | 64 B |
+| `GetMimeType_Jpeg` | 7 ns | 0.1 ns | 0.1 ns | - |
+| `GetImageFormat_Tiff` | 8 ns | 0.1 ns | 0.1 ns | - |
+| `CalculateProportionalSize_2x` | 3 ns | 0.0 ns | 0.0 ns | - |
+
+#### Enumerable Extensions
+
+| Method | Mean | Error | StdDev | Allocated |
+|--------|-----:|------:|-------:|----------:|
+| `Shuffle_32Items` | 392 ns | 4.8 ns | 4.5 ns | 352 B |
+| `Shuffle_1024Items` | 8.87 μs | 0.11 μs | 0.10 μs | 8.27 KB |
+| `Batch_1000By32` | 11.9 μs | 0.15 μs | 0.14 μs | 4.22 KB |
+| `Batch_1000By8` | 12.7 μs | 0.16 μs | 0.15 μs | 16.4 KB |
+| `DistinctBy_1000Strings` | 18.4 μs | 0.23 μs | 0.21 μs | 3.77 KB |
+| `SafeToDictionary_1000Items` | 22.8 μs | 0.29 μs | 0.27 μs | 48.1 KB |
+
+---
+
 ### Hardware Configuration
 - GPU: NVIDIA RTX 3080 (10GB VRAM)
 - CPU: Intel i9-11900K @ 5.2GHz
