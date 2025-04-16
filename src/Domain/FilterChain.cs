@@ -40,15 +40,15 @@ public class FilterChain
         if (order == -1)
             order = Steps.Count;
 
-        var step = new FilterStep
+        Steps.Add(new FilterStep
         {
             FilterId = filterId,
             Order = order,
             IsEnabled = true
-        };
+        });
 
-        Steps.Add(step);
-        Steps = [..Steps.OrderBy(s => s.Order)];
+        // Sort in-place to avoid allocating an intermediate collection.
+        Steps.Sort(static (a, b) => a.Order.CompareTo(b.Order));
         ModifiedAt = DateTime.UtcNow;
     }
 
@@ -82,7 +82,7 @@ public class FilterChain
                 step.Order = i;
         }
 
-        Steps = [..Steps.OrderBy(s => s.Order)];
+        Steps.Sort(static (a, b) => a.Order.CompareTo(b.Order));
         ModifiedAt = DateTime.UtcNow;
     }
 
@@ -161,7 +161,11 @@ public class FilterChain
     /// </summary>
     public int GetEnabledFilterCount()
     {
-        return GetEnabledSteps().Count;
+        // Count directly to avoid allocating the full List<FilterStep> from GetEnabledSteps().
+        int count = 0;
+        foreach (var step in Steps)
+            if (step.IsEnabled) count++;
+        return count;
     }
 }
 

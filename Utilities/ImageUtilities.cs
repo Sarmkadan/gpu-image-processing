@@ -4,6 +4,7 @@
 // =============================================================================
 
 using System;
+using System.Collections.Frozen;
 using System.IO;
 using System.Linq;
 
@@ -20,6 +21,11 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static readonly string[] SupportedExtensions = { ".jpg", ".jpeg", ".png", ".bmp", ".tiff", ".webp", ".gif" };
 
+        // FrozenSet gives O(1) lookups with a case-insensitive comparer, avoiding
+        // the O(n) linear scan of SupportedExtensions on every ingestion call.
+        private static readonly FrozenSet<string> _supportedExtensionLookup =
+            new HashSet<string>(SupportedExtensions, StringComparer.OrdinalIgnoreCase).ToFrozenSet();
+
         /// <summary>
         /// Determines if a file is a supported image format.
         /// </summary>
@@ -28,8 +34,8 @@ namespace GpuImageProcessing.Utilities
             if (string.IsNullOrWhiteSpace(filePath))
                 return false;
 
-            string extension = Path.GetExtension(filePath).ToLower();
-            return SupportedExtensions.Contains(extension);
+            var extension = Path.GetExtension(filePath.AsSpan());
+            return _supportedExtensionLookup.Contains(extension.ToString());
         }
 
         /// <summary>
