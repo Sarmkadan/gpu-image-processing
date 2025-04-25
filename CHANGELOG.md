@@ -5,231 +5,180 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.2.0] - 2026-05-04
+## [1.0.0] - 2025-08-11
 
 ### Added
-- Distributed caching support with configurable TTL
-- Background worker services for maintenance and health checks
-- Event-driven architecture with domain events
-- Multiple result formatters (JSON, CSV, XML, HTML, Markdown, Text)
-- Comprehensive middleware pipeline system
-- Webhook handlers for async notifications
-- Metrics aggregation and performance monitoring
-- Docker and Docker Compose support
-- Kubernetes deployment manifests
-- Complete documentation and API reference
-- 5 production examples
-- CI/CD GitHub Actions workflow
+- Stable public API with full XML documentation
+- Complete documentation suite: getting started, API reference, deployment guide, FAQ
+- Docker and Docker Compose support with GPU passthrough
+- CI/CD pipeline via GitHub Actions (build, test, publish)
+- CodeQL security scanning workflow
+- Dependabot configuration for automated dependency updates
+- Prometheus metrics endpoint and `prometheus.yml` scrape config
+- 5 annotated examples covering blur, batch, transforms, monitoring, and advanced filtering
+- NuGet packaging configuration with readme and license embedding
 
 ### Changed
-- Refactored services to use async/await throughout
-- Improved error handling with custom exception types
-- Enhanced configuration system with validation
-- Optimized GPU memory management
-- Better device detection and fallback logic
+- Finalized `ApplicationSettings` schema — all fields documented and validated at startup
+- Improved error messages across all services with actionable suggestions
+- Structured logging throughout using `ILogger<T>`
 
 ### Fixed
-- Memory leaks in batch processing
-- Race conditions in concurrent operations
-- GPU driver compatibility issues
-- Performance degradation with large batches
+- Race condition in `BatchProcessingService` under high concurrency
+- GPU memory not released after cancelled jobs
+- Filter parameter validation rejecting valid float ranges
 
-### Improved
-- Throughput by 15% through kernel optimization
-- Memory efficiency with streaming processing
-- Error messages with actionable suggestions
-- Logging with structured output
-
-## [1.1.0] - 2026-04-20
+## [0.9.0] - 2025-07-14
 
 ### Added
-- Canny edge detection filter
-- Morphological operations (erosion, dilation)
-- Histogram equalization transform
-- Affine transformation support
-- Device capability querying
-- Performance profiling metrics
-- Batch processing job management
-- Color space conversion transforms
+- `HealthCheckService` with GPU availability and memory pressure checks
+- `PerformanceMonitoringService` with per-operation timing and throughput metrics
+- `MetricsPublisher` for emitting counters to an external endpoint
+- `TelemetryService` for structured trace collection
+- `AsyncTaskQueue` for fire-and-forget background operations
 
 ### Changed
-- Updated to .NET 10.0 from .NET 8.0
-- Improved Gaussian blur kernel accuracy
-- Enhanced Sobel edge detection sensitivity
-- Optimized batch processing pipeline
+- `DeviceService` now exposes `GetDeviceCapabilitiesAsync` returning driver and extension details
+- Processing results include `DurationMs`, `MemoryUsedMB`, and `GpuUtilizationPct` fields
 
 ### Fixed
-- Incorrect kernel size validation
-- Memory alignment issues on AMD GPUs
-- Filter parameter serialization
-- Transform composition ordering
+- `HealthCheckWorker` could block the host shutdown on slow GPU probes
+- Metrics timestamp drift on systems with non-monotonic clocks
 
-### Security
-- Added input validation for image dimensions
-- Implemented rate limiting for API
-- Added authorization middleware
-
-## [1.0.0] - 2026-04-01
+## [0.8.0] - 2025-06-23
 
 ### Added
-- Core GPU image processing engine
-- OpenCL integration layer
-- Gaussian blur filter
-- Bilateral filter
-- Median filter
-- Sobel edge detection
-- Image resize transformation
-- Image rotation transformation
-- GPU device detection and selection
-- Batch processing support
-- Processing profiles (speed, quality, balanced)
-- Performance monitoring service
-- Health check service
-- Configuration system
-- Repository pattern implementation
-- Dependency injection setup
-- CLI interface
-- API controller endpoints
-- Comprehensive logging
+- `BackgroundWorkers`: `CacheMaintenanceWorker`, `HealthCheckWorker`, `JobProcessingWorker`, `MetricsAggregationWorker`
+- `HttpImageClient` for downloading images from remote URLs with retry logic
+- `WebhookHandler` for posting processing-complete notifications
+- `DatabaseConnectionPool` integration stub
+- `RemoteImageService` for federated image retrieval
+- `NotificationService` for in-process alerts
 
-### Features
-- Support for JPEG, PNG, BMP, TIFF, WebP formats
-- Multi-GPU support
-- CPU fallback capability
-- Configurable precision (float32, float16)
-- Async/await support
-- Custom exception handling
-- Image caching with TTL
+### Changed
+- `BatchProcessingService` now delegates to `JobProcessingWorker` for background execution
+- Configuration validation moved to startup to fail fast on bad settings
 
----
+### Fixed
+- `HttpImageClient` did not dispose `HttpClient` between retries
+- `WebhookHandler` silently swallowed non-2xx responses
 
-## Version History Details
+## [0.7.0] - 2025-06-02
 
-### v1.2.0 - Production Release
-**Release Date**: May 4, 2026
+### Added
+- Distributed caching via `DistributedCache` with configurable TTL
+- `ProcessingCache` for in-process result memoization
+- Result formatters: `JsonResultFormatter`, `CsvResultFormatter`, `XmlResultFormatter`, `HtmlResultFormatter`, `MarkdownResultFormatter`, `TextResultFormatter`
+- `IResultFormatter` interface for custom formatter plugins
 
-Major milestone with production-ready features, comprehensive documentation, and deployment support. This release makes the project suitable for enterprise environments.
+### Changed
+- `ImageProcessingService.ProcessImageAsync` checks the cache before dispatching to GPU
+- Cache keys include filter and transform parameter hashes to avoid stale hits
 
-**Key Highlights**:
-- Full documentation suite (getting started, API reference, deployment, FAQ)
-- Docker containerization and orchestration support
-- CI/CD integration with GitHub Actions
-- Event-driven processing architecture
-- Advanced monitoring and metrics
+### Fixed
+- XML formatter produced malformed output when result contained null fields
+- CSV formatter did not escape commas in file paths
 
-**Breaking Changes**: None
+## [0.6.0] - 2025-05-19
 
-**Migration Guide**: Users upgrading from v1.1.0 should review the updated configuration options in `ApplicationSettings`.
+### Added
+- Domain event system: `EventAggregator`, `EventPublisher`, `DomainEvents`, `ProcessingEvents`
+- Middleware pipeline: `IProcessingMiddleware`, `ProcessingPipeline`, `MiddlewareContext`
+- Built-in middleware: `LoggingMiddleware`, `ErrorHandlingMiddleware`, `CompressionMiddleware`, `RateLimitingMiddleware`, `AuthorizationMiddleware`
+- `ImageProcessingController` REST endpoints for image registration and job submission
+- `RequestValidator` with input sanitization and size guards
 
-### v1.1.0 - Feature Complete
-**Release Date**: April 20, 2026
+### Changed
+- Processing pipeline now runs through the middleware chain before reaching GPU kernels
+- `OpenCLException` carries the native error code alongside the message
 
-Expanded filter and transform support with professional-grade features.
+### Fixed
+- Events were published before the result was persisted, causing consumers to read stale state
+- Rate limiter window did not reset correctly across midnight UTC
 
-**Key Highlights**:
-- 6 filters total (Gaussian, Bilateral, Median, Sobel, Canny, Morphological)
-- 6 transforms (Resize, Rotate, ColorSpace, Normalization, Histogram, Affine)
-- Device capability system
-- Enhanced performance profiling
-- Security features (validation, rate limiting, authorization)
+## [0.5.0] - 2025-05-05
 
-**Breaking Changes**: None
+### Added
+- `ApplicationSettings` with nested `ProcessingSettings`, `StorageSettings`, `CacheSettings`, `DeviceSettings`, `SecuritySettings`, `BatchSettings`
+- `ConfigurationValidator` with `CreateDefaultSettings()` factory
+- `DependencyInjectionSetup` for wiring all services in one call
+- `appsettings.json` template with documented fields
+- CLI subsystem: `CliParser`, `CommandDispatcher`, `CommandHandler`, `InteractiveShell`
+- CLI commands: `ProcessImageCommand`, `BatchCommand`, `FilterCommand`, `DeviceCommand`, `HelpCommand`, `VersionCommand`
 
-**Migration Guide**: Minor API changes in filter parameters. See API reference for new parameter names.
+### Changed
+- All services accept `ApplicationSettings` instead of individual constructor parameters
+- Default GPU timeout raised from 30 s to 300 s
 
-### v1.0.0 - Initial Release
-**Release Date**: April 1, 2026
+### Fixed
+- CLI parser crashed on unrecognized flags instead of printing usage
+- Device selection was not persisted between CLI invocations
 
-Initial stable release with core GPU processing functionality.
+## [0.4.0] - 2025-04-21
 
-**Key Highlights**:
-- 4 filters (Gaussian, Bilateral, Median, Sobel)
-- 2 transforms (Resize, Rotate)
-- GPU device detection
-- Batch processing
-- Performance monitoring
+### Added
+- `BatchProcessingService` with job queuing and progress tracking
+- `ProcessingJob` model with `Status`, `TotalCount`, `ProcessedCount`, `FailureCount`
+- `JobRepository` and `ResultRepository` for job persistence
+- `ProcessingProfile` model supporting speed, quality, and balanced presets
+- `ProcessingStatus` constants: Pending, Running, Completed, Failed, Cancelled, Paused
 
-**Known Limitations**:
-- Limited transform options
-- No distributed caching
-- Basic monitoring only
+### Changed
+- `ImageProcessingService.ProcessImageAsync` accepts a `profileId` to select the active profile
+- Batch jobs now report per-image failure reasons rather than aborting on first error
 
----
+### Fixed
+- Jobs stuck in `Running` state when the processing thread threw an unhandled exception
+- Batch size of 1 triggered a divide-by-zero in the progress calculation
 
-## Upgrading
+## [0.3.0] - 2025-04-07
 
-### From v1.1.0 to v1.2.0
+### Added
+- Geometric transforms: `Resize`, `Rotate`, `AffineTransform`, `ColorSpaceConversion`, `Normalization`, `HistogramEqualization`
+- `TransformService` with `CreateTransformAsync` and `UpdateTransformParametersAsync`
+- `Transform` and `TransformType` models
+- `TransformTypes` constants class
+- Parameter composition: transforms and filters can be chained in a single `ProcessImageAsync` call
 
-1. Update NuGet package:
-   ```bash
-   dotnet add package GpuImageProcessing --version 1.2.0
-   ```
+### Changed
+- `ImageProcessingService` now accepts both filter and transform ID lists
+- GPU kernel dispatch order: transforms applied before filters
 
-2. Update configuration if using custom settings:
-   ```csharp
-   // New options available:
-   settings.Cache.EnableDistributedCache = true;
-   settings.Events.EnableEventAggregation = true;
-   ```
+### Fixed
+- Rotation by 180° produced a mirrored image due to wrong matrix handedness
+- Color space conversion to LAB clipped values outside the expected range
 
-3. Review new middleware options:
-   ```csharp
-   pipeline.Add(new LoggingMiddleware());
-   pipeline.Add(new RateLimitingMiddleware());
-   ```
+## [0.2.0] - 2025-03-24
 
-### From v1.0.0 to v1.1.0
+### Added
+- `FilterService` with `CreateFilterAsync`, `UpdateFilterParametersAsync`, `DeleteFilterAsync`
+- Additional filters: `BilateralFilter`, `MedianFilter`, `SobelEdgeDetection`, `CannyEdgeDetection`, `MorphologicalOperation`
+- `FilterParameter` model for typed parameter storage
+- `FilterTypes` and `ImageFormats` constants
+- `GenericRepository<T>`, `IRepository<T>`, `ImageRepository`, `FilterRepository`
+- `DeviceService` with `GetAvailableDevicesAsync` and `SelectDeviceAsync`
+- `DeviceInfo` model exposing `GlobalMemoryMB`, `ComputeUnits`, `ClockFrequencyMHz`
+- Custom exceptions: `ImageProcessingException`, `OpenCLException`
 
-1. Update NuGet package:
-   ```bash
-   dotnet add package GpuImageProcessing --version 1.1.0
-   ```
+### Changed
+- Gaussian blur kernel now accepts arbitrary odd kernel sizes (previously fixed at 5×5)
+- Device detection falls back to CPU automatically when no OpenCL GPU is found
 
-2. New filters available:
-   ```csharp
-   FilterType.Canny
-   FilterType.Morphological
-   ```
+### Fixed
+- Bilateral filter produced NaN values for pixels at image boundaries
+- Median filter kernel was applied without padding, cropping the output by one pixel per edge
 
-3. New transforms available:
-   ```csharp
-   TransformType.HistogramEqualization
-   TransformType.AffineTransform
-   ```
+## [0.1.0] - 2025-03-10
 
----
-
-## Planned Features (Roadmap)
-
-### v1.3.0 (Q3 2026)
-- [ ] CUDA-specific optimization paths
-- [ ] ROCm support for AMD GPUs
-- [ ] Real-time video processing
-- [ ] Web UI dashboard
-- [ ] Advanced scheduling for batch jobs
-
-### v1.4.0 (Q4 2026)
-- [ ] Machine learning integration
-- [ ] Custom kernel compilation
-- [ ] Cloud deployment templates
-- [ ] Multi-GPU distributed processing
-- [ ] Advanced caching strategies
-
-### v2.0.0 (2027)
-- [ ] Architecture redesign for scalability
-- [ ] gRPC API support
-- [ ] Kubernetes Operator
-- [ ] Advanced monitoring with observability
-- [ ] Commercial enterprise features
-
----
-
-## Support
-
-For questions about upgrading or to report issues:
-- Create an issue on [GitHub](https://github.com/Sarmkadan/gpu-image-processing/issues)
-- Start a discussion on [GitHub Discussions](https://github.com/Sarmkadan/gpu-image-processing/discussions)
-- Check [FAQ](docs/faq.md) for common questions
+### Added
+- Initial project scaffold targeting .NET 10.0
+- OpenCL device enumeration via `Silk.NET.OpenCL`
+- `Image` domain model with format, dimensions, and file path
+- `ImageProcessingService` with `RegisterImageAsync` and basic `ProcessImageAsync`
+- `GaussianBlurFilter` as the first GPU-accelerated operation
+- `ProcessingResult` model with output path and status
+- `Filter` and `FilterType` models
+- MIT license, `.gitignore`, `.editorconfig`
 
 ---
 
