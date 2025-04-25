@@ -189,6 +189,17 @@ Run formatter:
 dotnet format
 ```
 
+### File Headers
+
+Each C# file must start with a copyright header. **Do not remove or modify existing author headers** when editing files.
+
+```csharp
+// Copyright (c) [year] [Author Name]. All rights reserved.
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+
+namespace GpuImageProcessing.Services;
+```
+
 ### Comments
 
 Write comments for "why", not "what":
