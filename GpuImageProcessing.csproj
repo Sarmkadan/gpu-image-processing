@@ -9,6 +9,9 @@
     <TieredCompilation>true</TieredCompilation>
     <PublishReadyToRun>true</PublishReadyToRun>
     <InvariantGlobalization>false</InvariantGlobalization>
+    <RepositoryUrl>https://github.com/sarmkadan/gpu-image-processing</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Authors>Vladyslav Zaiets</Authors>
   </PropertyGroup>
 
   <ItemGroup>
