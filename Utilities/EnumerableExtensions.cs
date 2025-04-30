@@ -254,7 +254,8 @@ namespace GpuImageProcessing.Utilities
         public static IEnumerable<T> Shuffle<T>(this IEnumerable<T> source)
         {
             var list = source.ToList();
-            var random = new Random();
+            // Random.Shared is thread-safe and avoids a per-call heap allocation.
+            var random = Random.Shared;
 
             for (int i = list.Count - 1; i > 0; i--)
             {
