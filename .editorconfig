@@ -93,6 +93,13 @@ csharp_space_after_keywords_in_control_flow_statements = true
 csharp_space_between_method_call_parameter_list_parentheses = false
 csharp_space_between_method_declaration_empty_parameter_list_parentheses = false
 
+# Var preferences
+dotnet_style_var_for_built_in_types = false:suggestion
+dotnet_style_var_when_type_is_apparent = false:suggestion
+
+# Using directives placement
+csharp_using_directive_placement = outside_namespace:silent
+
 # License header
 [*.cs]
 file_header_template = =============================================================================\nAuthor: Vladyslav Zaiets | https://sarmkadan.com\nCTO & Software Architect\n=============================================================================
