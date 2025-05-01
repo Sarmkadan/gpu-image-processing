@@ -5,28 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.0.0] - 2025-08-11
+## [2.0.0] - 2025-10-11
 
 ### Added
-- Stable public API with full XML documentation
-- Complete documentation suite: getting started, API reference, deployment guide, FAQ
-- Docker and Docker Compose support with GPU passthrough
-- CI/CD pipeline via GitHub Actions (build, test, publish)
-- CodeQL security scanning workflow
-- Dependabot configuration for automated dependency updates
-- Prometheus metrics endpoint and `prometheus.yml` scrape config
-- 5 annotated examples covering blur, batch, transforms, monitoring, and advanced filtering
-- NuGet packaging configuration with readme and license embedding
+- Add compute shader pipeline with automatic workgroup optimization
+- Docker support with multi-stage builds
+- Health check endpoints (/health, /health/ready)
+- Integration test suite with xUnit
+- Migration guide from v1.x
 
 ### Changed
-- Finalized `ApplicationSettings` schema — all fields documented and validated at startup
-- Improved error messages across all services with actionable suggestions
-- Structured logging throughout using `ILogger<T>`
+- Upgraded to .NET 10.0
+- Modern C# features (records, primary constructors)
+- Improved API consistency
 
 ### Fixed
-- Race condition in `BatchProcessingService` under high concurrency
-- GPU memory not released after cancelled jobs
-- Filter parameter validation rejecting valid float ranges
+- Various edge cases found through testing
 
 ## [0.9.0] - 2025-07-14
 
