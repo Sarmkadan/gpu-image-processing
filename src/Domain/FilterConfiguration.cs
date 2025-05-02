@@ -24,6 +24,19 @@ public class FilterConfiguration
     public string? KernelCode { get; set; }
     public int MaxThreadsPerBlock { get; set; }
 
+    /// <summary>
+    /// Custom NxN convolution kernel matrix supplied as a flat row-major float array.
+    /// Must have exactly Size*Size elements where Size = sqrt(ConvolutionKernel.Length).
+    /// Only used when <see cref="FilterType"/> is <see cref="FilterType.CustomConvolution"/>.
+    /// </summary>
+    public float[]? ConvolutionKernel { get; set; }
+
+    /// <summary>
+    /// When true, the kernel coefficients are divided by their sum before dispatch
+    /// so the overall image brightness is preserved.
+    /// </summary>
+    public bool NormalizeKernel { get; set; }
+
     public FilterConfiguration()
     {
         Id = Guid.NewGuid();
@@ -81,8 +94,27 @@ public class FilterConfiguration
             FilterType.Threshold when Parameters.TryGetValue("thresholdValue", out var tv) =>
                 tv is float t && t >= 0.0f && t <= 1.0f,
 
+            FilterType.CustomConvolution => ValidateConvolutionKernel(),
+
             _ => true
         };
+    }
+
+    /// <summary>
+    /// Validates that ConvolutionKernel is a non-empty square matrix (odd side length, 3–15).
+    /// </summary>
+    private bool ValidateConvolutionKernel()
+    {
+        if (ConvolutionKernel is null || ConvolutionKernel.Length == 0)
+            return false;
+
+        int len = ConvolutionKernel.Length;
+        int side = (int)Math.Round(Math.Sqrt(len));
+        if (side * side != len)
+            return false; // must be a perfect square
+
+        // Accept odd sizes 3x3 through 15x15
+        return side >= 3 && side <= 15 && side % 2 == 1;
     }
 
     /// <summary>
@@ -120,7 +152,9 @@ public class FilterConfiguration
             IsActive = IsActive,
             Priority = Priority,
             KernelCode = KernelCode,
-            MaxThreadsPerBlock = MaxThreadsPerBlock
+            MaxThreadsPerBlock = MaxThreadsPerBlock,
+            ConvolutionKernel = ConvolutionKernel is null ? null : (float[])ConvolutionKernel.Clone(),
+            NormalizeKernel = NormalizeKernel
         };
     }
 }
