@@ -4,6 +4,16 @@
 // CTO & Software Architect
 // =============================================================================
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Microsoft.Extensions.Logging;
+using GpuImageProcessing.Core;
+using GpuImageProcessing.Core.Enums;
+using GpuImageProcessing.Domain;
+using Silk.NET.OpenCL;
+
 namespace GpuImageProcessing.Services;
 
 /// <summary>
@@ -179,52 +189,232 @@ public class GpuManagementService
         }
     }
 
-    private void InitializeDevices()
+    private unsafe void InitializeDevices()
     {
         try
         {
-            _logger.LogInformation("Initializing GPU devices...");
+            _logger.LogInformation("Initializing GPU devices using OpenCL...");
 
-            // Simulate GPU device detection
-            var device1 = new GpuDevice
-            {
-                Name = "NVIDIA GeForce RTX 3090",
-                DeviceType = GpuDeviceType.Gpu,
-                Vendor = "NVIDIA",
-                Version = "12.4",
-                Driver = "535.0",
-                GlobalMemoryBytes = 24 * 1024L * 1024 * 1024,
-                LocalMemoryBytes = 96 * 1024,
-                MaxAllocatableMemoryBytes = 24 * 1024L * 1024 * 1024,
-                MaxComputeUnits = 82,
-                MaxWorkGroupSize = 1024,
-                MaxWorkItemDimensions = 3,
-                MaxWorkItemSizes = [1024, 1024, 64],
-                MaxClockFrequencyMhz = 2520.0,
-                SupportsDoublePrecision = true,
-                SupportsHalfPrecision = true,
-                IsAvailable = true,
-                ComputeCapabilityMajor = 8,
-                ComputeCapabilityMinor = 6
-            };
+            CL cl = CL.GetApi();
 
-            lock (_lockObject)
+            // Get number of platforms
+            uint numPlatforms;
+            cl.GetPlatformIDs(0, null, &numPlatforms);
+            if (numPlatforms == 0)
             {
-                _devices.Add(device1);
+                _logger.LogWarning("No OpenCL platforms found.");
+                return;
             }
 
-            _logger.LogInformation("Detected {DeviceCount} GPU device(s)", _devices.Count);
+            // Get platform IDs
+            var platformIds = new Platform[numPlatforms];
+            cl.GetPlatformIDs(numPlatforms, platformIds, null);
 
-            foreach (var device in _devices)
+            foreach (var platformId in platformIds)
             {
-                _logger.LogInformation("Device: {DeviceName} - {Memory}GB, {ComputeUnits} CUs",
-                    device.Name, device.GlobalMemoryBytes / (1024L * 1024 * 1024), device.MaxComputeUnits);
+                // Get platform name
+                byte[] platformNameBytes = new byte[256];
+                fixed (byte* ptr = platformNameBytes)
+                {
+                    cl.GetPlatformInfo(platformId, PlatformInfo.Name, (nuint)platformNameBytes.Length, ptr, null);
+                }
+                string platformName = Encoding.ASCII.GetString(platformNameBytes.Where(b => b != 0).ToArray());
+
+                _logger.LogInformation("Found OpenCL Platform: {PlatformName}", platformName);
+
+                // Get number of devices for this platform
+                uint numDevices;
+                cl.GetDeviceIDs(platformId, DeviceType.All, 0, null, &numDevices);
+                if (numDevices == 0)
+                {
+                    _logger.LogInformation("No devices found for platform {PlatformName}.", platformName);
+                    continue;
+                }
+
+                // Get device IDs
+                var deviceIds = new Device[numDevices];
+                cl.GetDeviceIDs(platformId, DeviceType.All, numDevices, deviceIds, null);
+
+                foreach (var deviceId in deviceIds)
+                {
+                    GpuDevice gpuDevice = new GpuDevice();
+                    gpuDevice.Id = Guid.NewGuid(); // Generate a new GUID for internal use
+
+                    // Get device name
+                    byte[] deviceNameBytes = new byte[256];
+                    fixed (byte* ptr = deviceNameBytes)
+                    {
+                        cl.GetDeviceInfo(deviceId, DeviceInfo.Name, (nuint)deviceNameBytes.Length, ptr, null);
+                    }
+                    gpuDevice.Name = Encoding.ASCII.GetString(deviceNameBytes.Where(b => b != 0).ToArray());
+
+                    // Get device vendor
+                    byte[] deviceVendorBytes = new byte[256];
+                    fixed (byte* ptr = deviceVendorBytes)
+                    {
+                        cl.GetDeviceInfo(deviceId, DeviceInfo.Vendor, (nuint)deviceVendorBytes.Length, ptr, null);
+                    }
+                    gpuDevice.Vendor = Encoding.ASCII.GetString(deviceVendorBytes.Where(b => b != 0).ToArray());
+
+                    // Get device type
+                    DeviceType devType;
+                    cl.GetDeviceInfo(deviceId, DeviceInfo.Type, (nuint)sizeof(DeviceType), &devType, null);
+                    gpuDevice.DeviceType = MapOpenCLDeviceType(devType);
+
+                    // Get global memory
+                    ulong globalMem;
+                    cl.GetDeviceInfo(deviceId, DeviceInfo.GlobalMemSize, (nuint)sizeof(ulong), &globalMem, null);
+                    gpuDevice.GlobalMemoryBytes = (long)globalMem;
+                    gpuDevice.MaxAllocatableMemoryBytes = (long)globalMem; // Assume all is allocatable initially
+
+                    // Get local memory
+                    ulong localMem;
+                    cl.GetDeviceInfo(deviceId, DeviceInfo.LocalMemSize, (nuint)sizeof(ulong), &localMem, null);
+                    gpuDevice.LocalMemoryBytes = (long)localMem;
+
+                    // Get max compute units
+                    uint maxComputeUnits;
+                    cl.GetDeviceInfo(deviceId, DeviceInfo.MaxComputeUnits, (nuint)sizeof(uint), &maxComputeUnits, null);
+                    gpuDevice.MaxComputeUnits = (int)maxComputeUnits;
+
+                    // Get max work group size
+                    nuint maxWorkGroupSize;
+                    cl.GetDeviceInfo(deviceId, DeviceInfo.MaxWorkGroupSize, (nuint)sizeof(nuint), &maxWorkGroupSize, null);
+                    gpuDevice.MaxWorkGroupSize = (int)maxWorkGroupSize;
+
+                    // Get max clock frequency
+                    uint maxClockFrequency;
+                    cl.GetDeviceInfo(deviceId, DeviceInfo.MaxClockFrequency, (nuint)sizeof(uint), &maxClockFrequency, null);
+                    gpuDevice.MaxClockFrequencyMhz = maxClockFrequency;
+
+                    // Get OpenCL C version
+                    byte[] versionBytes = new byte[256];
+                    fixed (byte* ptr = versionBytes)
+                    {
+                        cl.GetDeviceInfo(deviceId, DeviceInfo.OpenCLCVersion, (nuint)versionBytes.Length, ptr, null);
+                    }
+                    gpuDevice.Version = Encoding.ASCII.GetString(versionBytes.Where(b => b != 0).ToArray());
+
+                    // Get driver version
+                    byte[] driverVersionBytes = new byte[256];
+                    fixed (byte* ptr = driverVersionBytes)
+                    {
+                        cl.GetDeviceInfo(deviceId, DeviceInfo.DriverVersion, (nuint)driverVersionBytes.Length, ptr, null);
+                    }
+                    gpuDevice.Driver = Encoding.ASCII.GetString(driverVersionBytes.Where(b => b != 0).ToArray());
+
+                    // Supports Double Precision
+                    // Check for extension "cl_khr_fp64" or CL_DEVICE_DOUBLE_FP_CONFIG
+                    ulong doubleFpConfig;
+                    cl.GetDeviceInfo(deviceId, DeviceInfo.DoubleFpConfig, (nuint)sizeof(ulong), &doubleFpConfig, null);
+                    gpuDevice.SupportsDoublePrecision = (doubleFpConfig & (ulong)fp_config.CorrectlyRoundedDivideSqrt) != 0;
+
+
+                    // Supports Half Precision
+                    // Check for extension "cl_khr_fp16" or CL_DEVICE_HALF_FP_CONFIG
+                    ulong halfFpConfig;
+                    cl.GetDeviceInfo(deviceId, DeviceInfo.HalfFpConfig, (nuint)sizeof(ulong), &halfFpConfig, null);
+                    gpuDevice.SupportsHalfPrecision = (halfFpConfig & (ulong)fp_config.FpDenorm) != 0;
+
+                    // Max work item dimensions and sizes
+                    uint maxWorkItemDims;
+                    cl.GetDeviceInfo(deviceId, DeviceInfo.MaxWorkItemDimensions, (nuint)sizeof(uint), &maxWorkItemDims, null);
+                    gpuDevice.MaxWorkItemDimensions = (int)maxWorkItemDims;
+
+                    nuint[] maxWorkItemSizes = new nuint[maxWorkItemDims];
+                    fixed (nuint* ptr = maxWorkItemSizes)
+                    {
+                        cl.GetDeviceInfo(deviceId, DeviceInfo.MaxWorkItemSizes, (nuint)(sizeof(nuint) * maxWorkItemDims), ptr, null);
+                    }
+                    gpuDevice.MaxWorkItemSizes = maxWorkItemSizes.Select(s => (int)s).ToArray();
+
+                    // Wavefront size
+                    uint preferredWorkGroupSizeMultiple;
+                    cl.GetDeviceInfo(deviceId, DeviceInfo.PreferredWorkGroupSizeMultiple, (nuint)sizeof(uint), &preferredWorkGroupSizeMultiple, null);
+                    gpuDevice.WavefrontSize = (int)preferredWorkGroupSizeMultiple;
+
+
+                    gpuDevice.IsAvailable = true; // Mark as available if successfully detected and properties retrieved
+
+                    // Add extensions (example for KHR_fp64)
+                    byte[] extensionsBytes = new byte[1024];
+                    fixed (byte* ptr = extensionsBytes)
+                    {
+                        cl.GetDeviceInfo(deviceId, DeviceInfo.Extensions, (nuint)extensionsBytes.Length, ptr, null);
+                    }
+                    string extensionsString = Encoding.ASCII.GetString(extensionsBytes.Where(b => b != 0).ToArray());
+                    foreach (var ext in extensionsString.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        gpuDevice.Extensions[ext] = "supported";
+                    }
+
+                    lock (_lockObject)
+                    {
+                        _devices.Add(gpuDevice);
+                    }
+                    _logger.LogInformation("  Detected device: {DeviceName} ({DeviceType}) from {Vendor}",
+                        gpuDevice.Name, gpuDevice.DeviceType, gpuDevice.Vendor);
+                }
             }
+
+            if (_devices.Count == 0)
+            {
+                _logger.LogWarning("No GPU devices detected using OpenCL. Falling back to simulated data.");
+                // Fallback to simulated data if no real devices are found
+                AddSimulatedDevice();
+            }
+
+            _logger.LogInformation("Finished GPU device initialization. Detected {DeviceCount} device(s).", _devices.Count);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to initialize GPU devices");
+            _logger.LogError(ex, "Failed to initialize GPU devices using OpenCL.");
+            // Fallback to simulated data on error
+            AddSimulatedDevice();
             throw new GpuException("GPU initialization failed", ex, null, Constants.ErrorCodes.GpuInitializationFailed);
+        }
+    }
+
+    private GpuDeviceType MapOpenCLDeviceType(DeviceType openClDeviceType)
+    {
+        if (openClDeviceType.HasFlag(DeviceType.Gpu))
+            return GpuDeviceType.Gpu;
+        if (openClDeviceType.HasFlag(DeviceType.Cpu))
+            return GpuDeviceType.Cpu;
+        if (openClDeviceType.HasFlag(DeviceType.Accelerator))
+            return GpuDeviceType.Accelerator;
+        return GpuDeviceType.Unknown;
+    }
+
+    private void AddSimulatedDevice()
+    {
+        var device1 = new GpuDevice
+        {
+            Name = "NVIDIA GeForce RTX 3090 (Simulated)",
+            DeviceType = GpuDeviceType.Gpu,
+            Vendor = "NVIDIA",
+            Version = "12.4",
+            Driver = "535.0",
+            GlobalMemoryBytes = 24 * 1024L * 1024 * 1024,
+            LocalMemoryBytes = 96 * 1024,
+            MaxAllocatableMemoryBytes = 24 * 1024L * 1024 * 1024,
+            MaxComputeUnits = 82,
+            MaxWorkGroupSize = 1024,
+            MaxWorkItemDimensions = 3,
+            MaxWorkItemSizes = [1024, 1024, 64],
+            MaxClockFrequencyMhz = 2520.0,
+            SupportsDoublePrecision = true,
+            SupportsHalfPrecision = true,
+            IsAvailable = true,
+            ComputeCapabilityMajor = 8,
+            ComputeCapabilityMinor = 6,
+            WavefrontSize = 32
+        };
+
+        lock (_lockObject)
+        {
+            _devices.Clear(); // Clear any partially detected devices
+            _devices.Add(device1);
         }
     }
 }
