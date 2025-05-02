@@ -111,7 +111,7 @@ namespace GpuImageProcessing.Events
                 {
                     if (handler is Func<T, Task> asyncHandler)
                     {
-                        await asyncHandler(@event);
+                        await asyncHandler(@event).ConfigureAwait(false);
                     }
                     else if (handler is Action<T> syncHandler)
                     {

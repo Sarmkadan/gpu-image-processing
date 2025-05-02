@@ -54,7 +54,7 @@ namespace GpuImageProcessing.Services
                 Timestamp = DateTime.UtcNow
             };
 
-            await SendNotificationAsync(notification);
+            await SendNotificationAsync(notification).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -72,7 +72,7 @@ namespace GpuImageProcessing.Services
                 Timestamp = DateTime.UtcNow
             };
 
-            await SendNotificationAsync(notification);
+            await SendNotificationAsync(notification).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -90,7 +90,7 @@ namespace GpuImageProcessing.Services
                 Timestamp = DateTime.UtcNow
             };
 
-            await SendNotificationAsync(notification);
+            await SendNotificationAsync(notification).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace GpuImageProcessing.Services
                 }
             };
 
-            await SendNotificationAsync(notification);
+            await SendNotificationAsync(notification).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -131,7 +131,7 @@ namespace GpuImageProcessing.Services
                 Timestamp = DateTime.UtcNow
             };
 
-            await SendNotificationAsync(notification);
+            await SendNotificationAsync(notification).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -158,7 +158,7 @@ namespace GpuImageProcessing.Services
                 tasks.Add(SendThroughChannelAsync(channel, notification));
             }
 
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -168,7 +168,7 @@ namespace GpuImageProcessing.Services
         {
             try
             {
-                await channel.SendAsync(notification);
+                await channel.SendAsync(notification).ConfigureAwait(false);
 
                 _logger.LogDebug(
                     "Notification sent through {ChannelType} - NotificationId: {NotificationId}",

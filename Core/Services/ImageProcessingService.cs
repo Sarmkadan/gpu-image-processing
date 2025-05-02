@@ -49,7 +49,7 @@ namespace GpuImageProcessing.Core.Services
                 throw new ArgumentException("File path cannot be empty", nameof(filePath));
 
             var image = Image.CreateFromFile(filePath, name);
-            return await _imageRepository.AddAsync(image);
+            return await _imageRepository.AddAsync(image).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -57,7 +57,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<Image?> GetImageAsync(Guid imageId)
         {
-            return await _imageRepository.GetByIdAsync(imageId);
+            return await _imageRepository.GetByIdAsync(imageId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<IEnumerable<Image>> GetAllImagesAsync()
         {
-            return await _imageRepository.GetAllAsync();
+            return await _imageRepository.GetAllAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -78,7 +78,7 @@ namespace GpuImageProcessing.Core.Services
             transformIds ??= new List<Guid>();
 
             var stopwatch = Stopwatch.StartNew();
-            var image = await _imageRepository.GetByIdAsync(imageId);
+            var image = await _imageRepository.GetByIdAsync(imageId).ConfigureAwait(false);
 
             if (image == null)
                 return ProcessingResult.CreateFailure(Guid.Empty, imageId, "", "Image not found");
@@ -91,7 +91,7 @@ namespace GpuImageProcessing.Core.Services
                 ProcessingProfile? profile = null;
                 if (profileId.HasValue)
                 {
-                    profile = await _profileRepository.GetByIdAsync(profileId.Value);
+                    profile = await _profileRepository.GetByIdAsync(profileId.Value).ConfigureAwait(false);
                 }
                 
                 if (profile == null)
@@ -102,7 +102,7 @@ namespace GpuImageProcessing.Core.Services
                 // Simulate filter application
                 foreach (var filterId in filterIds)
                 {
-                    var filter = await _filterRepository.GetByIdAsync(filterId);
+                    var filter = await _filterRepository.GetByIdAsync(filterId).ConfigureAwait(false);
                     if (filter != null && filter.IsActive)
                     {
                         result.RecordAppliedFilter(filter.Name);
@@ -112,7 +112,7 @@ namespace GpuImageProcessing.Core.Services
                 // Simulate transform application
                 foreach (var transformId in transformIds)
                 {
-                    var transform = await _transformRepository.GetByIdAsync(transformId);
+                    var transform = await _transformRepository.GetByIdAsync(transformId).ConfigureAwait(false);
                     if (transform != null && transform.IsActive)
                     {
                         result.RecordAppliedTransform(transform.Name);
@@ -126,7 +126,7 @@ namespace GpuImageProcessing.Core.Services
                 result.AddMetric("device", _deviceService.GetSelectedDevice()?.Name ?? "Unknown");
 
                 image.MarkAsProcessed();
-                await _imageRepository.UpdateAsync(image);
+                await _imageRepository.UpdateAsync(image).ConfigureAwait(false);
 
                 return result;
             }
@@ -153,7 +153,7 @@ namespace GpuImageProcessing.Core.Services
             transformIds ??= new List<Guid>();
 
             var results = new List<ProcessingResult>();
-            var profile = await _profileRepository.GetByIdAsync(profileId);
+            var profile = await _profileRepository.GetByIdAsync(profileId).ConfigureAwait(false);
 
             if (profile == null)
                 profile = ProcessingProfile.CreateBalanced();
@@ -187,7 +187,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<ImageProcessingStats> GetImageStatsAsync(Guid imageId)
         {
-            var image = await _imageRepository.GetByIdAsync(imageId);
+            var image = await _imageRepository.GetByIdAsync(imageId).ConfigureAwait(false);
             if (image == null)
                 throw new InvalidImageException("Image not found");
 
@@ -206,7 +206,7 @@ namespace GpuImageProcessing.Core.Services
                 ModifiedAt = image.ModifiedAt
             };
 
-            return await Task.FromResult(stats);
+            return await Task.FromResult(stats).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -214,7 +214,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<bool> CanProcessAsync(List<Guid> imageIds, Guid profileId)
         {
-            var profile = await _profileRepository.GetByIdAsync(profileId) ?? ProcessingProfile.CreateBalanced();
+            var profile = await _profileRepository.GetByIdAsync(profileId) ?? ProcessingProfile.CreateBalanced().ConfigureAwait(false);
             var device = _deviceService.GetSelectedDevice();
 
             if (device == null)
@@ -223,7 +223,7 @@ namespace GpuImageProcessing.Core.Services
             long totalMemoryNeeded = 0;
             foreach (var imageId in imageIds)
             {
-                var image = await _imageRepository.GetByIdAsync(imageId);
+                var image = await _imageRepository.GetByIdAsync(imageId).ConfigureAwait(false);
                 if (image != null)
                     totalMemoryNeeded += image.FileSizeBytes * 3; // Input, output, working buffer
             }
@@ -236,7 +236,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<ProcessingProfile?> GetProfileAsync(Guid profileId)
         {
-            return await _profileRepository.GetByIdAsync(profileId);
+            return await _profileRepository.GetByIdAsync(profileId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -244,7 +244,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<IEnumerable<ProcessingProfile>> GetAllProfilesAsync()
         {
-            return await _profileRepository.GetAllAsync();
+            return await _profileRepository.GetAllAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ namespace GpuImageProcessing.Core.Services
                 BatchSize = 10
             };
 
-            return await _profileRepository.AddAsync(profile);
+            return await _profileRepository.AddAsync(profile).ConfigureAwait(false);
         }
 
         /// <summary>

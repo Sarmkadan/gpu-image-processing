@@ -89,7 +89,7 @@ namespace GpuImageProcessing.Services
                     }
                     else
                     {
-                        await Task.Delay(100, cancellationToken);
+                        await Task.Delay(100, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
@@ -110,7 +110,7 @@ namespace GpuImageProcessing.Services
                 var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 cts.CancelAfter(TimeSpan.FromMinutes(5)); // 5-minute timeout
 
-                await task.Action(cts.Token);
+                await task.Action(cts.Token).ConfigureAwait(false);
 
                 task.State = TaskState.Completed;
                 task.CompletedAt = DateTime.UtcNow;

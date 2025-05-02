@@ -183,11 +183,11 @@ namespace GpuImageProcessing.Utilities
             foreach (var item in retriableItems)
             {
                 var delayMs = initialDelayMs * (int)Math.Pow(2, item.RetryCount);
-                await Task.Delay(delayMs);
+                await Task.Delay(delayMs).ConfigureAwait(false);
 
                 try
                 {
-                    var success = await processingFunc(item.Item);
+                    var success = await processingFunc(item.Item).ConfigureAwait(false);
                     if (success)
                         item.RetryCount++;
                 }

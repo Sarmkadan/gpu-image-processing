@@ -109,7 +109,7 @@ namespace GpuImageProcessing.Core.Repository
                 }
             }
 
-            return await Task.FromResult(ratios.Count > 0 ? ratios.Average() : 1.0f);
+            return await Task.FromResult(ratios.Count > 0 ? ratios.Average() : 1.0f).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -143,7 +143,7 @@ namespace GpuImageProcessing.Core.Repository
                     : 0
             };
 
-            return await Task.FromResult(stats);
+            return await Task.FromResult(stats).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -169,7 +169,7 @@ namespace GpuImageProcessing.Core.Repository
                 .Take(topCount)
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
-            return await Task.FromResult(topFilters);
+            return await Task.FromResult(topFilters).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace GpuImageProcessing.Core.Repository
                 _entities.Remove(result);
             }
 
-            return await Task.FromResult(resultsToRemove.Count);
+            return await Task.FromResult(resultsToRemove.Count).ConfigureAwait(false);
         }
     }
 

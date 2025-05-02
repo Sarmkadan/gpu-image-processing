@@ -55,7 +55,7 @@ Examples:
                 }
                 else if (HasFlag("check"))
                 {
-                    return await CheckForUpdatesAsync();
+                    return await CheckForUpdatesAsync().ConfigureAwait(false);
                 }
                 else
                 {

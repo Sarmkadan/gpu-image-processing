@@ -46,7 +46,7 @@ namespace GpuImageProcessing.Examples
 
                 // Register image
                 const string imageFile = "photo.jpg";
-                var image = await imageProcessing.RegisterImageAsync(imageFile, "Original");
+                var image = await imageProcessing.RegisterImageAsync(imageFile, "Original").ConfigureAwait(false);
                 Console.WriteLine($"✓ Image registered: {image.Width}x{image.Height}");
 
                 // Create transforms

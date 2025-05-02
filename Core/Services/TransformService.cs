@@ -35,7 +35,7 @@ namespace GpuImageProcessing.Core.Services
             transform.Name = name;
             transform.Description = description;
 
-            return await _transformRepository.AddAsync(transform);
+            return await _transformRepository.AddAsync(transform).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -43,7 +43,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<Transform?> GetTransformAsync(Guid transformId)
         {
-            return await _transformRepository.GetByIdAsync(transformId);
+            return await _transformRepository.GetByIdAsync(transformId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -51,7 +51,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<IEnumerable<Transform>> GetAllTransformsAsync()
         {
-            return await _transformRepository.GetAllAsync();
+            return await _transformRepository.GetAllAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<IEnumerable<Transform>> GetActiveTransformsAsync()
         {
-            var transforms = await _transformRepository.GetAllAsync();
+            var transforms = await _transformRepository.GetAllAsync().ConfigureAwait(false);
             return transforms.Where(t => t.IsActive)
                 .OrderBy(t => t.ExecutionOrder).ToList();
         }
@@ -69,12 +69,12 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<bool> SetParameterAsync(Guid transformId, string parameterName, float value)
         {
-            var transform = await _transformRepository.GetByIdAsync(transformId);
+            var transform = await _transformRepository.GetByIdAsync(transformId).ConfigureAwait(false);
             if (transform == null)
                 return false;
 
             transform.SetParameter(parameterName, value);
-            await _transformRepository.UpdateAsync(transform);
+            await _transformRepository.UpdateAsync(transform).ConfigureAwait(false);
             return true;
         }
 
@@ -83,7 +83,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<bool> SetParametersAsync(Guid transformId, Dictionary<string, float> parameters)
         {
-            var transform = await _transformRepository.GetByIdAsync(transformId);
+            var transform = await _transformRepository.GetByIdAsync(transformId).ConfigureAwait(false);
             if (transform == null)
                 return false;
 
@@ -92,7 +92,7 @@ namespace GpuImageProcessing.Core.Services
                 transform.SetParameter(param.Key, param.Value);
             }
 
-            await _transformRepository.UpdateAsync(transform);
+            await _transformRepository.UpdateAsync(transform).ConfigureAwait(false);
             return true;
         }
 
@@ -101,11 +101,11 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<float> GetParameterAsync(Guid transformId, string parameterName, float defaultValue = 0f)
         {
-            var transform = await _transformRepository.GetByIdAsync(transformId);
+            var transform = await _transformRepository.GetByIdAsync(transformId).ConfigureAwait(false);
             if (transform == null)
                 return defaultValue;
 
-            return await Task.FromResult(transform.GetParameter(parameterName, defaultValue));
+            return await Task.FromResult(transform.GetParameter(parameterName, defaultValue)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -118,11 +118,11 @@ namespace GpuImageProcessing.Core.Services
 
             foreach (var id in transformIds)
             {
-                var transform = await _transformRepository.GetByIdAsync(id);
+                var transform = await _transformRepository.GetByIdAsync(id).ConfigureAwait(false);
                 if (transform != null)
                 {
                     transform.ExecutionOrder = order++;
-                    await _transformRepository.UpdateAsync(transform);
+                    await _transformRepository.UpdateAsync(transform).ConfigureAwait(false);
                     transforms.Add(transform);
                 }
             }
@@ -135,12 +135,12 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<bool> ActivateTransformAsync(Guid transformId)
         {
-            var transform = await _transformRepository.GetByIdAsync(transformId);
+            var transform = await _transformRepository.GetByIdAsync(transformId).ConfigureAwait(false);
             if (transform == null)
                 return false;
 
             transform.IsActive = true;
-            await _transformRepository.UpdateAsync(transform);
+            await _transformRepository.UpdateAsync(transform).ConfigureAwait(false);
             return true;
         }
 
@@ -149,12 +149,12 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<bool> DeactivateTransformAsync(Guid transformId)
         {
-            var transform = await _transformRepository.GetByIdAsync(transformId);
+            var transform = await _transformRepository.GetByIdAsync(transformId).ConfigureAwait(false);
             if (transform == null)
                 return false;
 
             transform.IsActive = false;
-            await _transformRepository.UpdateAsync(transform);
+            await _transformRepository.UpdateAsync(transform).ConfigureAwait(false);
             return true;
         }
 
@@ -163,7 +163,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<bool> DeleteTransformAsync(Guid transformId)
         {
-            return await _transformRepository.DeleteAsync(transformId);
+            return await _transformRepository.DeleteAsync(transformId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -171,13 +171,13 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<Transform> CloneTransformAsync(Guid transformId)
         {
-            var transform = await _transformRepository.GetByIdAsync(transformId);
+            var transform = await _transformRepository.GetByIdAsync(transformId).ConfigureAwait(false);
             if (transform == null)
                 throw new InvalidOperationException("Transform not found");
 
             var cloned = transform.Clone();
             cloned.Name = $"{transform.Name} (Copy)";
-            return await _transformRepository.AddAsync(cloned);
+            return await _transformRepository.AddAsync(cloned).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -185,11 +185,11 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<string> ExportConfigurationAsync(Guid transformId)
         {
-            var transform = await _transformRepository.GetByIdAsync(transformId);
+            var transform = await _transformRepository.GetByIdAsync(transformId).ConfigureAwait(false);
             if (transform == null)
                 return string.Empty;
 
-            return await Task.FromResult(transform.GetFullDescription());
+            return await Task.FromResult(transform.GetFullDescription()).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -202,7 +202,7 @@ namespace GpuImageProcessing.Core.Services
 
             foreach (var id in transformIds)
             {
-                var transform = await _transformRepository.GetByIdAsync(id);
+                var transform = await _transformRepository.GetByIdAsync(id).ConfigureAwait(false);
                 if (transform != null)
                 {
                     description += $"Step {step}: {transform.Name} ({transform.Type})\n";
@@ -218,7 +218,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<TransformStatistics> GetStatisticsAsync()
         {
-            var allTransforms = await _transformRepository.GetAllAsync();
+            var allTransforms = await _transformRepository.GetAllAsync().ConfigureAwait(false);
             var transforms = allTransforms.ToList();
 
             var stats = new TransformStatistics
@@ -232,7 +232,7 @@ namespace GpuImageProcessing.Core.Services
                 TotalExecutionTime = transforms.Sum(t => t.ProcessingTimeMs)
             };
 
-            return await Task.FromResult(stats);
+            return await Task.FromResult(stats).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -240,7 +240,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<IEnumerable<Transform>> GetByTypeAsync(TransformType type)
         {
-            var transforms = await _transformRepository.GetAllAsync();
+            var transforms = await _transformRepository.GetAllAsync().ConfigureAwait(false);
             return transforms.Where(t => t.Type == type).ToList();
         }
     }

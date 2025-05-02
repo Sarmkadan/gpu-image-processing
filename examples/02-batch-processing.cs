@@ -133,13 +133,13 @@ namespace GpuImageProcessing.Examples
 
                 // Execute batch job
                 Console.WriteLine("\nExecuting batch job...");
-                await batchService.ExecuteJobAsync(job.Id, Guid.Empty);
+                await batchService.ExecuteJobAsync(job.Id, Guid.Empty).ConfigureAwait(false);
 
                 // Monitor progress
                 var updateInterval = 500; // milliseconds
                 while (true)
                 {
-                    var updatedJob = await batchService.GetJobAsync(job.Id);
+                    var updatedJob = await batchService.GetJobAsync(job.Id).ConfigureAwait(false);
 
                     // Display progress bar
                     var progress = (int)((updatedJob.ProcessedCount / (double)updatedJob.TotalCount) * 50);
@@ -152,11 +152,11 @@ namespace GpuImageProcessing.Examples
                         break;
                     }
 
-                    await Task.Delay(updateInterval);
+                    await Task.Delay(updateInterval).ConfigureAwait(false);
                 }
 
                 // Display final results
-                var finalJob = await batchService.GetJobAsync(job.Id);
+                var finalJob = await batchService.GetJobAsync(job.Id).ConfigureAwait(false);
                 Console.WriteLine("\n✓ Batch processing complete!");
                 Console.WriteLine($"\nJob Summary:");
                 Console.WriteLine($"  Status: {finalJob.Status}");

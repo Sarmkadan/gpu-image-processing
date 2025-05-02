@@ -82,11 +82,11 @@ Examples:
 
                 if (isBatch && Directory.Exists(inputPath))
                 {
-                    return await ProcessBatchAsync(inputPath);
+                    return await ProcessBatchAsync(inputPath).ConfigureAwait(false);
                 }
                 else if (File.Exists(inputPath))
                 {
-                    return await ProcessSingleImageAsync(inputPath);
+                    return await ProcessSingleImageAsync(inputPath).ConfigureAwait(false);
                 }
                 else
                 {
@@ -116,13 +116,13 @@ Examples:
 
             try
             {
-                var image = await _imageProcessingService.RegisterImageAsync(imagePath, Path.GetFileName(imagePath));
+                var image = await _imageProcessingService.RegisterImageAsync(imagePath, Path.GetFileName(imagePath)).ConfigureAwait(false);
                 PrintSuccess($"Registered image: {image.Id}");
 
                 string filterName = GetArgument("filter", "gaussian");
                 FilterType filterType = ParseFilterType(filterName);
 
-                var filter = await _filterService.CreateFilterAsync(filterType, filterName, $"Applied {filterName}");
+                var filter = await _filterService.CreateFilterAsync(filterType, filterName, $"Applied {filterName}").ConfigureAwait(false);
                 PrintSuccess($"Applied filter: {filterName}");
 
                 string outputPath = GetArgument("output", GenerateOutputPath(imagePath));
@@ -178,7 +178,7 @@ Examples:
                 {
                     try
                     {
-                        await ProcessSingleImageAsync(imageFile);
+                        await ProcessSingleImageAsync(imageFile).ConfigureAwait(false);
                         processed++;
                         PrintInfo($"Progress: {processed}/{validImages.Count}");
                     }

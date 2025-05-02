@@ -112,7 +112,7 @@ public sealed class ComputeShaderPipeline : IComputeShaderPipeline
             foreach (var pass in ordered)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                passRecords.Add(await DispatchPassAsync(pass, device, cancellationToken));
+                passRecords.Add(await DispatchPassAsync(pass, device, cancellationToken)).ConfigureAwait(false);
             }
 
             pipelineSw.Stop();
@@ -267,7 +267,7 @@ public sealed class ComputeShaderPipeline : IComputeShaderPipeline
 
         try
         {
-            await SimulateKernelDispatchAsync(pass, cancellationToken);
+            await SimulateKernelDispatchAsync(pass, cancellationToken).ConfigureAwait(false);
             sw.Stop();
 
             double occupancy = pass.WorkgroupConfiguration.EstimatedOccupancy;

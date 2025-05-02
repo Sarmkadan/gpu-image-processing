@@ -138,7 +138,7 @@ namespace GpuImageProcessing.Core.Repository
                 TotalImagesFailed = failedJobs.Sum(j => j.FailedImages)
             };
 
-            return await Task.FromResult(stats);
+            return await Task.FromResult(stats).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -154,7 +154,7 @@ namespace GpuImageProcessing.Core.Repository
                 _entities.Remove(job);
             }
 
-            return await Task.FromResult(jobsToRemove.Count);
+            return await Task.FromResult(jobsToRemove.Count).ConfigureAwait(false);
         }
     }
 

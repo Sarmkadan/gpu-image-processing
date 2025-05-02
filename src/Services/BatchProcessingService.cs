@@ -53,7 +53,7 @@ public class BatchProcessingService
                 .Select(imageId => ProcessImageInBatchAsync(batch, imageId, cancellationToken))
                 .ToList();
 
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks).ConfigureAwait(false);
 
             batch.Complete();
             _logger.LogInformation("Batch {BatchId} completed: {Processed} processed, {Failed} failed",
@@ -97,7 +97,7 @@ public class BatchProcessingService
 
     private async Task ProcessImageInBatchAsync(ImageBatch batch, Guid imageId, CancellationToken cancellationToken)
     {
-        await _concurrencySemaphore.WaitAsync(cancellationToken);
+        await _concurrencySemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 
         try
         {
@@ -108,7 +108,7 @@ public class BatchProcessingService
 
             try
             {
-                var result = await _processingService.ProcessImageAsync(imageId, batch.FilterIds.ToList(), cancellationToken);
+                var result = await _processingService.ProcessImageAsync(imageId, batch.FilterIds.ToList(), cancellationToken).ConfigureAwait(false);
 
                 if (result.IsSuccessful)
                 {

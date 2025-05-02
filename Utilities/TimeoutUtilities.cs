@@ -28,7 +28,7 @@ namespace GpuImageProcessing.Utilities
             {
                 try
                 {
-                    return await operation(cts.Token);
+                    return await operation(cts.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) when (cts.Token.IsCancellationRequested)
                 {
@@ -50,7 +50,7 @@ namespace GpuImageProcessing.Utilities
             {
                 try
                 {
-                    await operation(cts.Token);
+                    await operation(cts.Token).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException) when (cts.Token.IsCancellationRequested)
                 {
@@ -82,7 +82,7 @@ namespace GpuImageProcessing.Utilities
 
                 try
                 {
-                    return await operation();
+                    return await operation().ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {
@@ -98,7 +98,7 @@ namespace GpuImageProcessing.Utilities
                     ));
 
                     if (delayTime.TotalMilliseconds > 0)
-                        await Task.Delay(delayTime);
+                        await Task.Delay(delayTime).ConfigureAwait(false);
 
                     delay = TimeSpan.FromMilliseconds(Math.Min(
                         delay.TotalMilliseconds * 2,
@@ -133,7 +133,7 @@ namespace GpuImageProcessing.Utilities
                 ));
 
                 if (delayTime.TotalMilliseconds > 0)
-                    await Task.Delay(delayTime);
+                    await Task.Delay(delayTime).ConfigureAwait(false);
             }
 
             return false;

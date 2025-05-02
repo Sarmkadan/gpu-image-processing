@@ -64,7 +64,7 @@ namespace GpuImageProcessing.Cli
         {
             if (args.Length == 0 || args[0] == "help" || args[0] == "-h" || args[0] == "--help")
             {
-                return await ExecuteCommandAsync("help", args);
+                return await ExecuteCommandAsync("help", args).ConfigureAwait(false);
             }
 
             string commandName = args[0];
@@ -78,7 +78,7 @@ namespace GpuImageProcessing.Cli
                 return 1;
             }
 
-            return await ExecuteCommandAsync(commandName, args);
+            return await ExecuteCommandAsync(commandName, args).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace GpuImageProcessing.Cli
 
                 handler.SetArguments(args);
 
-                return await handler.ExecuteAsync();
+                return await handler.ExecuteAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {

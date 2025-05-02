@@ -68,43 +68,43 @@ Examples:
             {
                 if (HasFlag("list"))
                 {
-                    return await ListJobsAsync();
+                    return await ListJobsAsync().ConfigureAwait(false);
                 }
                 else if (HasFlag("create"))
                 {
-                    return await CreateJobAsync();
+                    return await CreateJobAsync().ConfigureAwait(false);
                 }
                 else if (HasFlag("status"))
                 {
-                    return await ShowJobStatusAsync();
+                    return await ShowJobStatusAsync().ConfigureAwait(false);
                 }
                 else if (HasFlag("results"))
                 {
-                    return await GetJobResultsAsync();
+                    return await GetJobResultsAsync().ConfigureAwait(false);
                 }
                 else if (HasFlag("cancel"))
                 {
-                    return await CancelJobAsync();
+                    return await CancelJobAsync().ConfigureAwait(false);
                 }
                 else if (HasFlag("remove"))
                 {
-                    return await RemoveJobAsync();
+                    return await RemoveJobAsync().ConfigureAwait(false);
                 }
                 else if (HasFlag("export"))
                 {
-                    return await ExportResultsAsync();
+                    return await ExportResultsAsync().ConfigureAwait(false);
                 }
                 else if (HasFlag("retry"))
                 {
-                    return await RetryJobAsync();
+                    return await RetryJobAsync().ConfigureAwait(false);
                 }
                 else if (_positionalArgs.Count > 0)
                 {
-                    return await ShowJobStatusAsync(_positionalArgs[0]);
+                    return await ShowJobStatusAsync(_positionalArgs[0]).ConfigureAwait(false);
                 }
                 else
                 {
-                    return await ListJobsAsync();
+                    return await ListJobsAsync().ConfigureAwait(false);
                 }
             }
             catch (Exception ex)

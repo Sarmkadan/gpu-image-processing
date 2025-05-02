@@ -120,10 +120,10 @@ namespace GpuImageProcessing.BackgroundWorkers
                 try
                 {
                     // Perform health check
-                    await PerformSystemHealthCheckAsync(cancellationToken);
+                    await PerformSystemHealthCheckAsync(cancellationToken).ConfigureAwait(false);
 
                     // Wait for next interval
-                    await Task.Delay(_checkInterval, cancellationToken);
+                    await Task.Delay(_checkInterval, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -134,7 +134,7 @@ namespace GpuImageProcessing.BackgroundWorkers
                     _logger.LogError(ex, "Error during health check");
 
                     // Wait before retrying on error
-                    await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+                    await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -151,7 +151,7 @@ namespace GpuImageProcessing.BackgroundWorkers
 
             try
             {
-                var stats = await _deviceService.GetStatisticsAsync();
+                var stats = await _deviceService.GetStatisticsAsync().ConfigureAwait(false);
                 var componentHealth = new Dictionary<string, bool>();
                 var issues = new List<string>();
 
@@ -184,7 +184,7 @@ namespace GpuImageProcessing.BackgroundWorkers
                     OperationId = Guid.NewGuid().ToString("N")
                 };
 
-                await _eventPublisher.PublishAsync(healthEvent);
+                await _eventPublisher.PublishAsync(healthEvent).ConfigureAwait(false);
 
                 if (!isHealthy)
                 {
@@ -211,7 +211,7 @@ namespace GpuImageProcessing.BackgroundWorkers
                     Issues = new List<string> { ex.Message }
                 };
 
-                await _eventPublisher.PublishAsync(failedEvent);
+                await _eventPublisher.PublishAsync(failedEvent).ConfigureAwait(false);
             }
         }
 

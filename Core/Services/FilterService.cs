@@ -44,7 +44,7 @@ namespace GpuImageProcessing.Core.Services
                 filter.Description = description;
             }
 
-            return await _filterRepository.AddAsync(filter);
+            return await _filterRepository.AddAsync(filter).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<Filter?> GetFilterAsync(Guid filterId)
         {
-            return await _filterRepository.GetByIdAsync(filterId);
+            return await _filterRepository.GetByIdAsync(filterId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<IEnumerable<Filter>> GetAllFiltersAsync()
         {
-            return await _filterRepository.GetAllAsync();
+            return await _filterRepository.GetAllAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<IEnumerable<Filter>> GetActiveFiltersAsync()
         {
-            var filters = await _filterRepository.GetAllAsync();
+            var filters = await _filterRepository.GetAllAsync().ConfigureAwait(false);
             return filters.Where(f => f.IsActive).ToList();
         }
 
@@ -77,7 +77,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<bool> ApplyFilterAsync(Guid filterId, Dictionary<string, float> parameterValues)
         {
-            var filter = await _filterRepository.GetByIdAsync(filterId);
+            var filter = await _filterRepository.GetByIdAsync(filterId).ConfigureAwait(false);
             if (filter == null)
                 return false;
 
@@ -90,7 +90,7 @@ namespace GpuImageProcessing.Core.Services
             if (!filter.ValidateParameters())
                 return false;
 
-            await _filterRepository.UpdateAsync(filter);
+            await _filterRepository.UpdateAsync(filter).ConfigureAwait(false);
             return true;
         }
 
@@ -99,7 +99,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<bool> UpdateFilterParametersAsync(Guid filterId, Dictionary<string, float> parameters)
         {
-            var filter = await _filterRepository.GetByIdAsync(filterId);
+            var filter = await _filterRepository.GetByIdAsync(filterId).ConfigureAwait(false);
             if (filter == null)
                 return false;
 
@@ -109,7 +109,7 @@ namespace GpuImageProcessing.Core.Services
                     return false;
             }
 
-            await _filterRepository.UpdateAsync(filter);
+            await _filterRepository.UpdateAsync(filter).ConfigureAwait(false);
             return true;
         }
 
@@ -118,7 +118,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<bool> DeleteFilterAsync(Guid filterId)
         {
-            return await _filterRepository.DeleteAsync(filterId);
+            return await _filterRepository.DeleteAsync(filterId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -127,11 +127,11 @@ namespace GpuImageProcessing.Core.Services
         public async Task<string> GetKernelCodeAsync(FilterType type)
         {
             if (_kernelCache.TryGetValue(type, out var cachedCode))
-                return await Task.FromResult(cachedCode);
+                return await Task.FromResult(cachedCode).ConfigureAwait(false);
 
             var kernelCode = GenerateKernelCode(type);
             _kernelCache[type] = kernelCode;
-            return await Task.FromResult(kernelCode);
+            return await Task.FromResult(kernelCode).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -286,7 +286,7 @@ __kernel void basic_operation(__global uchar* input, __global uchar* output, int
         /// </summary>
         public async Task<FilterStatistics> GetStatisticsAsync()
         {
-            var allFilters = await _filterRepository.GetAllAsync();
+            var allFilters = await _filterRepository.GetAllAsync().ConfigureAwait(false);
             var filters = allFilters.ToList();
 
             var stats = new FilterStatistics
@@ -298,7 +298,7 @@ __kernel void basic_operation(__global uchar* input, __global uchar* output, int
                 ParameterCount = filters.Sum(f => f.Parameters.Count)
             };
 
-            return await Task.FromResult(stats);
+            return await Task.FromResult(stats).ConfigureAwait(false);
         }
     }
 

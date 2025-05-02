@@ -57,7 +57,7 @@ namespace GpuImageProcessing.Monitoring
             {
                 try
                 {
-                    var result = await check.CheckAsync();
+                    var result = await check.CheckAsync().ConfigureAwait(false);
                     return (check.GetType().Name, result);
                 }
                 catch (Exception ex)
@@ -70,7 +70,7 @@ namespace GpuImageProcessing.Monitoring
                 }
             });
 
-            var checkResults = await Task.WhenAll(tasks);
+            var checkResults = await Task.WhenAll(tasks).ConfigureAwait(false);
 
             foreach (var (name, health) in checkResults)
             {
@@ -110,7 +110,7 @@ namespace GpuImageProcessing.Monitoring
 
             try
             {
-                return await check.CheckAsync();
+                return await check.CheckAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -232,7 +232,7 @@ namespace GpuImageProcessing.Monitoring
 
             try
             {
-                await _operation();
+                await _operation().ConfigureAwait(false);
                 watch.Stop();
 
                 var status = watch.ElapsedMilliseconds > _thresholdMs

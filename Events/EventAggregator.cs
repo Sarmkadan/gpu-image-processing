@@ -139,7 +139,7 @@ namespace GpuImageProcessing.Events
                 }
 
                 if (tasks.Count > 0)
-                    await Task.WhenAll(tasks);
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
             }
             finally
             {

@@ -48,7 +48,7 @@ namespace GpuImageProcessing.Examples
                     .GetRequiredService<DeviceService>();
 
                 // Check available devices
-                var devices = await deviceService.GetAvailableDevicesAsync();
+                var devices = await deviceService.GetAvailableDevicesAsync().ConfigureAwait(false);
                 Console.WriteLine($"Found {devices.Count} compute devices:");
                 foreach (var device in devices)
                 {
@@ -67,7 +67,7 @@ namespace GpuImageProcessing.Examples
 
                 // Register image
                 Console.WriteLine($"\nRegistering image: {imageFile}");
-                var image = await imageProcessing.RegisterImageAsync(imageFile, "MyPhoto");
+                var image = await imageProcessing.RegisterImageAsync(imageFile, "MyPhoto").ConfigureAwait(false);
                 Console.WriteLine($"✓ Image registered with ID: {image.Id}");
                 Console.WriteLine($"  Name: {image.Name}");
                 Console.WriteLine($"  Format: {image.Format}");
@@ -90,7 +90,7 @@ namespace GpuImageProcessing.Examples
                     { "KernelSize", 5f }   // Kernel size (5x5)
                 };
 
-                await filterService.UpdateFilterParametersAsync(blurFilter.Id, parameters);
+                await filterService.UpdateFilterParametersAsync(blurFilter.Id, parameters).ConfigureAwait(false);
                 Console.WriteLine("✓ Parameters configured:");
                 foreach (var param in parameters)
                 {

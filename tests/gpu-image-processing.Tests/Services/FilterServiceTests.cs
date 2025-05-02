@@ -55,10 +55,10 @@ public class FilterServiceTests
         var nonExistentId = Guid.NewGuid();
 
         // Act
-        var act = async () => await _sut.ApplyFilterAsync(image, nonExistentId);
+        var act = async () => await _sut.ApplyFilterAsync(image, nonExistentId).ConfigureAwait(false);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidFilterException>();
+        await act.Should().ThrowAsync<InvalidFilterException>().ConfigureAwait(false);
     }
 
     [Fact]
@@ -67,13 +67,13 @@ public class FilterServiceTests
         // Arrange
         var image = CreateValidImage();
         var config = CreateFilterConfig("Inactive Blur", FilterType.Blur, isActive: false);
-        var saved = await _repository.CreateAsync(config);
+        var saved = await _repository.CreateAsync(config).ConfigureAwait(false);
 
         // Act
-        var act = async () => await _sut.ApplyFilterAsync(image, saved.Id);
+        var act = async () => await _sut.ApplyFilterAsync(image, saved.Id).ConfigureAwait(false);
 
         // Assert
-        var assertion = await act.Should().ThrowAsync<InvalidFilterException>();
+        var assertion = await act.Should().ThrowAsync<InvalidFilterException>().ConfigureAwait(false);
         assertion.Which.Message.Should().Contain("not active");
     }
 
@@ -83,10 +83,10 @@ public class FilterServiceTests
         // Arrange
         var image = CreateValidImage(ColorSpace.Rgb);
         var config = CreateFilterConfig("Grayscale", FilterType.Grayscale);
-        var saved = await _repository.CreateAsync(config);
+        var saved = await _repository.CreateAsync(config).ConfigureAwait(false);
 
         // Act
-        var result = await _sut.ApplyFilterAsync(image, saved.Id);
+        var result = await _sut.ApplyFilterAsync(image, saved.Id).ConfigureAwait(false);
 
         // Assert
         result.ColorSpace.Should().Be(ColorSpace.Grayscale);
@@ -97,10 +97,10 @@ public class FilterServiceTests
     public async Task CreateFilterAsync_NullConfig_ThrowsArgumentNullException()
     {
         // Act
-        var act = async () => await _sut.CreateFilterAsync(null!);
+        var act = async () => await _sut.CreateFilterAsync(null!).ConfigureAwait(false);
 
         // Assert
-        var assertion = await act.Should().ThrowAsync<ArgumentNullException>();
+        var assertion = await act.Should().ThrowAsync<ArgumentNullException>().ConfigureAwait(false);
         assertion.Which.ParamName.Should().Be("config");
     }
 
@@ -116,22 +116,22 @@ public class FilterServiceTests
         };
 
         // Act
-        var act = async () => await _sut.CreateFilterAsync(config);
+        var act = async () => await _sut.CreateFilterAsync(config).ConfigureAwait(false);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidFilterException>();
+        await act.Should().ThrowAsync<InvalidFilterException>().ConfigureAwait(false);
     }
 
     [Fact]
     public async Task GetFiltersByTypeAsync_MultipleTypesStored_ReturnsOnlyMatchingType()
     {
         // Arrange
-        await _repository.CreateAsync(CreateFilterConfig("Blur A", FilterType.Blur));
-        await _repository.CreateAsync(CreateFilterConfig("Sharpen A", FilterType.Sharpen));
-        await _repository.CreateAsync(CreateFilterConfig("Grayscale A", FilterType.Grayscale));
+        await _repository.CreateAsync(CreateFilterConfig("Blur A", FilterType.Blur)).ConfigureAwait(false);
+        await _repository.CreateAsync(CreateFilterConfig("Sharpen A", FilterType.Sharpen)).ConfigureAwait(false);
+        await _repository.CreateAsync(CreateFilterConfig("Grayscale A", FilterType.Grayscale)).ConfigureAwait(false);
 
         // Act
-        var results = await _sut.GetFiltersByTypeAsync(FilterType.Blur);
+        var results = await _sut.GetFiltersByTypeAsync(FilterType.Blur).ConfigureAwait(false);
 
         // Assert
         results.Should().HaveCount(1);

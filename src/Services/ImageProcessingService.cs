@@ -46,7 +46,7 @@ public class ImageProcessingService
 
         try
         {
-            var image = await _imageRepository.GetByIdAsync(imageId, cancellationToken);
+            var image = await _imageRepository.GetByIdAsync(imageId, cancellationToken).ConfigureAwait(false);
             if (image == null)
                 throw new InvalidImageException($"Image {imageId} not found");
 
@@ -55,7 +55,7 @@ public class ImageProcessingService
 
             var result = new ProcessingResult { ImageId = imageId };
             image.MarkAsProcessing();
-            await _imageRepository.UpdateAsync(image, cancellationToken);
+            await _imageRepository.UpdateAsync(image, cancellationToken).ConfigureAwait(false);
 
             var device = _gpuService.GetBestDevice();
             if (device == null)
@@ -70,10 +70,10 @@ public class ImageProcessingService
 
                 try
                 {
-                    image = await _filterService.ApplyFilterAsync(image, filterId, cancellationToken);
+                    image = await _filterService.ApplyFilterAsync(image, filterId, cancellationToken).ConfigureAwait(false);
                     filterStopwatch.Stop();
 
-                    var filterConfig = await _filterRepository.GetByIdAsync(filterId, cancellationToken);
+                    var filterConfig = await _filterRepository.GetByIdAsync(filterId, cancellationToken).ConfigureAwait(false);
                     result.AddFilterApplied(filterConfig?.Name ?? "Unknown", filterConfig?.FilterType ?? FilterType.None, filterStopwatch.ElapsedMilliseconds);
 
                     _logger.LogDebug("Filter {FilterId} applied in {ElapsedMs}ms", filterId, filterStopwatch.ElapsedMilliseconds);
@@ -87,10 +87,10 @@ public class ImageProcessingService
 
             var outputPath = Path.Combine(Constants.FileSystem.DefaultOutputDirectory, $"{image.Id}.processed.png");
             image.MarkAsCompleted(outputPath);
-            await _imageRepository.UpdateAsync(image, cancellationToken);
+            await _imageRepository.UpdateAsync(image, cancellationToken).ConfigureAwait(false);
 
             result.Complete(outputPath);
-            await _resultRepository.CreateAsync(result, cancellationToken);
+            await _resultRepository.CreateAsync(result, cancellationToken).ConfigureAwait(false);
 
             _gpuService.DeallocateMemory(requiredMemory, device.Id);
 
@@ -105,18 +105,18 @@ public class ImageProcessingService
             stopwatch.Stop();
             _logger.LogError(ex, "Failed to process image {ImageId}", imageId);
 
-            var failedImage = await _imageRepository.GetByIdAsync(imageId, cancellationToken);
+            var failedImage = await _imageRepository.GetByIdAsync(imageId, cancellationToken).ConfigureAwait(false);
             if (failedImage != null)
             {
                 failedImage.MarkAsFailed(ex.Message);
-                await _imageRepository.UpdateAsync(failedImage, cancellationToken);
+                await _imageRepository.UpdateAsync(failedImage, cancellationToken).ConfigureAwait(false);
             }
 
             _performanceService.RecordOperation(stopwatch.ElapsedMilliseconds, false);
 
             var result = new ProcessingResult { ImageId = imageId };
             result.Fail(ex.Message, Constants.ErrorCodes.ProcessingTimeout);
-            await _resultRepository.CreateAsync(result, cancellationToken);
+            await _resultRepository.CreateAsync(result, cancellationToken).ConfigureAwait(false);
 
             throw new ProcessingException($"Failed to process image", ex, imageId.ToString());
         }
@@ -127,7 +127,7 @@ public class ImageProcessingService
     /// </summary>
     public async Task<ProcessingResult?> GetProcessingResultAsync(Guid imageId, CancellationToken cancellationToken = default)
     {
-        var results = await _resultRepository.GetByImageIdAsync(imageId, cancellationToken);
+        var results = await _resultRepository.GetByImageIdAsync(imageId, cancellationToken).ConfigureAwait(false);
         return results.OrderByDescending(r => r.StartedAt).FirstOrDefault();
     }
 
@@ -136,8 +136,8 @@ public class ImageProcessingService
     /// </summary>
     public async Task<Dictionary<string, object>> GetStatisticsAsync(CancellationToken cancellationToken = default)
     {
-        var totalImages = await _imageRepository.CountAsync(cancellationToken);
-        var results = (await _resultRepository.GetAllAsync(cancellationToken)).ToList();
+        var totalImages = await _imageRepository.CountAsync(cancellationToken).ConfigureAwait(false);
+        var results = (await _resultRepository.GetAllAsync(cancellationToken)).ToList().ConfigureAwait(false);
         var successfulResults = results.Where(r => r.IsSuccessful).ToList();
 
         return new Dictionary<string, object>

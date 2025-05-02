@@ -89,7 +89,7 @@ namespace GpuImageProcessing.Cli
 
                     if (_handlers.TryGetValue(parsed.CommandName, out var handler))
                     {
-                        await handler(parsed);
+                        await handler(parsed).ConfigureAwait(false);
                     }
                     else
                     {

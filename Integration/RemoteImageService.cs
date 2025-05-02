@@ -74,7 +74,7 @@ namespace GpuImageProcessing.Integration
                     if (trustSource?.ApiKey != null)
                         request.Headers.Add("Authorization", $"Bearer {trustSource.ApiKey}");
 
-                    var response = await _httpClient.SendAsync(request);
+                    var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
 
                     if (!response.IsSuccessStatusCode)
                     {
@@ -82,12 +82,12 @@ namespace GpuImageProcessing.Integration
                             return RemoteImageResult.Failure(
                                 $"Failed to download image: HTTP {response.StatusCode}");
 
-                        await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt - 1)));
+                        await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt - 1))).ConfigureAwait(false);
                         continue;
                     }
 
                     var contentType = response.Content.Headers.ContentType?.MediaType;
-                    var imageData = await response.Content.ReadAsByteArrayAsync();
+                    var imageData = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
                     var size = response.Content.Headers.ContentLength ?? imageData.Length;
 
                     return RemoteImageResult.Success(new RemoteImageData
@@ -104,14 +104,14 @@ namespace GpuImageProcessing.Integration
                     if (attempt == _maxRetries)
                         return RemoteImageResult.Failure($"Network error after {_maxRetries} attempts: {ex.Message}");
 
-                    await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt - 1)));
+                    await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt - 1))).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException ex)
                 {
                     if (attempt == _maxRetries)
                         return RemoteImageResult.Failure($"Download timeout: {ex.Message}");
 
-                    await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt - 1)));
+                    await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt - 1))).ConfigureAwait(false);
                 }
             }
 
@@ -130,10 +130,10 @@ namespace GpuImageProcessing.Integration
 
             var tasks = imageUrls.Select(async url =>
             {
-                await semaphore.WaitAsync();
+                await semaphore.WaitAsync().ConfigureAwait(false);
                 try
                 {
-                    return await DownloadImageAsync(url);
+                    return await DownloadImageAsync(url).ConfigureAwait(false);
                 }
                 finally
                 {
@@ -141,7 +141,7 @@ namespace GpuImageProcessing.Integration
                 }
             });
 
-            results.AddRange(await Task.WhenAll(tasks));
+            results.AddRange(await Task.WhenAll(tasks)).ConfigureAwait(false);
             return results;
         }
 

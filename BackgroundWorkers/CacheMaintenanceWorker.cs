@@ -38,7 +38,7 @@ namespace GpuImageProcessing.BackgroundWorkers
                 try
                 {
                     // Clean expired entries
-                    await _cache.CleanupExpiredAsync();
+                    await _cache.CleanupExpiredAsync().ConfigureAwait(false);
 
                     // Check memory usage
                     var stats = _cache.GetStats();
@@ -52,7 +52,7 @@ namespace GpuImageProcessing.BackgroundWorkers
                                     $"Items: {stats.ItemCount}, " +
                                     $"Memory: {stats.MemoryUsagePercent:F1}%");
 
-                    await Task.Delay(_cleanupInterval, cancellationToken);
+                    await Task.Delay(_cleanupInterval, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -61,7 +61,7 @@ namespace GpuImageProcessing.BackgroundWorkers
                 catch (Exception ex)
                 {
                     OnError($"Cache maintenance error: {ex.Message}");
-                    await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+                    await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -88,7 +88,7 @@ namespace GpuImageProcessing.BackgroundWorkers
 
             try
             {
-                await ExecuteAsync(cancellationToken);
+                await ExecuteAsync(cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

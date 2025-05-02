@@ -116,7 +116,7 @@ namespace GpuImageProcessing.BackgroundWorkers
                 try
                 {
                     // Simulate dequeue operation
-                    await Task.Delay(1000, cancellationToken);
+                    await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
 
                     // In real implementation, would dequeue from job queue
                     // For demo purposes, logging only
@@ -151,10 +151,10 @@ namespace GpuImageProcessing.BackgroundWorkers
                     OperationId = Guid.NewGuid().ToString("N")
                 };
 
-                await _eventPublisher.PublishAsync(startedEvent);
+                await _eventPublisher.PublishAsync(startedEvent).ConfigureAwait(false);
 
                 // Simulate image processing
-                await Task.Delay(100, cancellationToken);
+                await Task.Delay(100, cancellationToken).ConfigureAwait(false);
 
                 stopwatch.Stop();
 
@@ -173,7 +173,7 @@ namespace GpuImageProcessing.BackgroundWorkers
                     OperationId = startedEvent.OperationId
                 };
 
-                await _eventPublisher.PublishAsync(completedEvent);
+                await _eventPublisher.PublishAsync(completedEvent).ConfigureAwait(false);
 
                 _logger.LogInformation(
                     "Image processed successfully - ImageId: {ImageId}, Duration: {DurationMs}ms",
@@ -199,7 +199,7 @@ namespace GpuImageProcessing.BackgroundWorkers
                     AttemptDurationMs = stopwatch.ElapsedMilliseconds
                 };
 
-                await _eventPublisher.PublishAsync(failedEvent);
+                await _eventPublisher.PublishAsync(failedEvent).ConfigureAwait(false);
             }
         }
 

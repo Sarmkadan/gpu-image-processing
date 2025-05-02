@@ -71,7 +71,7 @@ namespace GpuImageProcessing.Integration
 
                             if (attempt < _maxRetries - 1)
                             {
-                                await Task.Delay(GetBackoffDelay(attempt), cancellationToken);
+                                await Task.Delay(GetBackoffDelay(attempt), cancellationToken).ConfigureAwait(false);
                                 continue;
                             }
 
@@ -92,7 +92,7 @@ namespace GpuImageProcessing.Integration
                         {
                             using (var fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
                             {
-                                await stream.CopyToAsync(fileStream, 8192, cancellationToken);
+                                await stream.CopyToAsync(fileStream, 8192, cancellationToken).ConfigureAwait(false);
                             }
                         }
 
@@ -115,7 +115,7 @@ namespace GpuImageProcessing.Integration
 
                     if (attempt < _maxRetries - 1)
                     {
-                        await Task.Delay(GetBackoffDelay(attempt), cancellationToken);
+                        await Task.Delay(GetBackoffDelay(attempt), cancellationToken).ConfigureAwait(false);
                     }
                 }
                 catch (Exception ex)
@@ -158,7 +158,7 @@ namespace GpuImageProcessing.Integration
                                 _logger.LogError(
                                     "Upload failed - StatusCode: {StatusCode}, Error: {ErrorContent}",
                                     response.StatusCode,
-                                    await response.Content.ReadAsStringAsync());
+                                    await response.Content.ReadAsStringAsync()).ConfigureAwait(false);
                                 return false;
                             }
 

@@ -101,7 +101,7 @@ namespace GpuImageProcessing.Integration
                 publishTasks.Add(PublishToEndpointAsync(endpoint, metrics));
             }
 
-            await Task.WhenAll(publishTasks);
+            await Task.WhenAll(publishTasks).ConfigureAwait(false);
         }
 
         private async Task PublishToEndpointAsync(MetricsEndpoint endpoint, List<MetricEvent> metrics)
@@ -118,7 +118,7 @@ namespace GpuImageProcessing.Integration
                 if (!string.IsNullOrEmpty(endpoint.ApiKey))
                     request.Headers.Add("Authorization", $"Bearer {endpoint.ApiKey}");
 
-                var response = await _httpClient.SendAsync(request);
+                var response = await _httpClient.SendAsync(request).ConfigureAwait(false);
                 response.EnsureSuccessStatusCode();
             }
             catch (Exception ex)
@@ -219,7 +219,7 @@ namespace GpuImageProcessing.Integration
 
         public async ValueTask DisposeAsync()
         {
-            await FlushAsync();
+            await FlushAsync().ConfigureAwait(false);
             _httpClient.Dispose();
         }
 

@@ -29,7 +29,7 @@ namespace GpuImageProcessing.Utilities
             using (var sha256 = SHA256.Create())
             using (var fileStream = File.OpenRead(filePath))
             {
-                var hash = await Task.Run(() => sha256.ComputeHash(fileStream));
+                var hash = await Task.Run(() => sha256.ComputeHash(fileStream)).ConfigureAwait(false);
                 return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
             }
         }
@@ -39,7 +39,7 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static async Task<bool> VerifyFileHashAsync(string filePath, string expectedHash)
         {
-            var actualHash = await CalculateFileHashAsync(filePath);
+            var actualHash = await CalculateFileHashAsync(filePath).ConfigureAwait(false);
             return actualHash.Equals(expectedHash, StringComparison.OrdinalIgnoreCase);
         }
 
@@ -62,13 +62,13 @@ namespace GpuImageProcessing.Utilities
             {
                 string sourceHash = null;
                 if (verifyHash)
-                    sourceHash = await CalculateFileHashAsync(sourceFile);
+                    sourceHash = await CalculateFileHashAsync(sourceFile).ConfigureAwait(false);
 
                 File.Copy(sourceFile, destinationFile, overwrite);
 
                 if (verifyHash)
                 {
-                    var destHash = await CalculateFileHashAsync(destinationFile);
+                    var destHash = await CalculateFileHashAsync(destinationFile).ConfigureAwait(false);
                     return destHash == sourceHash;
                 }
 
@@ -117,7 +117,7 @@ namespace GpuImageProcessing.Utilities
 
             if (secureWipe)
             {
-                await SecureWipeFileAsync(filePath);
+                await SecureWipeFileAsync(filePath).ConfigureAwait(false);
             }
 
             File.Delete(filePath);
@@ -135,7 +135,7 @@ namespace GpuImageProcessing.Utilities
             {
                 for (long i = 0; i < fileStream.Length; i += bufferSize)
                 {
-                    await fileStream.WriteAsync(buffer, 0, bufferSize);
+                    await fileStream.WriteAsync(buffer, 0, bufferSize).ConfigureAwait(false);
                 }
             }
         }
@@ -201,7 +201,7 @@ namespace GpuImageProcessing.Utilities
 
             using (var reader = new StreamReader(filePath, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
             {
-                return await reader.ReadToEndAsync();
+                return await reader.ReadToEndAsync().ConfigureAwait(false);
             }
         }
 
@@ -216,7 +216,7 @@ namespace GpuImageProcessing.Utilities
             {
                 using (var writer = new StreamWriter(tempPath, false, Encoding.UTF8))
                 {
-                    await writer.WriteAsync(content);
+                    await writer.WriteAsync(content).ConfigureAwait(false);
                 }
 
                 // Atomic rename

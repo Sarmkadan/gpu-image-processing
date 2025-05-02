@@ -64,7 +64,7 @@ namespace GpuImageProcessing.BackgroundWorkers
                                      $"Threads={snapshot.ThreadCount}, " +
                                      $"Success Rate={snapshot.SuccessRate:F1}%");
 
-                    await Task.Delay(_aggregationInterval, cancellationToken);
+                    await Task.Delay(_aggregationInterval, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
@@ -73,7 +73,7 @@ namespace GpuImageProcessing.BackgroundWorkers
                 catch (Exception ex)
                 {
                     OnError($"Metrics aggregation error: {ex.Message}");
-                    await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+                    await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken).ConfigureAwait(false);
                 }
             }
         }

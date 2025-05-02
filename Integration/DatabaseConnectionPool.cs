@@ -108,7 +108,7 @@ namespace GpuImageProcessing.Integration
                 }
 
                 // Wait and retry
-                await Task.Delay(100);
+                await Task.Delay(100).ConfigureAwait(false);
             }
 
             throw new TimeoutException(

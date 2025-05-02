@@ -104,7 +104,7 @@ namespace GpuImageProcessing.Core.Configuration
         public static async System.Threading.Tasks.Task InitializeServicesAsync(IServiceProvider serviceProvider)
         {
             var deviceService = serviceProvider.GetRequiredService<DeviceService>();
-            await deviceService.InitializeAsync();
+            await deviceService.InitializeAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -126,7 +126,7 @@ namespace GpuImageProcessing.Core.Configuration
         public static async System.Threading.Tasks.Task<IServiceProvider> CreateAndInitializeServiceProviderAsync(ApplicationSettings? settings = null)
         {
             var provider = CreateServiceProvider(settings);
-            await InitializeServicesAsync(provider);
+            await InitializeServicesAsync(provider).ConfigureAwait(false);
             return provider;
         }
     }

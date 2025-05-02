@@ -32,7 +32,7 @@ public class FilterService
         if (image == null)
             throw new ArgumentNullException(nameof(image));
 
-        var config = await _repository.GetByIdAsync(filterId, cancellationToken);
+        var config = await _repository.GetByIdAsync(filterId, cancellationToken).ConfigureAwait(false);
         if (config == null)
             throw new InvalidFilterException($"Filter {filterId} not found");
 
@@ -44,7 +44,7 @@ public class FilterService
             _logger.LogInformation("Applying filter {FilterName} to image {ImageId}", config.Name, image.Id);
 
             var handler = _filterHandlers.TryGetValue(config.FilterType, out var h) ? h : ApplyGenericFilter;
-            var result = await handler(image, config);
+            var result = await handler(image, config).ConfigureAwait(false);
 
             _logger.LogInformation("Filter {FilterName} applied successfully to {ImageId}", config.Name, image.Id);
             return result;
@@ -67,12 +67,12 @@ public class FilterService
         if (!config.Validate())
             throw new InvalidFilterException("Filter configuration validation failed");
 
-        var existing = await _repository.GetByNameAsync(config.Name, cancellationToken);
+        var existing = await _repository.GetByNameAsync(config.Name, cancellationToken).ConfigureAwait(false);
         if (existing != null)
             throw new InvalidOperationException($"Filter with name '{config.Name}' already exists");
 
         _logger.LogInformation("Creating filter {FilterName} of type {FilterType}", config.Name, config.FilterType);
-        return await _repository.CreateAsync(config, cancellationToken);
+        return await _repository.CreateAsync(config, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -80,7 +80,7 @@ public class FilterService
     /// </summary>
     public async Task<FilterConfiguration?> GetFilterAsync(Guid filterId, CancellationToken cancellationToken = default)
     {
-        return await _repository.GetByIdAsync(filterId, cancellationToken);
+        return await _repository.GetByIdAsync(filterId, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -88,7 +88,7 @@ public class FilterService
     /// </summary>
     public async Task<IEnumerable<FilterConfiguration>> GetFiltersByTypeAsync(FilterType type, CancellationToken cancellationToken = default)
     {
-        return await _repository.GetByTypeAsync(type, cancellationToken);
+        return await _repository.GetByTypeAsync(type, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -99,12 +99,12 @@ public class FilterService
         if (config == null)
             throw new ArgumentNullException(nameof(config));
 
-        var existing = await _repository.GetByIdAsync(config.Id, cancellationToken);
+        var existing = await _repository.GetByIdAsync(config.Id, cancellationToken).ConfigureAwait(false);
         if (existing == null)
             throw new InvalidOperationException($"Filter {config.Id} not found");
 
         _logger.LogInformation("Updating filter {FilterName}", config.Name);
-        return await _repository.UpdateAsync(config, cancellationToken);
+        return await _repository.UpdateAsync(config, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ public class FilterService
     public async Task<bool> DeleteFilterAsync(Guid filterId, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Deleting filter {FilterId}", filterId);
-        return await _repository.DeleteAsync(filterId, cancellationToken);
+        return await _repository.DeleteAsync(filterId, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -121,7 +121,7 @@ public class FilterService
     /// </summary>
     public async Task<IEnumerable<FilterConfiguration>> GetActiveFiltersAsync(CancellationToken cancellationToken = default)
     {
-        return await _repository.GetActiveFiltersAsync(cancellationToken);
+        return await _repository.GetActiveFiltersAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private FrozenDictionary<FilterType, Func<Image, FilterConfiguration, ValueTask<Image>>> InitializeFilterHandlers()

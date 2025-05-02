@@ -112,7 +112,7 @@ namespace GpuImageProcessing.Core.Repository
         /// </summary>
         public async Task<long> GetTotalStorageUsageAsync()
         {
-            return await Task.FromResult(_entities.Sum(i => i.FileSizeBytes));
+            return await Task.FromResult(_entities.Sum(i => i.FileSizeBytes)).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -134,7 +134,7 @@ namespace GpuImageProcessing.Core.Repository
                 NewestImage = _entities.OrderByDescending(i => i.CreatedAt).FirstOrDefault()
             };
 
-            return await Task.FromResult(stats);
+            return await Task.FromResult(stats).ConfigureAwait(false);
         }
     }
 

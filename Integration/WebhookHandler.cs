@@ -175,7 +175,7 @@ namespace GpuImageProcessing.Integration
                 if (attempt < subscription.RetryPolicy.MaxRetries)
                 {
                     int delayMs = (int)(subscription.RetryPolicy.InitialDelayMs * Math.Pow(subscription.RetryPolicy.BackoffMultiplier, attempt - 1));
-                    await Task.Delay(Math.Min(delayMs, subscription.RetryPolicy.MaxDelayMs));
+                    await Task.Delay(Math.Min(delayMs, subscription.RetryPolicy.MaxDelayMs)).ConfigureAwait(false);
                 }
             }
 

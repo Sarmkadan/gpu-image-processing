@@ -59,27 +59,27 @@ Examples:
             {
                 if (HasFlag("list") || _positionalArgs.Count == 0)
                 {
-                    return await ListFiltersAsync();
+                    return await ListFiltersAsync().ConfigureAwait(false);
                 }
                 else if (HasFlag("create"))
                 {
-                    return await CreateFilterAsync();
+                    return await CreateFilterAsync().ConfigureAwait(false);
                 }
                 else if (HasFlag("info"))
                 {
-                    return await ShowFilterInfoAsync();
+                    return await ShowFilterInfoAsync().ConfigureAwait(false);
                 }
                 else if (HasFlag("delete"))
                 {
-                    return await DeleteFilterAsync();
+                    return await DeleteFilterAsync().ConfigureAwait(false);
                 }
                 else if (HasFlag("stats"))
                 {
-                    return await ShowFilterStatsAsync();
+                    return await ShowFilterStatsAsync().ConfigureAwait(false);
                 }
                 else
                 {
-                    return await ListFiltersAsync();
+                    return await ListFiltersAsync().ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -122,7 +122,7 @@ Examples:
 
             try
             {
-                var stats = await _filterService.GetStatisticsAsync();
+                var stats = await _filterService.GetStatisticsAsync().ConfigureAwait(false);
                 Console.WriteLine($"Total custom filters: {stats.TotalFilters}");
                 PrintSuccess("Filter list retrieved");
             }
@@ -154,7 +154,7 @@ Examples:
             try
             {
                 FilterType type = ParseFilterType(filterType);
-                var filter = await _filterService.CreateFilterAsync(type, filterName, $"Custom {filterName}");
+                var filter = await _filterService.CreateFilterAsync(type, filterName, $"Custom {filterName}").ConfigureAwait(false);
 
                 PrintSuccess($"Filter created successfully");
                 Console.WriteLine($"  ID: {filter.Id}");
@@ -256,7 +256,7 @@ Examples:
 
             try
             {
-                var stats = await _filterService.GetStatisticsAsync();
+                var stats = await _filterService.GetStatisticsAsync().ConfigureAwait(false);
 
                 Console.WriteLine();
                 Console.WriteLine("Filter Statistics:");

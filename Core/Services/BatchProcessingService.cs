@@ -55,7 +55,7 @@ namespace GpuImageProcessing.Core.Services
                 OutputDirectory = "./output/"
             };
 
-            return await _jobRepository.AddAsync(job);
+            return await _jobRepository.AddAsync(job).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task ExecuteJobAsync(Guid jobId, Guid profileId, CancellationToken cancellationToken = default)
         {
-            var job = await _jobRepository.GetByIdAsync(jobId);
+            var job = await _jobRepository.GetByIdAsync(jobId).ConfigureAwait(false);
             if (job == null)
                 throw new InvalidOperationException("Job not found");
 
@@ -73,7 +73,7 @@ namespace GpuImageProcessing.Core.Services
             try
             {
                 job.Start();
-                await _jobRepository.UpdateAsync(job);
+                await _jobRepository.UpdateAsync(job).ConfigureAwait(false);
 
                 var results = await _processingService.ProcessBatchAsync(
                     job.ImageIds,
@@ -86,7 +86,7 @@ namespace GpuImageProcessing.Core.Services
                 foreach (var result in results)
                 {
                     result.JobId = jobId;
-                    await _resultRepository.AddAsync(result);
+                    await _resultRepository.AddAsync(result).ConfigureAwait(false);
 
                     if (result.IsSuccessful)
                         job.ProcessedImages++;
@@ -99,18 +99,18 @@ namespace GpuImageProcessing.Core.Services
                     if (cancellationToken.IsCancellationRequested)
                     {
                         job.Cancel();
-                        await _jobRepository.UpdateAsync(job);
+                        await _jobRepository.UpdateAsync(job).ConfigureAwait(false);
                         return;
                     }
                 }
 
                 job.Complete();
-                await _jobRepository.UpdateAsync(job);
+                await _jobRepository.UpdateAsync(job).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
                 job.MarkFailed(ex.Message);
-                await _jobRepository.UpdateAsync(job);
+                await _jobRepository.UpdateAsync(job).ConfigureAwait(false);
                 throw;
             }
         }
@@ -120,7 +120,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<ProcessingJob?> GetJobAsync(Guid jobId)
         {
-            return await _jobRepository.GetByIdAsync(jobId);
+            return await _jobRepository.GetByIdAsync(jobId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<IEnumerable<ProcessingJob>> GetJobsByStatusAsync(ProcessingStatus status)
         {
-            return await _jobRepository.GetByStatusAsync(status);
+            return await _jobRepository.GetByStatusAsync(status).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<IEnumerable<ProcessingResult>> GetJobResultsAsync(Guid jobId)
         {
-            return await _resultRepository.GetByJobAsync(jobId);
+            return await _resultRepository.GetByJobAsync(jobId).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -144,11 +144,11 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task UpdateJobProgressAsync(Guid jobId, int processedCount, int failedCount)
         {
-            var job = await _jobRepository.GetByIdAsync(jobId);
+            var job = await _jobRepository.GetByIdAsync(jobId).ConfigureAwait(false);
             if (job != null)
             {
                 job.UpdateProgress(processedCount, failedCount);
-                await _jobRepository.UpdateAsync(job);
+                await _jobRepository.UpdateAsync(job).ConfigureAwait(false);
             }
         }
 
@@ -157,7 +157,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<bool> CancelJobAsync(Guid jobId)
         {
-            var job = await _jobRepository.GetByIdAsync(jobId);
+            var job = await _jobRepository.GetByIdAsync(jobId).ConfigureAwait(false);
             if (job == null)
                 return false;
 
@@ -165,7 +165,7 @@ namespace GpuImageProcessing.Core.Services
                 return false;
 
             job.Cancel();
-            await _jobRepository.UpdateAsync(job);
+            await _jobRepository.UpdateAsync(job).ConfigureAwait(false);
             return true;
         }
 
@@ -174,12 +174,12 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<bool> PauseJobAsync(Guid jobId)
         {
-            var job = await _jobRepository.GetByIdAsync(jobId);
+            var job = await _jobRepository.GetByIdAsync(jobId).ConfigureAwait(false);
             if (job == null || job.Status != ProcessingStatus.Running)
                 return false;
 
             job.Status = ProcessingStatus.Paused;
-            await _jobRepository.UpdateAsync(job);
+            await _jobRepository.UpdateAsync(job).ConfigureAwait(false);
             return true;
         }
 
@@ -188,12 +188,12 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<bool> ResumeJobAsync(Guid jobId, Guid profileId)
         {
-            var job = await _jobRepository.GetByIdAsync(jobId);
+            var job = await _jobRepository.GetByIdAsync(jobId).ConfigureAwait(false);
             if (job == null || job.Status != ProcessingStatus.Paused)
                 return false;
 
             job.Status = ProcessingStatus.Running;
-            await _jobRepository.UpdateAsync(job);
+            await _jobRepository.UpdateAsync(job).ConfigureAwait(false);
             // Continue execution from where it left off
             return true;
         }
@@ -203,11 +203,11 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<JobExecutionStats> GetJobStatsAsync(Guid jobId)
         {
-            var job = await _jobRepository.GetByIdAsync(jobId);
+            var job = await _jobRepository.GetByIdAsync(jobId).ConfigureAwait(false);
             if (job == null)
                 throw new InvalidOperationException("Job not found");
 
-            var results = (await _resultRepository.GetByJobAsync(jobId)).ToList();
+            var results = (await _resultRepository.GetByJobAsync(jobId)).ToList().ConfigureAwait(false);
             var successfulResults = results.Where(r => r.IsSuccessful).ToList();
 
             var stats = new JobExecutionStats
@@ -240,7 +240,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<IEnumerable<ProcessingJob>> GetPendingJobsAsync()
         {
-            return await _jobRepository.GetPendingAsync();
+            return await _jobRepository.GetPendingAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -248,7 +248,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<IEnumerable<ProcessingJob>> GetRunningJobsAsync()
         {
-            return await _jobRepository.GetRunningAsync();
+            return await _jobRepository.GetRunningAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -257,7 +257,7 @@ namespace GpuImageProcessing.Core.Services
         public async Task<int> CleanupOldJobsAsync(int daysOld = 30)
         {
             var cutoffDate = DateTime.UtcNow.AddDays(-daysOld);
-            return await _jobRepository.ClearOldFailedJobsAsync(cutoffDate);
+            return await _jobRepository.ClearOldFailedJobsAsync(cutoffDate).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -265,7 +265,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<int> GetQueueDepthAsync()
         {
-            var pending = await _jobRepository.GetPendingAsync();
+            var pending = await _jobRepository.GetPendingAsync().ConfigureAwait(false);
             return pending.Count();
         }
 
@@ -274,12 +274,12 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<bool> PrioritizeJobAsync(Guid jobId)
         {
-            var job = await _jobRepository.GetByIdAsync(jobId);
+            var job = await _jobRepository.GetByIdAsync(jobId).ConfigureAwait(false);
             if (job == null || job.Status != ProcessingStatus.Pending)
                 return false;
 
             // In a real implementation, would update queue position
-            return await Task.FromResult(true);
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
     }
 

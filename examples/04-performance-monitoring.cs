@@ -47,7 +47,7 @@ namespace GpuImageProcessing.Examples
                 Console.WriteLine("DEVICE INFORMATION");
                 Console.WriteLine(new string('=', 60));
 
-                var devices = await deviceService.GetAvailableDevicesAsync();
+                var devices = await deviceService.GetAvailableDevicesAsync().ConfigureAwait(false);
                 Console.WriteLine($"\nTotal Devices: {devices.Count}\n");
 
                 foreach (var device in devices)
@@ -61,7 +61,7 @@ namespace GpuImageProcessing.Examples
                     Console.WriteLine($"  Available: {(device.Available ? "Yes" : "No")}");
 
                     // Get device capabilities
-                    var capabilities = await deviceService.GetDeviceCapabilitiesAsync(device.Id);
+                    var capabilities = await deviceService.GetDeviceCapabilitiesAsync(device.Id).ConfigureAwait(false);
                     if (capabilities.Count > 0)
                     {
                         Console.WriteLine("  Capabilities:");
@@ -84,7 +84,7 @@ namespace GpuImageProcessing.Examples
                         ?? devices.First();
 
                     Console.WriteLine($"Selecting device: {selectedDevice.Name}");
-                    await deviceService.SelectDeviceAsync(selectedDevice.Id);
+                    await deviceService.SelectDeviceAsync(selectedDevice.Id).ConfigureAwait(false);
                     Console.WriteLine("✓ Device selected\n");
                 }
 
@@ -93,7 +93,7 @@ namespace GpuImageProcessing.Examples
                 Console.WriteLine("INITIAL PERFORMANCE METRICS");
                 Console.WriteLine(new string('=', 60) + "\n");
 
-                var initialMetrics = await perfService.GetMetricsAsync();
+                var initialMetrics = await perfService.GetMetricsAsync().ConfigureAwait(false);
                 DisplayMetrics(initialMetrics, "Initial");
 
                 // Simulate processing load and monitor metrics
@@ -108,7 +108,7 @@ namespace GpuImageProcessing.Examples
                 const string testImage = "photo.jpg";
                 if (File.Exists(testImage))
                 {
-                    var image = await imageProcessing.RegisterImageAsync(testImage, "TestImage");
+                    var image = await imageProcessing.RegisterImageAsync(testImage, "TestImage").ConfigureAwait(false);
                     Console.WriteLine($"Registered test image: {image.Id}\n");
 
                     // Monitor metrics over time
@@ -121,7 +121,7 @@ namespace GpuImageProcessing.Examples
 
                     while ((DateTime.UtcNow - startTime).TotalMilliseconds < samplingDuration)
                     {
-                        var metrics = await perfService.GetMetricsAsync();
+                        var metrics = await perfService.GetMetricsAsync().ConfigureAwait(false);
 
                         var elapsed = (DateTime.UtcNow - startTime).TotalSeconds;
                         Console.WriteLine(
@@ -130,7 +130,7 @@ namespace GpuImageProcessing.Examples
                             $"{metrics.ImagesPerSecond:F2}img/s"
                         );
 
-                        await Task.Delay(samplingInterval);
+                        await Task.Delay(samplingInterval).ConfigureAwait(false);
                     }
                 }
                 else
@@ -144,7 +144,7 @@ namespace GpuImageProcessing.Examples
                 Console.WriteLine("FINAL PERFORMANCE METRICS");
                 Console.WriteLine(new string('=', 60) + "\n");
 
-                var finalMetrics = await perfService.GetMetricsAsync();
+                var finalMetrics = await perfService.GetMetricsAsync().ConfigureAwait(false);
                 DisplayMetrics(finalMetrics, "Final");
 
                 // Performance analysis

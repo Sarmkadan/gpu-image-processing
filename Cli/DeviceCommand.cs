@@ -56,27 +56,27 @@ Examples:
             {
                 if (HasFlag("list") || _positionalArgs.Count == 0)
                 {
-                    return await ListDevicesAsync();
+                    return await ListDevicesAsync().ConfigureAwait(false);
                 }
                 else if (HasFlag("info"))
                 {
-                    return await ShowDeviceInfoAsync();
+                    return await ShowDeviceInfoAsync().ConfigureAwait(false);
                 }
                 else if (HasFlag("select"))
                 {
-                    return await SelectDeviceAsync();
+                    return await SelectDeviceAsync().ConfigureAwait(false);
                 }
                 else if (HasFlag("benchmark"))
                 {
-                    return await BenchmarkDeviceAsync();
+                    return await BenchmarkDeviceAsync().ConfigureAwait(false);
                 }
                 else if (HasFlag("memory-stats"))
                 {
-                    return await ShowMemoryStatsAsync();
+                    return await ShowMemoryStatsAsync().ConfigureAwait(false);
                 }
                 else
                 {
-                    return await ListDevicesAsync();
+                    return await ListDevicesAsync().ConfigureAwait(false);
                 }
             }
             catch (Exception ex)
@@ -100,7 +100,7 @@ Examples:
 
             try
             {
-                var deviceSummary = await _deviceService.GetCapabilitiesSummaryAsync();
+                var deviceSummary = await _deviceService.GetCapabilitiesSummaryAsync().ConfigureAwait(false);
                 Console.WriteLine();
                 Console.WriteLine(deviceSummary);
                 Console.WriteLine();
@@ -139,7 +139,7 @@ Examples:
             {
                 PrintInfo($"Retrieving device information for device {id}...");
 
-                var stats = await _deviceService.GetStatisticsAsync();
+                var stats = await _deviceService.GetStatisticsAsync().ConfigureAwait(false);
                 Console.WriteLine();
                 Console.WriteLine($"Device Statistics:");
                 Console.WriteLine($"  Available Devices: {stats.AvailableDevices}/{stats.TotalDevices}");
@@ -174,7 +174,7 @@ Examples:
             {
                 PrintInfo($"Attempting to select device {id}...");
 
-                var stats = await _deviceService.GetStatisticsAsync();
+                var stats = await _deviceService.GetStatisticsAsync().ConfigureAwait(false);
                 if (id >= stats.TotalDevices || id < 0)
                 {
                     PrintError($"Device {id} not available (range: 0-{stats.TotalDevices - 1})");
@@ -204,10 +204,10 @@ Examples:
             {
                 PrintInfo("Running filter operations...");
                 // Simulate benchmark operations
-                await Task.Delay(500);
+                await Task.Delay(500).ConfigureAwait(false);
 
                 PrintInfo("Running transform operations...");
-                await Task.Delay(500);
+                await Task.Delay(500).ConfigureAwait(false);
 
                 var elapsed = DateTime.Now - startTime;
                 Console.WriteLine();
@@ -234,7 +234,7 @@ Examples:
 
             try
             {
-                var stats = await _deviceService.GetStatisticsAsync();
+                var stats = await _deviceService.GetStatisticsAsync().ConfigureAwait(false);
 
                 Console.WriteLine();
                 Console.WriteLine("Memory Statistics:");

@@ -28,7 +28,7 @@ namespace GpuImageProcessing.Core.Services
         {
             try
             {
-                await DetectDevicesAsync();
+                await DetectDevicesAsync().ConfigureAwait(false);
                 if (_devices.Count == 0)
                 {
                     throw new DeviceInitializationException("No compute devices detected");
@@ -91,7 +91,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<IEnumerable<DeviceInfo>> GetAllDevicesAsync()
         {
-            return await Task.FromResult(_devices);
+            return await Task.FromResult(_devices).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -119,13 +119,13 @@ namespace GpuImageProcessing.Core.Services
         {
             var device = _devices.FirstOrDefault(d => d.Id == deviceId);
             if (device == null)
-                return await Task.FromResult(false);
+                return await Task.FromResult(false).ConfigureAwait(false);
 
             if (!device.IsAvailable)
-                return await Task.FromResult(false);
+                return await Task.FromResult(false).ConfigureAwait(false);
 
             _selectedDevice = device;
-            return await Task.FromResult(true);
+            return await Task.FromResult(true).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -166,7 +166,7 @@ namespace GpuImageProcessing.Core.Services
         public async Task<bool> HasSufficientMemoryAsync(Guid deviceId, long requiredBytes)
         {
             var device = _devices.FirstOrDefault(d => d.Id == deviceId);
-            return await Task.FromResult(device?.HasSufficientMemory(requiredBytes) ?? false);
+            return await Task.FromResult(device?.HasSufficientMemory(requiredBytes) ?? false).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -191,7 +191,7 @@ namespace GpuImageProcessing.Core.Services
                 MostCapableDevice = availableDevices.OrderByDescending(d => d.GetCapabilityScore()).FirstOrDefault()
             };
 
-            return await Task.FromResult(stats);
+            return await Task.FromResult(stats).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -199,7 +199,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task RefreshDevicesAsync()
         {
-            await DetectDevicesAsync();
+            await DetectDevicesAsync().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -212,7 +212,7 @@ namespace GpuImageProcessing.Core.Services
             {
                 summary += $"{device.GetCapabilitiesSummary()}\n\n";
             }
-            return await Task.FromResult(summary);
+            return await Task.FromResult(summary).ConfigureAwait(false);
         }
     }
 

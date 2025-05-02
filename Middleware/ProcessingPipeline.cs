@@ -85,7 +85,7 @@ namespace GpuImageProcessing.Middleware
                 context.Next = chain;
 
                 // Execute pipeline
-                var result = await chain();
+                var result = await chain().ConfigureAwait(false);
 
                 stopwatch.Stop();
                 result.DurationMs = stopwatch.ElapsedMilliseconds;
@@ -127,7 +127,7 @@ namespace GpuImageProcessing.Middleware
                 var middleware = _middlewares[i];
                 var nextInChain = chain;
 
-                chain = async () => await middleware.ExecuteAsync(CreateContextWithNext(nextInChain));
+                chain = async () => await middleware.ExecuteAsync(CreateContextWithNext(nextInChain)).ConfigureAwait(false);
             }
 
             return chain;
