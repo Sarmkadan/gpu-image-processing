@@ -32,6 +32,8 @@
 - **Advanced Filtering**: Gaussian blur, bilateral filtering, median filters, Sobel edge detection, Canny edge detection, morphological operations
 - **Geometric Transforms**: Rotation, resizing, affine transforms, color space conversion (RGB/HSV/LAB), normalization, histogram equalization
 - **Batch Processing**: Process thousands of images with job queuing, progress tracking, and distributed scheduling
+- **Batch Processing Pipeline**: Stage-aware pipeline with retry policies, priority queuing, and per-image progress events
+- **Filter Chain Builder**: Fluent API to compose type-safe filter chains in a single expression
 - **Device Management**: Automatic detection and selection of compute devices (GPU/CPU) with fallback support
 - **Customizable Profiles**: Speed-optimized, quality-optimized, and balanced processing profiles
 - **Performance Analytics**: Detailed metrics on processing time, memory usage, GPU utilization, and throughput
@@ -516,6 +518,68 @@ Task CancelJobAsync(Guid jobId);
 Task<List<ProcessingJob>> GetJobsAsync();
 ```
 
+### BatchProcessingPipeline
+
+A stage-aware pipeline (PreProcess → Filter → PostProcess) that wraps
+`ImageProcessingService` with per-image retry logic and priority queuing.
+
+```csharp
+var options = new BatchPipelineOptions
+{
+    MaxConcurrency = 4,
+    MaxRetries     = 2,
+    RetryBaseDelayMs = 100
+};
+
+var pipeline = new BatchProcessingPipeline(
+    processingService,
+    performanceMonitor,
+    options,
+    logger);
+
+// Subscribe to per-image progress events
+pipeline.ProgressChanged += (_, e) =>
+    Console.WriteLine($"[{e.ProgressPercent:F1}%] image {e.Outcome.ImageId}: {e.Outcome.Stage}");
+
+BatchPipelineResult result = await pipeline.RunAsync(batch, cancellationToken);
+Console.WriteLine($"Succeeded={result.SucceededCount} Failed={result.FailedCount} " +
+                  $"Rate={result.SuccessRate:F1}% Duration={result.TotalDuration.TotalSeconds:F2}s");
+```
+
+### FilterChainBuilder
+
+Fluent builder for composing `FilterChain` instances with validated parameters.
+
+```csharp
+// Build a portrait processing chain
+FilterChain chain = FilterChainBuilder
+    .Create("Portrait Workflow")
+    .WithDescription("Standard portrait post-processing")
+    .AddGrayscale()
+    .AddBlur(radius: 2.0f)
+    .AddSharpen(strength: 0.8f)
+    .AddEdgeDetection()
+    .AddColorCorrection(brightness: 0.1f)
+    .AllowParallelExecution(maxParallelSteps: 4)
+    .CacheIntermediates()
+    .Build();
+
+// Available filter methods:
+// .AddGrayscale()             — color → greyscale
+// .AddBlur(radius)            — Gaussian blur (radius 0.5–50.0)
+// .AddSharpen(strength)       — unsharp mask (strength 0.0–10.0)
+// .AddEdgeDetection()         — Sobel/Laplacian edge map
+// .AddColorCorrection(brightness)
+// .AddThreshold(value)        — binarise at threshold 0.0–1.0
+// .AddRotation(degrees)       — rotate -360°..360°
+// .AddScaling(scaleX, scaleY)
+// .AddBilateral()             — edge-preserving denoise
+// .AddMedian()                — salt-and-pepper noise removal
+// .AddEmboss()                — emboss effect
+// .AddSobel()                 — Sobel gradient magnitude
+// .AddCustomFilter(filterId)  — reference a pre-registered FilterConfiguration
+```
+
 ### DeviceService
 
 ```csharp
@@ -871,10 +935,53 @@ dotnet format
 
 ### Library Micro-benchmarks
 
-Run the benchmark suite locally:
+Run the full benchmark suite locally:
 
 ```bash
 dotnet run -c Release --project benchmarks/gpu-image-processing.Benchmarks
+```
+
+Select a specific category using the interactive switcher, or pass `--filter` to target a class:
+
+```bash
+# Filter chain construction only
+dotnet run -c Release --project benchmarks/gpu-image-processing.Benchmarks \
+  -- --filter "*FilterChainBuilderBenchmarks*"
+
+# Batch processing operations only
+dotnet run -c Release --project benchmarks/gpu-image-processing.Benchmarks \
+  -- --filter "*BatchProcessingBenchmarks*"
+```
+
+#### Benchmark categories
+
+| Category | Class | What it measures |
+|----------|-------|-----------------|
+| `FilterChain` | `FilterChainBenchmarks` | Step add/remove, validate, clone, enabled-count |
+| `FilterChainBuilder` | `FilterChainBuilderBenchmarks` | Fluent build (3-step, 10-step), validate, clone, estimate |
+| `BatchProcessing` | `BatchProcessingBenchmarks` | Batch create/populate, validate, progress, priority queue |
+| `ImageUtilities` | `ImageUtilitiesBenchmarks` | Extension validation, MIME resolution, size formatting |
+| `EnumerableExtensions` | `EnumerableExtensionsBenchmarks` | Shuffle, Batch, DistinctBy, SafeToDictionary |
+
+Use `BenchmarkSuiteConfiguration` to select categories programmatically:
+
+```csharp
+// CI preset — Quick accuracy, core categories only
+var ciConfig = BenchmarkSuiteConfiguration.ForCi("CI-2026");
+
+// Release preset — Thorough accuracy, all categories, hardware counters
+var releaseConfig = BenchmarkSuiteConfiguration.ForRelease("v2.1.0");
+
+// Custom configuration
+var config = new BenchmarkSuiteConfiguration
+{
+    RunName = "My Run",
+    AccuracyLevel = BenchmarkAccuracyLevel.Standard,
+    IncludeFilterChainBuilderBenchmarks = true,
+    IncludeBatchProcessingBenchmarks = true,
+    IncludeImageUtilitiesBenchmarks = false
+};
+var errors = config.Validate();  // empty list when valid
 ```
 
 **Environment**: .NET 10.0 · X64 RyuJIT AVX2 · `[MemoryDiagnoser]` enabled
