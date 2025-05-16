@@ -3,6 +3,8 @@
 // CTO & Software Architect
 // =============================================================================
 
+using System.Collections.Frozen;
+
 namespace GpuImageProcessing.Services;
 
 /// <summary>
@@ -12,7 +14,7 @@ public class FilterService
 {
     private readonly FilterConfigurationRepository _repository;
     private readonly ILogger<FilterService> _logger;
-    private readonly Dictionary<FilterType, Func<Image, FilterConfiguration, Task<Image>>> _filterHandlers;
+    private readonly FrozenDictionary<FilterType, Func<Image, FilterConfiguration, ValueTask<Image>>> _filterHandlers;
 
     public FilterService(FilterConfigurationRepository repository, ILogger<FilterService> logger)
     {
@@ -121,9 +123,9 @@ public class FilterService
         return await _repository.GetActiveFiltersAsync(cancellationToken);
     }
 
-    private Dictionary<FilterType, Func<Image, FilterConfiguration, Task<Image>>> InitializeFilterHandlers()
+    private FrozenDictionary<FilterType, Func<Image, FilterConfiguration, ValueTask<Image>>> InitializeFilterHandlers()
     {
-        return new()
+        return new Dictionary<FilterType, Func<Image, FilterConfiguration, ValueTask<Image>>>
         {
             { FilterType.Grayscale, ApplyGrayscaleFilter },
             { FilterType.Blur, ApplyBlurFilter },
@@ -131,63 +133,59 @@ public class FilterService
             { FilterType.EdgeDetection, ApplyEdgeDetectionFilter },
             { FilterType.Rotation, ApplyRotationFilter },
             { FilterType.Scaling, ApplyScalingFilter }
-        };
+        }.ToFrozenDictionary();
     }
 
-    private Task<Image> ApplyGrayscaleFilter(Image image, FilterConfiguration config)
+    private ValueTask<Image> ApplyGrayscaleFilter(Image image, FilterConfiguration config)
     {
-        if (image.ColorSpace == ColorSpace.Grayscale)
-            return Task.FromResult(image);
-
-        image.ColorSpace = ColorSpace.Grayscale;
-        image.BitsPerPixel = 8;
-        return Task.FromResult(image);
+        if (image.ColorSpace != ColorSpace.Grayscale)
+        {
+            image.ColorSpace = ColorSpace.Grayscale;
+            image.BitsPerPixel = 8;
+        }
+        return ValueTask.FromResult(image);
     }
 
-    private Task<Image> ApplyBlurFilter(Image image, FilterConfiguration config)
+    private ValueTask<Image> ApplyBlurFilter(Image image, FilterConfiguration config)
     {
         var radius = GetParameterValue(config, "radius", Constants.Filters.DefaultBlurRadius);
         _logger.LogDebug("Applying blur filter with radius {Radius} to image {ImageId}", radius, image.Id);
         // GPU kernel execution would happen here in real implementation
-        return Task.FromResult(image);
+        return ValueTask.FromResult(image);
     }
 
-    private Task<Image> ApplySharpenFilter(Image image, FilterConfiguration config)
+    private ValueTask<Image> ApplySharpenFilter(Image image, FilterConfiguration config)
     {
         var strength = GetParameterValue(config, "strength", Constants.Filters.DefaultSharpenStrength);
         _logger.LogDebug("Applying sharpen filter with strength {Strength}", strength);
-        return Task.FromResult(image);
+        return ValueTask.FromResult(image);
     }
 
-    private Task<Image> ApplyEdgeDetectionFilter(Image image, FilterConfiguration config)
+    private ValueTask<Image> ApplyEdgeDetectionFilter(Image image, FilterConfiguration config)
     {
         _logger.LogDebug("Applying edge detection filter to image {ImageId}", image.Id);
         image.Metadata["edgeDetected"] = true;
-        return Task.FromResult(image);
+        return ValueTask.FromResult(image);
     }
 
-    private Task<Image> ApplyRotationFilter(Image image, FilterConfiguration config)
+    private ValueTask<Image> ApplyRotationFilter(Image image, FilterConfiguration config)
     {
         var angle = GetParameterValue(config, "angle", 0.0f);
         _logger.LogDebug("Applying rotation filter with angle {Angle}", angle);
-        // Swap dimensions for 90 degree rotations
+        // Swap dimensions for 90-degree rotations
         if (Math.Abs(angle % 90) < 0.01f && Math.Abs((int)(angle / 90) % 2) > 0.5f)
-        {
             (image.Width, image.Height) = (image.Height, image.Width);
-        }
-        return Task.FromResult(image);
+        return ValueTask.FromResult(image);
     }
 
-    private Task<Image> ApplyScalingFilter(Image image, FilterConfiguration config)
+    private ValueTask<Image> ApplyScalingFilter(Image image, FilterConfiguration config)
     {
         var scaleX = GetParameterValue(config, "scaleX", 1.0f);
         var scaleY = GetParameterValue(config, "scaleY", 1.0f);
         _logger.LogDebug("Applying scaling filter with scale ({ScaleX}, {ScaleY})", scaleX, scaleY);
-
         image.Width = (int)(image.Width * scaleX);
         image.Height = (int)(image.Height * scaleY);
-
-        return Task.FromResult(image);
+        return ValueTask.FromResult(image);
     }
 
     private static float GetParameterValue(FilterConfiguration config, string key, float defaultValue)
@@ -202,10 +200,10 @@ public class FilterService
         return defaultValue;
     }
 
-    private Task<Image> ApplyGenericFilter(Image image, FilterConfiguration config)
+    private ValueTask<Image> ApplyGenericFilter(Image image, FilterConfiguration config)
     {
         _logger.LogWarning("No specific handler for filter type {FilterType}, applying generic filter", config.FilterType);
         image.Metadata[$"filter_{config.FilterType}"] = config.Name;
-        return Task.FromResult(image);
+        return ValueTask.FromResult(image);
     }
 }
