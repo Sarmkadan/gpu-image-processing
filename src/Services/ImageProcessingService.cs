@@ -38,8 +38,18 @@ public class ImageProcessingService
     }
 
     /// <summary>
-    /// Processes a single image with specified filters.
+    /// Processes a single image by sequentially applying the specified GPU filters.
+    /// Allocates GPU memory, applies each filter in order, persists the processed output,
+    /// and records performance metrics. On failure, marks the image as failed and stores
+    /// a failed result record for diagnostics.
     /// </summary>
+    /// <param name="imageId">The unique identifier of the image to process.</param>
+    /// <param name="filterIds">Ordered list of filter configuration IDs to apply sequentially.</param>
+    /// <param name="cancellationToken">Token to cancel the processing operation.</param>
+    /// <returns>A <see cref="ProcessingResult"/> with per-filter timings and the output file path.</returns>
+    /// <exception cref="InvalidImageException">Thrown when the image is not found or fails validation.</exception>
+    /// <exception cref="GpuException">Thrown when no GPU device is available.</exception>
+    /// <exception cref="ProcessingException">Thrown when any filter application or I/O step fails.</exception>
     public async Task<ProcessingResult> ProcessImageAsync(Guid imageId, List<Guid> filterIds, CancellationToken cancellationToken = default)
     {
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
@@ -123,8 +133,11 @@ public class ImageProcessingService
     }
 
     /// <summary>
-    /// Gets processing result for an image.
+    /// Retrieves the most recent processing result for the specified image.
     /// </summary>
+    /// <param name="imageId">The image identifier to look up results for.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The latest <see cref="ProcessingResult"/>, or <c>null</c> if the image has not been processed.</returns>
     public async Task<ProcessingResult?> GetProcessingResultAsync(Guid imageId, CancellationToken cancellationToken = default)
     {
         var results = await _resultRepository.GetByImageIdAsync(imageId, cancellationToken);
@@ -132,8 +145,14 @@ public class ImageProcessingService
     }
 
     /// <summary>
-    /// Gets image processing statistics.
+    /// Computes aggregate image processing statistics including total/successful/failed counts,
+    /// success rate percentage, and average/total processing time in milliseconds.
     /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>
+    /// A dictionary with keys: TotalImages, ProcessedImages, SuccessfulProcessing,
+    /// FailedProcessing, SuccessRate, AverageProcessingTime, TotalProcessingTime.
+    /// </returns>
     public async Task<Dictionary<string, object>> GetStatisticsAsync(CancellationToken cancellationToken = default)
     {
         var totalImages = await _imageRepository.CountAsync(cancellationToken);
