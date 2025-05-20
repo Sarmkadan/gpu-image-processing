@@ -36,9 +36,10 @@ public enum FilterType
     Histogram = 8,
     Threshold = 9,
     GaussianBlur = 10,
-    MedianFilter = 11,
-    Emboss = 12,
-    Sobel = 13
+    Median = 11,
+    Bilateral = 12,
+    Emboss = 13,
+    Sobel = 14
 }
 
 /// <summary>
@@ -101,3 +102,19 @@ public enum EdgeDetectionAlgorithm
     Canny = 2,
     Roberts = 3
 }
+
+/// <summary>
+/// Types of transformations that can be applied to an image.
+/// </summary>
+public enum TransformType
+{
+    None = 0,
+    Rotate = 1,
+    Resize = 2,
+    Crop = 3,
+    Flip = 4,
+    ColorSpace = 5,
+    Normalize = 6,
+    Watermark = 7
+}
+

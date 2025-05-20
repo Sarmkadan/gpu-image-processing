@@ -10,6 +10,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using GpuImageProcessing.Core.Exceptions;
 using GpuImageProcessing.Core.Models;
+using GpuImageProcessing.Core.Enums;
+using GpuImageProcessing.Services;
+using Microsoft.Extensions.Logging;
 
 namespace GpuImageProcessing.Core.Services
 {
@@ -18,8 +21,16 @@ namespace GpuImageProcessing.Core.Services
     /// </summary>
     public class DeviceService
     {
+        private readonly GpuManagementService _gpuManagementService;
+        private readonly ILogger<DeviceService> _logger;
         private List<DeviceInfo> _devices = new();
         private DeviceInfo? _selectedDevice;
+
+        public DeviceService(GpuManagementService gpuManagementService, ILogger<DeviceService> logger)
+        {
+            _gpuManagementService = gpuManagementService ?? throw new ArgumentNullException(nameof(gpuManagementService));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
 
         /// <summary>
         /// Initializes the device service and detects available devices
@@ -34,56 +45,73 @@ namespace GpuImageProcessing.Core.Services
                     throw new DeviceInitializationException("No compute devices detected");
                 }
                 _selectedDevice = _devices.OrderByDescending(d => d.GetCapabilityScore()).First();
+                _logger.LogInformation("Selected default device: {DeviceName}", _selectedDevice.Name);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Failed to initialize compute devices");
                 throw new DeviceInitializationException("Failed to initialize compute devices", ex.Message);
             }
         }
 
         /// <summary>
-        /// Detects all available compute devices
+        /// Detects all available compute devices using GpuManagementService
         /// </summary>
         private async Task DetectDevicesAsync()
         {
-            // Simulated device detection - in production, would use OpenCL
-            _devices = new List<DeviceInfo>
+            _devices.Clear();
+            var detectedGpuDevices = _gpuManagementService.GetAvailableDevices();
+
+            foreach (var gpuDevice in detectedGpuDevices)
             {
-                new DeviceInfo
+                var deviceInfo = MapGpuDeviceToDeviceInfo(gpuDevice);
+                _devices.Add(deviceInfo);
+            }
+            
+            // Add a simulated CPU device if no actual CPU device is found through OpenCL, for compatibility
+            if (!_devices.Any(d => d.DeviceType == GpuDeviceType.Cpu.ToString()))
+            {
+                 _devices.Add(new DeviceInfo
                 {
-                    Name = "Intel UHD Graphics",
-                    Vendor = "Intel",
-                    DeviceType = "GPU",
-                    GlobalMemoryBytes = 2_147_483_648, // 2GB
-                    LocalMemoryBytes = 65536,
-                    ComputeUnits = 12,
-                    MaxWorkGroupSize = 256,
-                    MaxWorkItemDimensions = 3,
-                    OpenCLVersion = "2.1",
-                    DriverVersion = "27.20.100.9316",
-                    IsAvailable = true,
-                    ClockFrequencyMHz = 1100,
-                    SupportsDoublePrecision = true
-                },
-                new DeviceInfo
-                {
-                    Name = "CPU",
+                    Name = "CPU (Simulated)",
                     Vendor = "System",
-                    DeviceType = "CPU",
+                    DeviceType = GpuDeviceType.Cpu.ToString(),
                     GlobalMemoryBytes = 16_000_000_000, // 16GB
                     LocalMemoryBytes = 32768,
-                    ComputeUnits = 8,
+                    ComputeUnits = Environment.ProcessorCount,
                     MaxWorkGroupSize = 1024,
                     MaxWorkItemDimensions = 3,
-                    OpenCLVersion = "2.0",
-                    DriverVersion = "1.0",
+                    OpenCLVersion = "N/A",
+                    DriverVersion = "N/A",
                     IsAvailable = true,
                     ClockFrequencyMHz = 3500,
                     SupportsDoublePrecision = true
-                }
-            };
+                });
+            }
 
+            _logger.LogInformation("Detected {Count} compute device(s) in total.", _devices.Count);
             await Task.CompletedTask;
+        }
+
+        private DeviceInfo MapGpuDeviceToDeviceInfo(GpuImageProcessing.Domain.GpuDevice gpuDevice)
+        {
+            return new DeviceInfo
+            {
+                Id = gpuDevice.Id,
+                Name = gpuDevice.Name,
+                Vendor = gpuDevice.Vendor,
+                DeviceType = gpuDevice.DeviceType.ToString(),
+                GlobalMemoryBytes = gpuDevice.GlobalMemoryBytes,
+                LocalMemoryBytes = gpuDevice.LocalMemoryBytes,
+                ComputeUnits = gpuDevice.MaxComputeUnits,
+                MaxWorkGroupSize = gpuDevice.MaxWorkGroupSize,
+                MaxWorkItemDimensions = gpuDevice.MaxWorkItemDimensions,
+                OpenCLVersion = gpuDevice.Version,
+                DriverVersion = gpuDevice.Driver,
+                IsAvailable = gpuDevice.IsAvailable,
+                ClockFrequencyMHz = gpuDevice.MaxClockFrequencyMhz,
+                SupportsDoublePrecision = gpuDevice.SupportsDoublePrecision
+            };
         }
 
         /// <summary>
@@ -125,6 +153,7 @@ namespace GpuImageProcessing.Core.Services
                 return await Task.FromResult(false);
 
             _selectedDevice = device;
+            _logger.LogInformation("Selected device: {DeviceName}", _selectedDevice.Name);
             return await Task.FromResult(true);
         }
 
@@ -134,7 +163,7 @@ namespace GpuImageProcessing.Core.Services
         public async Task<IEnumerable<DeviceInfo>> GetGpuDevicesAsync()
         {
             return await Task.FromResult(
-                _devices.Where(d => d.DeviceType == "GPU" && d.IsAvailable).ToList()
+                _devices.Where(d => d.DeviceType == GpuDeviceType.Gpu.ToString() && d.IsAvailable).ToList()
             );
         }
 
@@ -144,7 +173,7 @@ namespace GpuImageProcessing.Core.Services
         public async Task<IEnumerable<DeviceInfo>> GetCpuDevicesAsync()
         {
             return await Task.FromResult(
-                _devices.Where(d => d.DeviceType == "CPU" && d.IsAvailable).ToList()
+                _devices.Where(d => d.DeviceType == GpuDeviceType.Cpu.ToString() && d.IsAvailable).ToList()
             );
         }
 
@@ -175,14 +204,14 @@ namespace GpuImageProcessing.Core.Services
         public async Task<DeviceStatistics> GetStatisticsAsync()
         {
             var availableDevices = _devices.Where(d => d.IsAvailable).ToList();
-            var gpuDevices = availableDevices.Where(d => d.DeviceType == "GPU").ToList();
+            var gpuDevices = availableDevices.Where(d => d.DeviceType == GpuDeviceType.Gpu.ToString()).ToList();
 
             var stats = new DeviceStatistics
             {
                 TotalDevices = _devices.Count,
                 AvailableDevices = availableDevices.Count,
                 GpuDevices = gpuDevices.Count,
-                CpuDevices = availableDevices.Count(d => d.DeviceType == "CPU"),
+                CpuDevices = availableDevices.Count(d => d.DeviceType == GpuDeviceType.Cpu.ToString()),
                 TotalMemoryBytes = availableDevices.Sum(d => d.GlobalMemoryBytes),
                 TotalComputeUnits = availableDevices.Sum(d => d.ComputeUnits),
                 AverageCapabilityScore = availableDevices.Count > 0
@@ -207,10 +236,13 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<string> GetCapabilitiesSummaryAsync()
         {
-            var summary = "Available Compute Devices:\n";
+            var summary = "Available Compute Devices:
+";
             foreach (var device in _devices)
             {
-                summary += $"{device.GetCapabilitiesSummary()}\n\n";
+                summary += $"{device.GetCapabilitiesSummary()}
+
+";
             }
             return await Task.FromResult(summary);
         }
