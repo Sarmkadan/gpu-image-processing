@@ -133,7 +133,8 @@ public class FilterService
             { FilterType.Sharpen, ApplySharpenFilter },
             { FilterType.EdgeDetection, ApplyEdgeDetectionFilter },
             { FilterType.Rotation, ApplyRotationFilter },
-            { FilterType.Scaling, ApplyScalingFilter }
+            { FilterType.Scaling, ApplyScalingFilter },
+            { FilterType.CustomConvolution, ApplyCustomConvolutionFilter }
         }.ToFrozenDictionary();
     }
 
@@ -201,8 +202,37 @@ public class FilterService
         return defaultValue;
     }
 
-    private ValueTask<Image> ApplyGenericFilter(Image image, FilterConfiguration config)
+    private ValueTask<Image> ApplyCustomConvolutionFilter(Image image, FilterConfiguration config)
     {
+        if (config.ConvolutionKernel is null || config.ConvolutionKernel.Length == 0)
+            throw new ProcessingException("CustomConvolution filter requires a non-empty ConvolutionKernel.", null, image.FilePath, config.Name);
+
+        int side = (int)Math.Round(Math.Sqrt(config.ConvolutionKernel.Length));
+        float[] kernel = config.ConvolutionKernel;
+
+        if (config.NormalizeKernel)
+        {
+            float sum = kernel.Sum();
+            if (Math.Abs(sum) > float.Epsilon)
+            {
+                kernel = (float[])kernel.Clone();
+                for (int i = 0; i < kernel.Length; i++)
+                    kernel[i] /= sum;
+            }
+        }
+
+        _logger.LogDebug(
+            "Applying custom {Side}x{Side} convolution kernel to image {ImageId} (normalize={Normalize})",
+            side, side, image.Id, config.NormalizeKernel);
+
+        // In a full OpenCL implementation, the kernel would be compiled with the
+        // supplied coefficients and dispatched via clEnqueueNDRangeKernel.
+        image.Metadata["convolutionKernelSize"] = side;
+        image.Metadata["convolutionNormalized"] = config.NormalizeKernel;
+        return ValueTask.FromResult(image);
+    }
+
+    private ValueTask<Image> ApplyGenericFilter(Image image, FilterConfiguration config)    {
         _logger.LogWarning("No specific handler for filter type {FilterType}, applying generic filter", config.FilterType);
         image.Metadata[$"filter_{config.FilterType}"] = config.Name;
         return ValueTask.FromResult(image);

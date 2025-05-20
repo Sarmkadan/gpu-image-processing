@@ -39,7 +39,8 @@ public enum FilterType
     Median = 11,
     Bilateral = 12,
     Emboss = 13,
-    Sobel = 14
+    Sobel = 14,
+    CustomConvolution = 15
 }
 
 /// <summary>
