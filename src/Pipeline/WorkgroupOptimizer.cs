@@ -58,9 +58,19 @@ public sealed class WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger) : IWo
         int  maxThreads  = device.MaxWorkGroupSize;
         long localMemCap = device.LocalMemoryBytes;
 
-        var candidates = EnumerateCandidates(maxThreads, localMemCap, localMemoryPerThreadBytes, strategy);
+        // For very large images (> 8192 on either axis) convolution kernels
+        // allocate a per-workgroup halo tile in local memory.  If the caller
+        // did not supply an explicit estimate we apply a conservative default
+        // (4 float channels × 4 bytes each) so that EnumerateCandidates can
+        // filter out workgroup sizes that would exceed device limits.
+        bool isLargeImage = imageWidth > 8192 || imageHeight > 8192;
+        int effectiveLocalMemPerThread = localMemoryPerThreadBytes > 0
+            ? localMemoryPerThreadBytes
+            : isLargeImage ? 16 : 0;
+
+        var candidates = EnumerateCandidates(maxThreads, localMemCap, effectiveLocalMemPerThread, strategy, isLargeImage);
         var best       = SelectBest(candidates, device, imageWidth, imageHeight,
-                                    localMemoryPerThreadBytes, localMemCap, wavefront, strategy);
+                                    effectiveLocalMemPerThread, localMemCap, wavefront, strategy);
 
         _logger.LogDebug("Optimised workgroup for '{Device}': {Config}", device.Name, best);
         return best;
@@ -117,7 +127,8 @@ public sealed class WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger) : IWo
         int   maxThreads,
         long  localMemCap,
         int   localMemPerThread,
-        WorkgroupOptimizationStrategy strategy)
+        WorkgroupOptimizationStrategy strategy,
+        bool  isLargeImage = false)
     {
         int[] pool = strategy switch
         {
@@ -125,6 +136,12 @@ public sealed class WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger) : IWo
             WorkgroupOptimizationStrategy.MemoryOptimized  => [4, 8, 16],
             _                                              => TileSizes
         };
+
+        // Images larger than 8192 pixels on any axis require smaller tiles to keep
+        // the per-workgroup local memory halo within device limits and prevent
+        // CL_OUT_OF_RESOURCES errors on both NVIDIA and AMD hardware.
+        if (isLargeImage)
+            pool = pool.Where(s => s <= 8).DefaultIfEmpty(4).ToArray();
 
         var result = new List<(int, int)>();
         foreach (int x in pool)
