@@ -199,8 +199,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<string> GetPipelineDescriptionAsync(List<Guid> transformIds)
         {
-            var description = "Transform Pipeline:
-";
+            var description = "Transform Pipeline:\n";
             int step = 1;
 
             foreach (var id in transformIds)
@@ -208,8 +207,7 @@ namespace GpuImageProcessing.Core.Services
                 var transform = await _transformRepository.GetByIdAsync(id);
                 if (transform != null)
                 {
-                    description += $"Step {step}: {transform.Name} ({transform.Type})
-";
+                    description += $"Step {step}: {transform.Name} ({transform.Type})\n";
                     step++;
                 }
             }
