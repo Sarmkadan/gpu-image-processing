@@ -41,8 +41,8 @@ public class BatchProcessingService
 
         _activeBatches[batch.Id] = batch;
 
-        // A linked source lets us cancel all in-flight tasks when one fails
-        // catastrophically, ensuring GPU buffers are released promptly.
+        // A linked source lets us cancel all in-flight tasks when the caller
+        // cancels, giving every task a chance to release GPU buffers cleanly.
         using var batchCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
         try
@@ -65,6 +65,16 @@ public class BatchProcessingService
 
             return batch;
         }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Caller-requested cancellation — return partial results so the caller
+            // can inspect how many images were processed before the abort.
+            batch.Status = ProcessingStatus.Cancelled;
+            _logger.LogInformation(
+                "Batch {BatchId} cancelled by caller: {Processed} processed, {Failed} failed",
+                batch.Id, batch.ProcessedImages, batch.FailedImages);
+            return batch;
+        }
         catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
             // Internal cancellation triggered by batchCts — treat as a failure.
@@ -74,8 +84,8 @@ public class BatchProcessingService
         }
         catch (Exception ex)
         {
-            // Cancel any tasks still waiting on the semaphore so their GPU
-            // allocations are freed before the exception propagates to the caller.
+            // Cancel any tasks still waiting on the semaphore so GPU allocations
+            // are freed before the exception propagates to the caller.
             await batchCts.CancelAsync();
             _logger.LogError(ex, "Batch processing failed for {BatchId}", batch.Id);
             batch.Status = ProcessingStatus.Failed;
