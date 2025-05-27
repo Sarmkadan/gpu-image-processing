@@ -310,8 +310,3 @@ namespace GpuImageProcessing.Core.Services
         public int TotalOperations { get; set; }
     }
 }
-imeSpan EstimatedRemainingTime { get; set; }
-        public double ProcessingRate { get; set; }
-        public int TotalOperations { get; set; }
-    }
-}
