@@ -31,16 +31,16 @@ make examples
 
 ## Examples Overview
 
-### 1. Basic Blur (`01-basic-blur.cs`)
+### 1. Basic Usage (`BasicUsage.cs`)
 
 **Difficulty**: Beginner  
 **Time**: 5 minutes
 
-The simplest example showing how to:
-- Initialize the GPU processing system
+The absolute minimum code required to use GPU Image Processing:
+- Initialize the system with default settings
 - Register an image
-- Create and configure a Gaussian blur filter
-- Apply the filter and retrieve results
+- Create and apply a simple filter
+- Get the processed result
 
 **Key Concepts**:
 - Service initialization
