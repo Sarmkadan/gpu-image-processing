@@ -1008,6 +1008,7 @@ dotnet run -c Release --project benchmarks/gpu-image-processing.Benchmarks \
 | `BatchProcessing` | `BatchProcessingBenchmarks` | Batch create/populate, validate, progress, priority queue |
 | `ImageUtilities` | `ImageUtilitiesBenchmarks` | Extension validation, MIME resolution, size formatting |
 | `EnumerableExtensions` | `EnumerableExtensionsBenchmarks` | Shuffle, Batch, DistinctBy, SafeToDictionary |
+| `GPU Performance` | `GpuPerformanceBenchmarks` | GPU-accelerated filter operations, memory allocation, throughput |
 
 Use `BenchmarkSuiteConfiguration` to select categories programmatically:
 
@@ -1069,10 +1070,12 @@ var errors = config.Validate();  // empty list when valid
 ---
 
 ### Hardware Configuration
-- GPU: NVIDIA RTX 3080 (10GB VRAM)
-- CPU: Intel i9-11900K @ 5.2GHz
-- RAM: 64GB DDR4-3200
-- OS: Ubuntu 22.04 LTS, .NET 10.0
+- GPU: NVIDIA RTX 3080 (10GB VRAM) or equivalent
+- CPU: Intel i9-11900K @ 5.2GHz or equivalent
+- RAM: 64GB DDR4-3200 or equivalent
+- OS: Ubuntu 22.04 LTS or equivalent, .NET 10.0
+
+**Note**: GPU performance varies significantly based on hardware. Results shown are indicative of typical performance on mid-range to high-end GPUs.
 
 ### Single-Image Latency
 
@@ -1084,6 +1087,45 @@ var errors = config.Validate();  // empty list when valid
 | Bilateral Filter | 1920×1080 | 8.3ms | 190ms | 23x |
 | Histogram Equalization | 1920×1080 | 1.1ms | 18ms | 16x |
 | Resize (2×) + Rotate (45°) | 1920×1080 | 4.7ms | 82ms | 17x |
+
+### GPU Performance Benchmarks
+
+Run GPU performance benchmarks with:
+
+```bash
+dotnet run -c Release --project benchmarks/gpu-image-processing.Benchmarks \
+  -- --filter "*GpuPerformanceBenchmarks*"
+```
+
+#### Single Filter Performance (1080p Images)
+
+| Filter Type | Mean Time | StdDev | Memory Allocated | Description |
+|-------------|-----------|--------|------------------|-------------|
+| Gaussian Blur | TBD ms | TBD ms | TBD KB | Standard blur operation |
+| Edge Detection | TBD ms | TBD ms | TBD KB | Sobel/Laplacian edge detection |
+| Sharpen | TBD ms | TBD ms | TBD KB | Unsharp mask operation |
+| Grayscale | TBD ms | TBD ms | TBD KB | Color space conversion |
+| Custom Convolution | TBD ms | TBD ms | TBD KB | User-defined kernel operation |
+
+#### Filter Chain Performance (1080p Images)
+
+| Chain Length | Mean Time | StdDev | Memory Allocated | Description |
+|--------------|-----------|--------|------------------|-------------|
+| 3 Filters | TBD ms | TBD ms | TBD KB | Grayscale → Blur → Sharpen workflow |
+| 5 Filters | TBD ms | TBD ms | TBD KB | Complex professional workflow |
+
+#### Memory Allocation Patterns
+
+| Image Size | Memory Footprint | Description |
+|------------|-----------------|-------------|
+| 1920×1080 (1080p) | TBD MB | Standard HD resolution |
+| 3840×2160 (4K) | TBD MB | Ultra HD resolution |
+
+#### Throughput Benchmarks
+
+| Operation | Mean Time | Throughput | Description |
+|-----------|-----------|------------|-------------|
+| 10 Images | TBD ms | TBD img/s | Sequential processing throughput |
 
 ### Batch Throughput
 
