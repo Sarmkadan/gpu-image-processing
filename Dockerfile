@@ -34,16 +34,8 @@ COPY --from=build /app/publish .
 RUN mkdir -p /app/images /app/output /app/logs
 
 # Set environment variables
-ENV ASPNETCORE_URLS=http://+:80
 ENV ENABLE_GPU=true
 ENV LOG_LEVEL=Information
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD dotnet --version || exit 1
-
-# Expose port
-EXPOSE 80
-
 # Run the application
-ENTRYPOINT ["dotnet", "GpuImageProcessing.dll"]
+ENTRYPOINT ["dotnet", "gpu-image-processing.dll"]
