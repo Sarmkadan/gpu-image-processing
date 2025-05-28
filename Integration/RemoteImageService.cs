@@ -6,8 +6,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using GpuImageProcessing.Exceptions;
 
 namespace GpuImageProcessing.Integration
 {
@@ -39,6 +41,11 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public void RegisterTrustedSource(string url, string apiKey = null)
         {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                throw new ValidationException("URL cannot be null or whitespace", nameof(url));
+            }
+
             _trustedSources.Add(new RemoteImageSource
             {
                 Url = url,
@@ -52,8 +59,15 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public async Task<RemoteImageResult> DownloadImageAsync(string imageUrl, Dictionary<string, string> headers = null)
         {
+            if (string.IsNullOrWhiteSpace(imageUrl))
+            {
+                return RemoteImageResult.Failure("Image URL cannot be null or whitespace");
+            }
+
             if (!IsValidUrl(imageUrl))
+            {
                 return RemoteImageResult.Failure("Invalid image URL format");
+            }
 
             var trustSource = FindTrustedSource(imageUrl);
 
@@ -67,7 +81,9 @@ namespace GpuImageProcessing.Integration
                     if (headers != null)
                     {
                         foreach (var header in headers)
+                        {
                             request.Headers.Add(header.Key, header.Value);
+                        }
                     }
 
                     // Add authorization if from trusted source
@@ -79,8 +95,11 @@ namespace GpuImageProcessing.Integration
                     if (!response.IsSuccessStatusCode)
                     {
                         if (attempt == _maxRetries)
+                        {
+                            var errorContent = await response.Content.ReadAsStringAsync();
                             return RemoteImageResult.Failure(
-                                $"Failed to download image: HTTP {response.StatusCode}");
+                                $"Failed to download image: HTTP {(int)response.StatusCode} {response.StatusCode}\n{errorContent}");
+                        }
 
                         await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt - 1)));
                         continue;
@@ -89,6 +108,11 @@ namespace GpuImageProcessing.Integration
                     var contentType = response.Content.Headers.ContentType?.MediaType;
                     var imageData = await response.Content.ReadAsByteArrayAsync();
                     var size = response.Content.Headers.ContentLength ?? imageData.Length;
+
+                    if (!ValidateImageData(imageData, contentType))
+                    {
+                        return RemoteImageResult.Failure("Downloaded data is not a valid image");
+                    }
 
                     return RemoteImageResult.Success(new RemoteImageData
                     {
@@ -99,18 +123,18 @@ namespace GpuImageProcessing.Integration
                         DownloadedAt = DateTime.UtcNow
                     });
                 }
-                catch (HttpRequestException ex)
+                catch (HttpRequestException ex) when (attempt == _maxRetries)
                 {
-                    if (attempt == _maxRetries)
-                        return RemoteImageResult.Failure($"Network error after {_maxRetries} attempts: {ex.Message}");
-
-                    await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt - 1)));
+                    return RemoteImageResult.Failure(
+                        $"Network error after {_maxRetries} attempts: {ex.Message}");
                 }
-                catch (TaskCanceledException ex)
+                catch (TaskCanceledException ex) when (attempt == _maxRetries)
                 {
-                    if (attempt == _maxRetries)
-                        return RemoteImageResult.Failure($"Download timeout: {ex.Message}");
-
+                    return RemoteImageResult.Failure(
+                        $"Download timeout: {ex.Message}");
+                }
+                catch (Exception ex) when (attempt < _maxRetries)
+                {
                     await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt - 1)));
                 }
             }
@@ -125,6 +149,22 @@ namespace GpuImageProcessing.Integration
             List<string> imageUrls,
             int maxConcurrentDownloads = 3)
         {
+            if (imageUrls == null || imageUrls.Count == 0)
+            {
+                throw new ValidationException("Image URLs list cannot be null or empty", nameof(imageUrls));
+            }
+
+            if (maxConcurrentDownloads < 1)
+            {
+                throw new ValidationException(
+                    "maxConcurrentDownloads must be at least 1",
+                    nameof(maxConcurrentDownloads),
+                    new Dictionary<string, string>
+                    {
+                        { nameof(maxConcurrentDownloads), "Value must be >= 1" }
+                    });
+            }
+
             var results = new List<RemoteImageResult>();
             var semaphore = new System.Threading.SemaphoreSlim(maxConcurrentDownloads);
 
@@ -162,10 +202,8 @@ namespace GpuImageProcessing.Integration
 
                 // PNG: 89 50 4E 47
                 if (imageData.Length >= 4 &&
-                    imageData[0] == 0x89 &&
-                    imageData[1] == 0x50 &&
-                    imageData[2] == 0x4E &&
-                    imageData[3] == 0x47)
+                    imageData[0] == 0x89 && imageData[1] == 0x50 &&
+                    imageData[2] == 0x4E && imageData[3] == 0x47)
                     return true;
 
                 // GIF: 47 49 46

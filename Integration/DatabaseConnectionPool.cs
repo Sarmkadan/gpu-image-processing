@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GpuImageProcessing.Exceptions;
 
 namespace GpuImageProcessing.Integration
 {
@@ -33,6 +34,46 @@ namespace GpuImageProcessing.Integration
             int maxPoolSize = 20,
             int timeoutSeconds = 30)
         {
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new ValidationException(
+                    "Connection string cannot be null or whitespace",
+                    nameof(connectionString));
+            }
+
+            if (minPoolSize < 1)
+            {
+                throw new ValidationException(
+                    "minPoolSize must be at least 1",
+                    nameof(minPoolSize),
+                    new Dictionary<string, string>
+                    {
+                        { nameof(minPoolSize), "Value must be >= 1" }
+                    });
+            }
+
+            if (maxPoolSize < minPoolSize)
+            {
+                throw new ValidationException(
+                    "maxPoolSize cannot be less than minPoolSize",
+                    nameof(maxPoolSize),
+                    new Dictionary<string, string>
+                    {
+                        { nameof(maxPoolSize), $"Value must be >= {minPoolSize}" }
+                    });
+            }
+
+            if (timeoutSeconds < 1)
+            {
+                throw new ValidationException(
+                    "timeoutSeconds must be at least 1",
+                    nameof(timeoutSeconds),
+                    new Dictionary<string, string>
+                    {
+                        { nameof(timeoutSeconds), "Value must be >= 1" }
+                    });
+            }
+
             _connectionString = connectionString;
             _minPoolSize = minPoolSize;
             _maxPoolSize = maxPoolSize;
@@ -46,25 +87,35 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public async Task InitializeAsync()
         {
-            for (int i = 0; i < _minPoolSize; i++)
+            try
             {
-                var connection = new DatabaseConnection
+                for (int i = 0; i < _minPoolSize; i++)
                 {
-                    Id = Guid.NewGuid(),
-                    ConnectionString = _connectionString,
-                    CreatedAt = DateTime.UtcNow,
-                    State = ConnectionState.Available
-                };
+                    var connection = new DatabaseConnection
+                    {
+                        Id = Guid.NewGuid(),
+                        ConnectionString = _connectionString,
+                        CreatedAt = DateTime.UtcNow,
+                        State = ConnectionState.Available
+                    };
 
-                lock (_lockObject)
-                {
-                    _availableConnections.Enqueue(connection);
-                    _allConnections.Add(connection);
+                    lock (_lockObject)
+                    {
+                        _availableConnections.Enqueue(connection);
+                        _allConnections.Add(connection);
+                    }
                 }
-            }
 
-            OnPoolEvent($"Pool initialized with {_minPoolSize} connections");
-            await Task.CompletedTask;
+                OnPoolEvent($"Pool initialized with {_minPoolSize} connections");
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                throw new ConfigurationException(
+                    "Failed to initialize database connection pool",
+                    nameof(DatabaseConnectionPool),
+                    ex.Message);
+            }
         }
 
         /// <summary>
@@ -76,44 +127,52 @@ namespace GpuImageProcessing.Integration
 
             while (DateTime.UtcNow < deadline)
             {
-                lock (_lockObject)
+                try
                 {
-                    // Try to reuse available connection
-                    if (_availableConnections.TryDequeue(out var connection))
+                    lock (_lockObject)
                     {
-                        if (connection.State == ConnectionState.Available)
+                        // Try to reuse available connection
+                        if (_availableConnections.TryDequeue(out var connection))
                         {
-                            connection.State = ConnectionState.InUse;
-                            connection.LastUsedAt = DateTime.UtcNow;
-                            connection.UseCount++;
-                            return connection;
+                            if (connection.State == ConnectionState.Available)
+                            {
+                                connection.State = ConnectionState.InUse;
+                                connection.LastUsedAt = DateTime.UtcNow;
+                                connection.UseCount++;
+                                return connection;
+                            }
+                        }
+
+                        // Try to create new connection if under max pool size
+                        if (_allConnections.Count < _maxPoolSize)
+                        {
+                            var newConnection = new DatabaseConnection
+                            {
+                                Id = Guid.NewGuid(),
+                                ConnectionString = _connectionString,
+                                CreatedAt = DateTime.UtcNow,
+                                State = ConnectionState.InUse
+                            };
+
+                            _allConnections.Add(newConnection);
+                            OnPoolEvent($"Created new connection. Pool size: {_allConnections.Count}/{_maxPoolSize}");
+                            return newConnection;
                         }
                     }
 
-                    // Try to create new connection if under max pool size
-                    if (_allConnections.Count < _maxPoolSize)
-                    {
-                        var newConnection = new DatabaseConnection
-                        {
-                            Id = Guid.NewGuid(),
-                            ConnectionString = _connectionString,
-                            CreatedAt = DateTime.UtcNow,
-                            State = ConnectionState.InUse
-                        };
-
-                        _allConnections.Add(newConnection);
-                        OnPoolEvent($"Created new connection. Pool size: {_allConnections.Count}/{_maxPoolSize}");
-                        return newConnection;
-                    }
+                    // Wait and retry
+                    await Task.Delay(100);
                 }
-
-                // Wait and retry
-                await Task.Delay(100);
+                catch (Exception ex)
+                {
+                    throw new DatabaseConnectionPoolException(
+                        "Error acquiring database connection",
+                        ex);
+                }
             }
 
-            throw new TimeoutException(
-                $"Could not acquire database connection within {_connectionTimeout.TotalSeconds:F1} seconds"
-            );
+            throw new DatabaseConnectionPoolException(
+                $"Could not acquire database connection within {_connectionTimeout.TotalSeconds:F1} seconds");
         }
 
         /// <summary>
@@ -122,19 +181,30 @@ namespace GpuImageProcessing.Integration
         public async Task ReleaseConnectionAsync(DatabaseConnection connection)
         {
             if (connection == null)
-                return;
-
-            lock (_lockObject)
             {
-                if (_allConnections.Contains(connection))
-                {
-                    connection.State = ConnectionState.Available;
-                    connection.LastReleasedAt = DateTime.UtcNow;
-                    _availableConnections.Enqueue(connection);
-                }
+                throw new ValidationException("Connection cannot be null", nameof(connection));
             }
 
-            await Task.CompletedTask;
+            try
+            {
+                lock (_lockObject)
+                {
+                    if (_allConnections.Contains(connection))
+                    {
+                        connection.State = ConnectionState.Available;
+                        connection.LastReleasedAt = DateTime.UtcNow;
+                        _availableConnections.Enqueue(connection);
+                    }
+                }
+
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                throw new DatabaseConnectionPoolException(
+                    "Error releasing database connection",
+                    ex);
+            }
         }
 
         /// <summary>
@@ -142,27 +212,36 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public PoolStatistics GetStatistics()
         {
-            lock (_lockObject)
+            try
             {
-                var available = _availableConnections.Count;
-                var inUse = _allConnections.Count(c => c.State == ConnectionState.InUse);
-                var idle = _allConnections.Count(c => c.State == ConnectionState.Idle);
-                var totalUsage = _allConnections.Sum(c => c.UseCount);
-
-                return new PoolStatistics
+                lock (_lockObject)
                 {
-                    AvailableCount = available,
-                    InUseCount = inUse,
-                    IdleCount = idle,
-                    TotalConnections = _allConnections.Count,
-                    TotalRequests = totalUsage,
-                    MinPoolSize = _minPoolSize,
-                    MaxPoolSize = _maxPoolSize,
-                    AvgConnectionAge = _allConnections.Any()
-                        ? TimeSpan.FromMilliseconds(
-                            _allConnections.Average(c => (DateTime.UtcNow - c.CreatedAt).TotalMilliseconds))
-                        : TimeSpan.Zero
-                };
+                    var available = _availableConnections.Count;
+                    var inUse = _allConnections.Count(c => c.State == ConnectionState.InUse);
+                    var idle = _allConnections.Count(c => c.State == ConnectionState.Idle);
+                    var totalUsage = _allConnections.Sum(c => c.UseCount);
+
+                    return new PoolStatistics
+                    {
+                        AvailableCount = available,
+                        InUseCount = inUse,
+                        IdleCount = idle,
+                        TotalConnections = _allConnections.Count,
+                        TotalRequests = totalUsage,
+                        MinPoolSize = _minPoolSize,
+                        MaxPoolSize = _maxPoolSize,
+                        AvgConnectionAge = _allConnections.Any()
+                            ? TimeSpan.FromMilliseconds(
+                                _allConnections.Average(c => (DateTime.UtcNow - c.CreatedAt).TotalMilliseconds))
+                            : TimeSpan.Zero
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new DatabaseConnectionPoolException(
+                    "Error getting pool statistics",
+                    ex);
             }
         }
 
@@ -171,12 +250,26 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public async Task CloseConnectionAsync(DatabaseConnection connection)
         {
-            lock (_lockObject)
+            if (connection == null)
             {
-                _allConnections.Remove(connection);
+                throw new ValidationException("Connection cannot be null", nameof(connection));
             }
 
-            await Task.CompletedTask;
+            try
+            {
+                lock (_lockObject)
+                {
+                    _allConnections.Remove(connection);
+                }
+
+                await Task.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                throw new DatabaseConnectionPoolException(
+                    "Error closing database connection",
+                    ex);
+            }
         }
 
         /// <summary>
@@ -184,32 +277,51 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public async Task CleanupIdleConnectionsAsync(TimeSpan idleTimeout)
         {
-            lock (_lockObject)
+            try
             {
-                var idleConnections = _allConnections
-                    .Where(c => c.State == ConnectionState.Available &&
-                                (DateTime.UtcNow - c.LastReleasedAt) > idleTimeout)
-                    .ToList();
-
-                foreach (var conn in idleConnections)
+                lock (_lockObject)
                 {
-                    _allConnections.Remove(conn);
+                    var idleConnections = _allConnections
+                        .Where(c => c.State == ConnectionState.Available &&
+                                   (DateTime.UtcNow - c.LastReleasedAt) > idleTimeout)
+                        .ToList();
+
+                    foreach (var conn in idleConnections)
+                    {
+                        _allConnections.Remove(conn);
+                    }
+
+                    if (idleConnections.Count > 0)
+                    {
+                        OnPoolEvent($"Cleaned up {idleConnections.Count} idle connections");
+                    }
                 }
 
-                if (idleConnections.Count > 0)
-                    OnPoolEvent($"Cleaned up {idleConnections.Count} idle connections");
+                await Task.CompletedTask;
             }
-
-            await Task.CompletedTask;
+            catch (Exception ex)
+            {
+                throw new DatabaseConnectionPoolException(
+                    "Error cleaning up idle connections",
+                    ex);
+            }
         }
 
         private void OnPoolEvent(string message)
         {
-            PoolEvent?.Invoke(this, new ConnectionPoolEventArgs
+            try
             {
-                Message = message,
-                Timestamp = DateTime.UtcNow
-            });
+                PoolEvent?.Invoke(this, new ConnectionPoolEventArgs
+                {
+                    Message = message,
+                    Timestamp = DateTime.UtcNow
+                });
+            }
+            catch (Exception ex)
+            {
+                // Don't throw from event handlers
+                Console.Error.WriteLine($"Error in pool event handler: {ex.Message}");
+            }
         }
     }
 
@@ -248,5 +360,21 @@ namespace GpuImageProcessing.Integration
         InUse,
         Idle,
         Closed
+    }
+
+    /// <summary>
+    /// Exception thrown when database connection pool operations fail.
+    /// </summary>
+    public class DatabaseConnectionPoolException : GpuImageProcessingException
+    {
+        public DatabaseConnectionPoolException(string message)
+            : base(message)
+        {
+        }
+
+        public DatabaseConnectionPoolException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
     }
 }
