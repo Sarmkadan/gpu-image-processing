@@ -175,7 +175,7 @@ namespace GpuImageProcessing.Utilities
 
                 foreach (var subDir in directory.GetDirectories())
                 {
-                    size += GetDirectorySize(subDir.FullPath);
+                    size += GetDirectorySize(subDir.FullName);
                 }
 
                 return size;
@@ -201,7 +201,7 @@ namespace GpuImageProcessing.Utilities
 
                 foreach (var subDir in directory.GetDirectories())
                 {
-                    count += CountFiles(subDir.FullPath, searchPattern);
+                    count += CountFiles(subDir.FullName, searchPattern);
                 }
 
                 return count;
@@ -228,12 +228,12 @@ namespace GpuImageProcessing.Utilities
 
                 foreach (var file in directory.GetFiles(searchPattern))
                 {
-                    files.Add(file.FullPath);
+                    files.Add(file.FullName);
                 }
 
                 foreach (var subDir in directory.GetDirectories())
                 {
-                    files.AddRange(GetFilesRecursive(subDir.FullPath, searchPattern));
+                    files.AddRange(GetFilesRecursive(subDir.FullName, searchPattern));
                 }
             }
             catch
@@ -290,12 +290,12 @@ namespace GpuImageProcessing.Utilities
                 files.AddRange(
                     directory.GetFiles(pattern)
                     .Where(f => f.LastWriteTime > cutoffTime)
-                    .Select(f => f.FullPath)
+                    .Select(f => f.FullName)
                 );
 
                 foreach (var subDir in directory.GetDirectories())
                 {
-                    files.AddRange(GetRecentFiles(subDir.FullPath, withinTimespan, pattern));
+                    files.AddRange(GetRecentFiles(subDir.FullName, withinTimespan, pattern));
                 }
             }
             catch

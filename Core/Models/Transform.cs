@@ -10,6 +10,8 @@ using GpuImageProcessing.Core.Constants;
 
 namespace GpuImageProcessing.Core.Models
 {
+    using TransformType = GpuImageProcessing.Core.Constants.TransformType;
+
     /// <summary>
     /// Represents a geometric or color space transformation operation on images
     /// </summary>

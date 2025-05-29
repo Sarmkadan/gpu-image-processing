@@ -169,7 +169,7 @@ namespace GpuImageProcessing.Caching
                     AverageItemSize = entries.Count > 0 ? entries.Average(e => e.SizeBytes) : 0,
                     TotalAccesses = totalAccess,
                     HotItems = entries.OrderByDescending(e => e.AccessCount).Take(10)
-                        .Select(e => new { e.Key, e.AccessCount, e.SizeBytes })
+                        .Select(e => (dynamic)new { e.Key, e.AccessCount, e.SizeBytes })
                         .ToList()
                 };
             }

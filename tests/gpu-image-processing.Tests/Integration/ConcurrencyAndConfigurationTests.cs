@@ -273,7 +273,7 @@ public class ConcurrencyAndConfigurationTests
         var image = CreateImage();
 
         // Act & Assert
-        await _filterService.ApplyFilterAsync(image, savedFilter.Id)
+        await _filterService.Invoking(s => s.ApplyFilterAsync(image, savedFilter.Id))
             .Should().ThrowAsync<InvalidFilterException>();
     }
 
@@ -312,8 +312,8 @@ public class ConcurrencyAndConfigurationTests
             Id = Guid.NewGuid(),
             FilePath = "/test/min.png",
             FileName = "min.png",
-            Width = Constants.Processing.MinImageWidth,
-            Height = Constants.Processing.MinImageHeight,
+            Width = AppConstants.Processing.MinImageWidth,
+            Height = AppConstants.Processing.MinImageHeight,
             BitsPerPixel = 8,
             FileSizeBytes = 1024,
             Format = ImageFormat.Png,

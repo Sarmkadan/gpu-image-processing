@@ -189,7 +189,7 @@ Examples:
                 }
 
                 stopwatch.Stop();
-                PrintSuccess($"Batch processing completed: {processed}/{validImages.Count} images in {stopwatch.ElapsedSeconds:F2}s");
+                PrintSuccess($"Batch processing completed: {processed}/{validImages.Count} images in {stopwatch.Elapsed.TotalSeconds:F2}s");
                 return processed == validImages.Count ? 0 : 1;
             }
             catch (Exception ex)

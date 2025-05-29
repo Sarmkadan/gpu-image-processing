@@ -10,7 +10,6 @@ using System.Linq;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using GpuImageProcessing.Core;
-using GpuImageProcessing.Core.Enums;
 using GpuImageProcessing.Domain;
 using Silk.NET.OpenCL;
 
@@ -99,13 +98,13 @@ public class GpuManagementService
 
         var device = GetDeviceById(deviceId);
         if (device == null || !device.IsAvailable)
-            throw new GpuException("Device not available", null, Constants.ErrorCodes.DeviceNotAvailable);
+            throw new GpuException("Device not available", null, AppConstants.ErrorCodes.DeviceNotAvailable);
 
         if (!device.HasSufficientMemory(bytes))
         {
             _logger.LogWarning("Insufficient GPU memory on device {DeviceName}: requested {Bytes}, available {Available}",
                 device.Name, bytes, device.GetAvailableMemory());
-            throw new GpuException("Insufficient GPU memory", device.Name, Constants.ErrorCodes.InsufficientMemory);
+            throw new GpuException("Insufficient GPU memory", device.Name, AppConstants.ErrorCodes.InsufficientMemory);
         }
 
         lock (_lockObject)
@@ -216,8 +215,8 @@ public class GpuManagementService
             }
 
             // Get platform IDs
-            var platformIds = new Platform[numPlatforms];
-            cl.GetPlatformIDs(numPlatforms, platformIds, null);
+            var platformIds = new nint[numPlatforms];
+            cl.GetPlatformIDs(numPlatforms, platformIds, (uint*)null);
 
             foreach (var platformId in platformIds)
             {
@@ -241,8 +240,8 @@ public class GpuManagementService
                 }
 
                 // Get device IDs
-                var deviceIds = new Device[numDevices];
-                cl.GetDeviceIDs(platformId, DeviceType.All, numDevices, deviceIds, null);
+                var deviceIds = new nint[numDevices];
+                cl.GetDeviceIDs(platformId, DeviceType.All, numDevices, deviceIds, (uint*)null);
 
                 foreach (var deviceId in deviceIds)
                 {
@@ -300,7 +299,7 @@ public class GpuManagementService
                     byte[] versionBytes = new byte[256];
                     fixed (byte* ptr = versionBytes)
                     {
-                        cl.GetDeviceInfo(deviceId, DeviceInfo.OpenCLCVersion, (nuint)versionBytes.Length, ptr, null);
+                        cl.GetDeviceInfo(deviceId, DeviceInfo.OpenclCVersion, (nuint)versionBytes.Length, ptr, null);
                     }
                     gpuDevice.Version = Encoding.ASCII.GetString(versionBytes.Where(b => b != 0).ToArray());
 
@@ -315,15 +314,15 @@ public class GpuManagementService
                     // Supports Double Precision
                     // Check for extension "cl_khr_fp64" or CL_DEVICE_DOUBLE_FP_CONFIG
                     ulong doubleFpConfig;
-                    cl.GetDeviceInfo(deviceId, DeviceInfo.DoubleFpConfig, (nuint)sizeof(ulong), &doubleFpConfig, null);
-                    gpuDevice.SupportsDoublePrecision = (doubleFpConfig & (ulong)fp_config.CorrectlyRoundedDivideSqrt) != 0;
+                    cl.GetDeviceInfo(deviceId, DeviceInfo.DoubleFPConfig, (nuint)sizeof(ulong), &doubleFpConfig, null);
+                    gpuDevice.SupportsDoublePrecision = (doubleFpConfig & (ulong)DeviceFpConfig.CorrectlyRoundedDivideSqrt) != 0;
 
 
                     // Supports Half Precision
                     // Check for extension "cl_khr_fp16" or CL_DEVICE_HALF_FP_CONFIG
                     ulong halfFpConfig;
-                    cl.GetDeviceInfo(deviceId, DeviceInfo.HalfFpConfig, (nuint)sizeof(ulong), &halfFpConfig, null);
-                    gpuDevice.SupportsHalfPrecision = (halfFpConfig & (ulong)fp_config.FpDenorm) != 0;
+                    cl.GetDeviceInfo(deviceId, DeviceInfo.HalfFPConfig, (nuint)sizeof(ulong), &halfFpConfig, null);
+                    gpuDevice.SupportsHalfPrecision = (halfFpConfig & (ulong)DeviceFpConfig.Denorm) != 0;
 
                     // Max work item dimensions and sizes
                     uint maxWorkItemDims;

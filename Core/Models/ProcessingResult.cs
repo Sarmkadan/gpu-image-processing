@@ -9,10 +9,12 @@ using System.Collections.Generic;
 
 namespace GpuImageProcessing.Core.Models
 {
+    using ProcessingStatus = GpuImageProcessing.Core.Constants.ProcessingStatus;
+
     /// <summary>
     /// Represents the result of a single image processing operation
     /// </summary>
-    public class ProcessingResult
+    public record ProcessingResult
     {
         public Guid Id { get; set; }
         public Guid JobId { get; set; }
@@ -27,7 +29,34 @@ namespace GpuImageProcessing.Core.Models
         public Dictionary<string, object> ProcessingMetrics { get; set; } = new();
         public List<string> AppliedFilters { get; set; } = new();
         public List<string> AppliedTransforms { get; set; } = new();
+        public List<string> AppliedOperations { get; set; } = new();
         public string? WarningMessage { get; set; }
+        public ProcessingStatus Status { get; set; }
+        public DateTime? StartTime { get; set; }
+        public DateTime? CompletionTime { get; set; }
+        public string? DeviceUsed { get; set; }
+        public string? ProfileUsed { get; set; }
+
+        /// <summary>Alias for <see cref="OutputFilePath"/>.</summary>
+        public string OutputImagePath
+        {
+            get => OutputFilePath;
+            set => OutputFilePath = value;
+        }
+
+        /// <summary>Alias for <see cref="OutputFileSizeBytes"/>.</summary>
+        public long ProcessedSize
+        {
+            get => OutputFileSizeBytes;
+            set => OutputFileSizeBytes = value;
+        }
+
+        /// <summary>Alias for <see cref="ProcessingMetrics"/>.</summary>
+        public Dictionary<string, object> Metadata
+        {
+            get => ProcessingMetrics;
+            set => ProcessingMetrics = value;
+        }
 
         /// <summary>
         /// Initializes a new instance of the ProcessingResult class
@@ -36,6 +65,7 @@ namespace GpuImageProcessing.Core.Models
         {
             Id = Guid.NewGuid();
             ProcessedAt = DateTime.UtcNow;
+            StartTime = DateTime.UtcNow;
         }
 
         /// <summary>
@@ -50,7 +80,9 @@ namespace GpuImageProcessing.Core.Models
                 InputFilePath = inputPath,
                 OutputFilePath = outputPath,
                 IsSuccessful = true,
-                ProcessedAt = DateTime.UtcNow
+                ProcessedAt = DateTime.UtcNow,
+                Status = ProcessingStatus.Completed,
+                CompletionTime = DateTime.UtcNow
             };
         }
 
@@ -66,8 +98,29 @@ namespace GpuImageProcessing.Core.Models
                 InputFilePath = inputPath,
                 IsSuccessful = false,
                 ErrorMessage = errorMessage,
-                ProcessedAt = DateTime.UtcNow
+                ProcessedAt = DateTime.UtcNow,
+                Status = ProcessingStatus.Failed,
+                CompletionTime = DateTime.UtcNow
             };
+        }
+
+        /// <summary>
+        /// Records an operation (filter or transform) that was applied successfully
+        /// </summary>
+        public void RecordAppliedOperation(string operationName)
+        {
+            if (!AppliedOperations.Contains(operationName))
+                AppliedOperations.Add(operationName);
+        }
+
+        /// <summary>
+        /// Records an operation (filter or transform) that failed during processing
+        /// </summary>
+        public void RecordFailedOperation(string operationName, string errorMessage)
+        {
+            ErrorMessage = string.IsNullOrEmpty(ErrorMessage)
+                ? $"{operationName}: {errorMessage}"
+                : $"{ErrorMessage}\n{operationName}: {errorMessage}";
         }
 
         /// <summary>

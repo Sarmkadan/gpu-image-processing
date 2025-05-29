@@ -39,13 +39,13 @@ public class EnumerableExtensionsBenchmarks
     /// on a per-image processing profile with ~32 candidate filters.
     /// </summary>
     [Benchmark]
-    public IEnumerable<int> Shuffle_32Items() => _list32.Shuffle();
+    public IEnumerable<int> Shuffle_32Items() => EnumerableExtensions.Shuffle(_list32);
 
     /// <summary>
     /// Large-list shuffle: used when randomising image order in a 1 k-image batch.
     /// </summary>
     [Benchmark]
-    public IEnumerable<int> Shuffle_1024Items() => _list1024.Shuffle();
+    public IEnumerable<int> Shuffle_1024Items() => EnumerableExtensions.Shuffle(_list1024);
 
     // --- Batch ----------------------------------------------------------------
 
@@ -83,7 +83,7 @@ public class EnumerableExtensionsBenchmarks
     public int DistinctBy_1000Strings()
     {
         int count = 0;
-        foreach (var _ in _source1000.DistinctBy(x => x % 100))
+        foreach (var _ in EnumerableExtensions.DistinctBy(_source1000, x => x % 100))
             count++;
         return count;
     }

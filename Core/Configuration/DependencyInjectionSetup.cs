@@ -12,6 +12,9 @@ using GpuImageProcessing.Core.Services;
 using GpuImageProcessing.Services; // Add this line
 using Microsoft.Extensions.Logging;
 using GpuImageProcessing.Pipeline; // Add this line
+using ImageProcessingService = GpuImageProcessing.Core.Services.ImageProcessingService;
+using BatchProcessingService = GpuImageProcessing.Core.Services.BatchProcessingService;
+using FilterService = GpuImageProcessing.Core.Services.FilterService;
 
 namespace GpuImageProcessing.Core.Configuration
 {

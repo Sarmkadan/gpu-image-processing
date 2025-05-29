@@ -4,6 +4,8 @@
 // CTO & Software Architect
 // =============================================================================
 
+using GpuImageProcessing.Core;
+
 namespace GpuImageProcessing.Configuration;
 
 /// <summary>
@@ -13,19 +15,19 @@ public class AppSettings
 {
     public const string SectionName = "AppSettings";
 
-    public string ApplicationName { get; set; } = Constants.ApplicationName;
-    public string ApplicationVersion { get; set; } = Constants.ApplicationVersion;
+    public string ApplicationName { get; set; } = AppConstants.ApplicationName;
+    public string ApplicationVersion { get; set; } = AppConstants.ApplicationVersion;
     public bool EnableGpuAcceleration { get; set; } = true;
-    public int MaxConcurrentOperations { get; set; } = Constants.Processing.MaxConcurrentOperations;
-    public int OperationTimeoutMs { get; set; } = Constants.Processing.DefaultTimeout;
-    public string OutputDirectory { get; set; } = Constants.FileSystem.DefaultOutputDirectory;
-    public string CacheDirectory { get; set; } = Constants.FileSystem.DefaultCacheDirectory;
+    public int MaxConcurrentOperations { get; set; } = AppConstants.Processing.MaxConcurrentOperations;
+    public int OperationTimeoutMs { get; set; } = AppConstants.Processing.DefaultTimeout;
+    public string OutputDirectory { get; set; } = AppConstants.FileSystem.DefaultOutputDirectory;
+    public string CacheDirectory { get; set; } = AppConstants.FileSystem.DefaultCacheDirectory;
     public bool EnableMetricsCollection { get; set; } = true;
     public int MetricsCollectionIntervalMs { get; set; } = 1000;
     public bool EnablePerformanceLogging { get; set; } = true;
-    public int MaxBatchSize { get; set; } = Constants.Processing.MaxBatchSize;
-    public long MaxMemoryPerImage { get; set; } = Constants.Memory.MaxMemoryPerImage;
-    public long MaxTotalGpuMemory { get; set; } = Constants.Memory.MaxTotalGpuMemory;
+    public int MaxBatchSize { get; set; } = AppConstants.Processing.MaxBatchSize;
+    public long MaxMemoryPerImage { get; set; } = AppConstants.Memory.MaxMemoryPerImage;
+    public long MaxTotalGpuMemory { get; set; } = AppConstants.Memory.MaxTotalGpuMemory;
     public bool EnableCaching { get; set; } = true;
     public int CacheExpirMinutes { get; set; } = 60;
     public List<string> SupportedImageFormats { get; set; } =
@@ -47,7 +49,7 @@ public class AppSettings
         if (OperationTimeoutMs < 100)
             return false;
 
-        if (MaxBatchSize < 1 || MaxBatchSize > Constants.Processing.MaxBatchSize)
+        if (MaxBatchSize < 1 || MaxBatchSize > AppConstants.Processing.MaxBatchSize)
             return false;
 
         if (MaxMemoryPerImage <= 0)

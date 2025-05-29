@@ -243,7 +243,7 @@ public sealed class ComputeShaderPipeline : IComputeShaderPipeline
             throw new GpuException(
                 $"GPU device '{(deviceId == Guid.Empty ? "auto" : deviceId)}' is not available.",
                 device?.Name,
-                Constants.ErrorCodes.DeviceNotAvailable);
+                AppConstants.ErrorCodes.DeviceNotAvailable);
 
         return device;
     }

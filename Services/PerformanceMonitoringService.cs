@@ -16,13 +16,13 @@ namespace GpuImageProcessing.Services
     /// Service for tracking and analyzing system performance metrics.
     /// Collects throughput, latency, and resource utilization statistics.
     /// </summary>
-    public class PerformanceMonitoringService
+    public class SystemPerformanceMonitoringService
     {
-        private readonly ILogger<PerformanceMonitoringService> _logger;
+        private readonly ILogger<SystemPerformanceMonitoringService> _logger;
         private readonly Dictionary<string, PerformanceMetric> _metrics;
         private readonly object _lockObject = new object();
 
-        public PerformanceMonitoringService(ILogger<PerformanceMonitoringService> logger)
+        public SystemPerformanceMonitoringService(ILogger<SystemPerformanceMonitoringService> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _metrics = new Dictionary<string, PerformanceMetric>();

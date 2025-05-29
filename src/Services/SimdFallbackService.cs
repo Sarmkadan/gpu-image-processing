@@ -6,6 +6,9 @@
 
 using System.Diagnostics;
 using System.Numerics;
+using Microsoft.Extensions.Logging;
+using GpuImageProcessing.Core;
+using GpuImageProcessing.Domain;
 
 namespace GpuImageProcessing.Services;
 

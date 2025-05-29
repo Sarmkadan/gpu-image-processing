@@ -113,7 +113,7 @@ namespace GpuImageProcessing.Formatters
                 new XElement("ProcessedImages", job.ProcessedImages),
                 new XElement("FailedImages", job.FailedImages),
                 new XElement("CompletionPercent", completionPercent.ToString("F2")),
-                new XElement("CreatedAt", job.CreatedAt?.ToString("O")),
+                new XElement("CreatedAt", job.CreatedAt.ToString("O")),
                 new XElement("StartedAt", job.StartedAt?.ToString("O")),
                 new XElement("CompletedAt", job.CompletedAt?.ToString("O"))
             );

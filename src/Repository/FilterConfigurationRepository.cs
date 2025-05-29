@@ -4,6 +4,9 @@
 // CTO & Software Architect
 // =============================================================================
 
+using GpuImageProcessing.Core;
+using GpuImageProcessing.Domain;
+
 namespace GpuImageProcessing.Repository;
 
 /// <summary>

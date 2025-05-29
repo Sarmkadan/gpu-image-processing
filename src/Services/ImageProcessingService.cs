@@ -4,6 +4,11 @@
 // CTO & Software Architect
 // =============================================================================
 
+using Microsoft.Extensions.Logging;
+using GpuImageProcessing.Core;
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Repository;
+
 namespace GpuImageProcessing.Services;
 
 /// <summary>
@@ -95,7 +100,7 @@ public class ImageProcessingService
                 }
             }
 
-            var outputPath = Path.Combine(Constants.FileSystem.DefaultOutputDirectory, $"{image.Id}.processed.png");
+            var outputPath = Path.Combine(AppConstants.FileSystem.DefaultOutputDirectory, $"{image.Id}.processed.png");
             image.MarkAsCompleted(outputPath);
             await _imageRepository.UpdateAsync(image, cancellationToken);
 
@@ -125,7 +130,7 @@ public class ImageProcessingService
             _performanceService.RecordOperation(stopwatch.ElapsedMilliseconds, false);
 
             var result = new ProcessingResult { ImageId = imageId };
-            result.Fail(ex.Message, Constants.ErrorCodes.ProcessingTimeout);
+            result.Fail(ex.Message, AppConstants.ErrorCodes.ProcessingTimeout);
             await _resultRepository.CreateAsync(result, cancellationToken);
 
             throw new ProcessingException($"Failed to process image", ex, imageId.ToString());

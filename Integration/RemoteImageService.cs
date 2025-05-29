@@ -254,14 +254,14 @@ namespace GpuImageProcessing.Integration
 
     public class RemoteImageResult
     {
-        public bool Success { get; set; }
+        public bool IsSuccess { get; set; }
         public RemoteImageData Data { get; set; }
         public string Error { get; set; }
 
         public static RemoteImageResult Success(RemoteImageData data) =>
-            new() { Success = true, Data = data };
+            new() { IsSuccess = true, Data = data };
 
         public static RemoteImageResult Failure(string error) =>
-            new() { Success = false, Error = error };
+            new() { IsSuccess = false, Error = error };
     }
 }

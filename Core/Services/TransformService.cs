@@ -11,10 +11,11 @@ using System.Threading.Tasks;
 using GpuImageProcessing.Core.Constants;
 using GpuImageProcessing.Core.Models;
 using GpuImageProcessing.Core.Repository;
-using GpuImageProcessing.Core.Enums; // Added for TransformType
 
 namespace GpuImageProcessing.Core.Services
 {
+    using TransformType = GpuImageProcessing.Core.Constants.TransformType;
+
     /// <summary>
     /// Service for managing image transformation operations
     /// </summary>

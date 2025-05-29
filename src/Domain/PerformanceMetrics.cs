@@ -4,6 +4,8 @@
 // CTO & Software Architect
 // =============================================================================
 
+using GpuImageProcessing.Core;
+
 namespace GpuImageProcessing.Domain;
 
 /// <summary>
@@ -72,7 +74,7 @@ public class PerformanceMetrics
     /// </summary>
     public bool IsMemoryWarningRequired()
     {
-        return GpuMemoryUsedBytes >= Constants.Memory.MemoryWarningThreshold;
+        return GpuMemoryUsedBytes >= AppConstants.Memory.MemoryWarningThreshold;
     }
 
     /// <summary>
@@ -80,7 +82,7 @@ public class PerformanceMetrics
     /// </summary>
     public double GetMemoryUsagePercent()
     {
-        return (GpuMemoryUsedBytes / (double)Constants.Memory.MaxTotalGpuMemory) * 100.0;
+        return (GpuMemoryUsedBytes / (double)AppConstants.Memory.MaxTotalGpuMemory) * 100.0;
     }
 
     /// <summary>

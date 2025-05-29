@@ -63,8 +63,8 @@ public class ImageProcessingServiceTests
         {
             Id = Guid.NewGuid(),
             Name = "Test GPU",
-            GlobalMemoryBytes = 2 * 1024 * 1024 * 1024,
-            MaxAllocatableMemoryBytes = 2 * 1024 * 1024 * 1024,
+            GlobalMemoryBytes = 2L * 1024 * 1024 * 1024,
+            MaxAllocatableMemoryBytes = 2L * 1024 * 1024 * 1024,
             IsAvailable = true
         };
     }
@@ -78,7 +78,7 @@ public class ImageProcessingServiceTests
             .ReturnsAsync((Image?)null);
 
         // Act & Assert
-        await _sut.ProcessImageAsync(imageId, [Guid.NewGuid()])
+        await _sut.Invoking(s => s.ProcessImageAsync(imageId, [Guid.NewGuid()]))
             .Should().ThrowAsync<InvalidImageException>();
     }
 
@@ -94,7 +94,7 @@ public class ImageProcessingServiceTests
             .ReturnsAsync(image);
 
         // Act & Assert
-        await _sut.ProcessImageAsync(imageId, [Guid.NewGuid()])
+        await _sut.Invoking(s => s.ProcessImageAsync(imageId, [Guid.NewGuid()]))
             .Should().ThrowAsync<InvalidImageException>();
     }
 
@@ -111,7 +111,7 @@ public class ImageProcessingServiceTests
         _gpuServiceMock.Setup(x => x.GetBestDevice()).Returns((GpuDevice?)null);
 
         // Act & Assert
-        await _sut.ProcessImageAsync(imageId, [Guid.NewGuid()])
+        await _sut.Invoking(s => s.ProcessImageAsync(imageId, [Guid.NewGuid()]))
             .Should().ThrowAsync<GpuException>();
     }
 
@@ -243,7 +243,7 @@ public class ImageProcessingServiceTests
             .ThrowsAsync(new InvalidFilterException("Filter not found"));
 
         // Act & Assert
-        await _sut.ProcessImageAsync(imageId, [filterId])
+        await _sut.Invoking(s => s.ProcessImageAsync(imageId, [filterId]))
             .Should().ThrowAsync<ProcessingException>();
 
         _imageRepositoryMock.Verify(

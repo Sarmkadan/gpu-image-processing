@@ -1,5 +1,6 @@
 #nullable enable
 using FluentAssertions;
+using GpuImageProcessing.Core;
 using GpuImageProcessing.Domain;
 using GpuImageProcessing.Services;
 using Microsoft.Extensions.Logging;
@@ -70,7 +71,7 @@ public class PerformanceMonitoringServiceTests
     public void RecordOperation_SlowOperation_LogsWarning()
     {
         // Arrange
-        var slowTimeMs = Constants.Performance.SlowOperationThresholdMs + 100;
+        var slowTimeMs = AppConstants.Performance.SlowOperationThresholdMs + 100;
 
         // Act
         _sut.RecordOperation(slowTimeMs, true);

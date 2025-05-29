@@ -15,7 +15,7 @@ namespace GpuImageProcessing.Api
     /// </summary>
     public class ApiResponse<T>
     {
-        public bool Success { get; set; }
+        public bool IsSuccess { get; set; }
         public T Data { get; set; }
         public string Message { get; set; }
         public List<ApiError> Errors { get; set; }
@@ -25,7 +25,7 @@ namespace GpuImageProcessing.Api
         {
             return new ApiResponse<T>
             {
-                Success = true,
+                IsSuccess = true,
                 Data = data,
                 Message = message,
                 Errors = new List<ApiError>(),
@@ -37,7 +37,7 @@ namespace GpuImageProcessing.Api
         {
             return new ApiResponse<T>
             {
-                Success = false,
+                IsSuccess = false,
                 Data = defaultData,
                 Message = message,
                 Errors = new List<ApiError> { new ApiError { Message = message } },
@@ -49,7 +49,7 @@ namespace GpuImageProcessing.Api
         {
             return new ApiResponse<T>
             {
-                Success = false,
+                IsSuccess = false,
                 Data = defaultData,
                 Message = message,
                 Errors = errors,

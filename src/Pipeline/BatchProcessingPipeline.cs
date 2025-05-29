@@ -94,7 +94,7 @@ public sealed class BatchProcessingPipeline
         var tasks = new List<Task>(batch.TotalImages);
         while (queue.Count > 0)
         {
-            var (imageId, _) = queue.Dequeue();
+            var imageId = queue.Dequeue();
             tasks.Add(ProcessWithRetryAsync(batch, imageId, outcomes, sem, cancellationToken));
         }
 
@@ -178,7 +178,7 @@ public sealed class BatchProcessingPipeline
 
                 return new ImagePipelineOutcome(
                     imageId, PipelineStage.Completed, attempt + 1,
-                    filterResult.ProcessingTimeMilliseconds, error: null);
+                    filterResult.ProcessingTimeMilliseconds, Error: null);
             }
             catch (OperationCanceledException)
             {
@@ -200,7 +200,7 @@ public sealed class BatchProcessingPipeline
 
         return new ImagePipelineOutcome(
             imageId, PipelineStage.Failed, attempt,
-            processingMs: 0, error: lastException?.Message);
+            ProcessingMs: 0, Error: lastException?.Message);
     }
 
     private static Task RunPreProcessStageAsync(Guid imageId, CancellationToken cancellationToken)
@@ -219,7 +219,7 @@ public sealed class BatchProcessingPipeline
         cancellationToken.ThrowIfCancellationRequested();
         _logger.LogDebug(
             "PostProcess — image {ImageId} output: {Path}",
-            imageId, result.OutputFilePath);
+            imageId, result.OutputPath);
         return Task.CompletedTask;
     }
 

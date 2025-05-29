@@ -110,8 +110,7 @@ public class BatchProcessingBenchmarks
     /// <summary>
     /// Measures MarkImageProcessed calls which run in the hot inner loop.
     /// </summary>
-    [Benchmark]
-    [OperationsPerInvoke(10)]
+    [Benchmark(OperationsPerInvoke = 10)]
     public void MarkImageProcessed_TenSuccesses()
     {
         var batch = new ImageBatch { Name = "T", OutputDirectory = "/t", TotalImages = 10 };

@@ -14,7 +14,7 @@ namespace GpuImageProcessing.Middleware
     /// Context object passed through middleware pipeline containing request/response data.
     /// Provides access to request metadata, user information, and operational context.
     /// </summary>
-    public class MiddlewareContext
+    public class RequestMiddlewareContext
     {
         public string RequestId { get; set; } = Guid.NewGuid().ToString();
         public string ApiKey { get; set; }
@@ -53,16 +53,16 @@ namespace GpuImageProcessing.Middleware
     /// <summary>
     /// Result of middleware processing
     /// </summary>
-    public class MiddlewareResult
+    public class RequestMiddlewareResult
     {
         public bool IsSuccessful { get; set; }
         public string Message { get; set; }
         public object Data { get; set; }
 
-        public static MiddlewareResult Success(object data = null, string message = "OK") =>
+        public static RequestMiddlewareResult Success(object data = null, string message = "OK") =>
             new() { IsSuccessful = true, Data = data, Message = message };
 
-        public static MiddlewareResult Failure(string message, object data = null) =>
+        public static RequestMiddlewareResult Failure(string message, object data = null) =>
             new() { IsSuccessful = false, Message = message, Data = data };
     }
 
@@ -71,17 +71,17 @@ namespace GpuImageProcessing.Middleware
     /// </summary>
     public class MiddlewarePipeline
     {
-        private readonly List<IProcessingMiddleware> _middleware;
+        private readonly List<IRequestMiddleware> _middleware;
 
         public MiddlewarePipeline()
         {
-            _middleware = new List<IProcessingMiddleware>();
+            _middleware = new List<IRequestMiddleware>();
         }
 
         /// <summary>
         /// Adds middleware to the pipeline
         /// </summary>
-        public void Use(IProcessingMiddleware middleware)
+        public void Use(IRequestMiddleware middleware)
         {
             _middleware.Add(middleware);
             _middleware.Sort((a, b) => a.Order.CompareTo(b.Order));
@@ -90,7 +90,7 @@ namespace GpuImageProcessing.Middleware
         /// <summary>
         /// Executes the pipeline for a context
         /// </summary>
-        public async Task<MiddlewareResult> ExecuteAsync(MiddlewareContext context)
+        public async Task<RequestMiddlewareResult> ExecuteAsync(RequestMiddlewareContext context)
         {
             foreach (var middleware in _middleware)
             {
@@ -104,19 +104,19 @@ namespace GpuImageProcessing.Middleware
             }
 
             context.SetSuccess(context.ResponseData);
-            return MiddlewareResult.Success();
+            return RequestMiddlewareResult.Success();
         }
     }
 
     /// <summary>
     /// Interface for middleware components
     /// </summary>
-    public interface IProcessingMiddleware
+    public interface IRequestMiddleware
     {
         /// <summary>
         /// Processes the context. Return Success or Failure result.
         /// </summary>
-        Task<MiddlewareResult> ProcessAsync(MiddlewareContext context);
+        Task<RequestMiddlewareResult> ProcessAsync(RequestMiddlewareContext context);
 
         /// <summary>
         /// Execution order in pipeline (lower numbers execute first)
@@ -127,34 +127,34 @@ namespace GpuImageProcessing.Middleware
     /// <summary>
     /// Noop middleware for testing
     /// </summary>
-    public class NoOpMiddleware : IProcessingMiddleware
+    public class NoOpMiddleware : IRequestMiddleware
     {
         public int Order => 0;
 
-        public async Task<MiddlewareResult> ProcessAsync(MiddlewareContext context)
+        public async Task<RequestMiddlewareResult> ProcessAsync(RequestMiddlewareContext context)
         {
-            return await Task.FromResult(MiddlewareResult.Success());
+            return await Task.FromResult(RequestMiddlewareResult.Success());
         }
     }
 
     /// <summary>
     /// Validation middleware base class
     /// </summary>
-    public abstract class ValidationMiddleware : IProcessingMiddleware
+    public abstract class ValidationMiddleware : IRequestMiddleware
     {
         public virtual int Order => 20;
 
-        public async Task<MiddlewareResult> ProcessAsync(MiddlewareContext context)
+        public async Task<RequestMiddlewareResult> ProcessAsync(RequestMiddlewareContext context)
         {
             var validationResult = await ValidateAsync(context);
 
             if (!validationResult.IsValid)
-                return MiddlewareResult.Failure(validationResult.Message);
+                return RequestMiddlewareResult.Failure(validationResult.Message);
 
-            return MiddlewareResult.Success();
+            return RequestMiddlewareResult.Success();
         }
 
-        protected abstract Task<ValidationResult> ValidateAsync(MiddlewareContext context);
+        protected abstract Task<ValidationResult> ValidateAsync(RequestMiddlewareContext context);
 
         protected class ValidationResult
         {
@@ -166,18 +166,18 @@ namespace GpuImageProcessing.Middleware
     /// <summary>
     /// Request logging middleware
     /// </summary>
-    public class RequestLoggingMiddleware : IProcessingMiddleware
+    public class RequestLoggingMiddleware : IRequestMiddleware
     {
         public int Order => 5;
 
-        public async Task<MiddlewareResult> ProcessAsync(MiddlewareContext context)
+        public async Task<RequestMiddlewareResult> ProcessAsync(RequestMiddlewareContext context)
         {
             Console.WriteLine($"[{context.StartTime:O}] {context.Operation} (RequestId: {context.RequestId})");
 
             if (!string.IsNullOrEmpty(context.UserId))
                 Console.WriteLine($"  User: {context.UserId} (Role: {context.UserRole})");
 
-            return await Task.FromResult(MiddlewareResult.Success());
+            return await Task.FromResult(RequestMiddlewareResult.Success());
         }
     }
 }

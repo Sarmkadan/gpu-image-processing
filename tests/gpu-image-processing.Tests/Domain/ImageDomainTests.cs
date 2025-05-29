@@ -5,6 +5,7 @@
 // =============================================================================
 
 using FluentAssertions;
+using Xunit;
 using GpuImageProcessing.Core;
 using GpuImageProcessing.Domain;
 
@@ -41,7 +42,7 @@ public class ImageDomainTests
     {
         // Arrange
         var image = CreateValidImage();
-        image.Width = Constants.Processing.MinImageWidth - 1;
+        image.Width = AppConstants.Processing.MinImageWidth - 1;
 
         // Act
         var result = image.Validate();

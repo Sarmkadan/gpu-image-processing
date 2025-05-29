@@ -10,6 +10,8 @@ using GpuImageProcessing.Core.Constants;
 
 namespace GpuImageProcessing.Core.Models
 {
+    using ImageFormat = GpuImageProcessing.Core.Constants.ImageFormat;
+
     /// <summary>
     /// Represents an image asset with metadata and processing history
     /// </summary>
@@ -29,6 +31,20 @@ namespace GpuImageProcessing.Core.Models
         public Dictionary<string, string> Metadata { get; set; } = new();
         public bool IsProcessed { get; set; }
         public Guid? ParentImageId { get; set; }
+
+        /// <summary>Alias for <see cref="FilePath"/>.</summary>
+        public string Path
+        {
+            get => FilePath;
+            set => FilePath = value;
+        }
+
+        /// <summary>Alias for <see cref="CreatedAt"/>.</summary>
+        public DateTime RegisteredAt
+        {
+            get => CreatedAt;
+            set => CreatedAt = value;
+        }
 
         /// <summary>
         /// Initializes a new instance of the Image class

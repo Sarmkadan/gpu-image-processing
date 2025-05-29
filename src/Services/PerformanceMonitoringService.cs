@@ -4,6 +4,11 @@
 // CTO & Software Architect
 // =============================================================================
 
+using System.Text;
+using Microsoft.Extensions.Logging;
+using GpuImageProcessing.Core;
+using GpuImageProcessing.Domain;
+
 namespace GpuImageProcessing.Services;
 
 /// <summary>
@@ -35,10 +40,10 @@ public class PerformanceMonitoringService
             if (!success)
                 _currentMetrics.FailedOperationsCount++;
 
-            if (executionTimeMs > Constants.Performance.SlowOperationThresholdMs)
+            if (executionTimeMs > AppConstants.Performance.SlowOperationThresholdMs)
             {
                 _logger.LogWarning("Slow operation detected: {ExecutionTime}ms (threshold: {Threshold}ms)",
-                    executionTimeMs, Constants.Performance.SlowOperationThresholdMs);
+                    executionTimeMs, AppConstants.Performance.SlowOperationThresholdMs);
             }
         }
     }
@@ -193,7 +198,7 @@ public class PerformanceMonitoringService
         if ((now - _lastCleanupTime).TotalMinutes < 10)
             return;
 
-        var cutoffTime = now.AddMinutes(-Constants.Performance.MetricsRetentionPeriodMinutes);
+        var cutoffTime = now.AddMinutes(-AppConstants.Performance.MetricsRetentionPeriodMinutes);
         _metricsHistory.RemoveAll(m => m.RecordedAt < cutoffTime);
         _lastCleanupTime = now;
 

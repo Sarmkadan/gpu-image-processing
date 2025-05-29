@@ -5,6 +5,10 @@
 // =============================================================================
 
 using System.Collections.Frozen;
+using Microsoft.Extensions.Logging;
+using GpuImageProcessing.Core;
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Repository;
 
 namespace GpuImageProcessing.Services;
 
@@ -150,7 +154,7 @@ public class FilterService
 
     private ValueTask<Image> ApplyBlurFilter(Image image, FilterConfiguration config)
     {
-        var radius = GetParameterValue(config, "radius", Constants.Filters.DefaultBlurRadius);
+        var radius = GetParameterValue(config, "radius", AppConstants.Filters.DefaultBlurRadius);
         _logger.LogDebug("Applying blur filter with radius {Radius} to image {ImageId}", radius, image.Id);
         // GPU kernel execution would happen here in real implementation
         return ValueTask.FromResult(image);
@@ -158,7 +162,7 @@ public class FilterService
 
     private ValueTask<Image> ApplySharpenFilter(Image image, FilterConfiguration config)
     {
-        var strength = GetParameterValue(config, "strength", Constants.Filters.DefaultSharpenStrength);
+        var strength = GetParameterValue(config, "strength", AppConstants.Filters.DefaultSharpenStrength);
         _logger.LogDebug("Applying sharpen filter with strength {Strength}", strength);
         return ValueTask.FromResult(image);
     }

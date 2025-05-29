@@ -14,7 +14,7 @@ namespace GpuImageProcessing.Events
     /// Published throughout the application for decoupled event handling.
     /// </summary>
 
-    public class ImageRegisteredEvent : ProcessingEvent
+    public class ImageRegisteredEvent : DomainEvent
     {
         public Guid ImageId { get; set; }
         public string ImagePath { get; set; }
@@ -23,7 +23,7 @@ namespace GpuImageProcessing.Events
         public string Description { get; set; }
     }
 
-    public class FilterAppliedEvent : ProcessingEvent
+    public class FilterAppliedEvent : DomainEvent
     {
         public Guid ImageId { get; set; }
         public Guid FilterId { get; set; }
@@ -33,7 +33,7 @@ namespace GpuImageProcessing.Events
         public string ErrorMessage { get; set; }
     }
 
-    public class TransformAppliedEvent : ProcessingEvent
+    public class TransformAppliedEvent : DomainEvent
     {
         public Guid ImageId { get; set; }
         public Guid TransformId { get; set; }
@@ -43,7 +43,7 @@ namespace GpuImageProcessing.Events
         public bool Success { get; set; }
     }
 
-    public class BatchJobCreatedEvent : ProcessingEvent
+    public class BatchJobCreatedEvent : DomainEvent
     {
         public Guid JobId { get; set; }
         public string JobName { get; set; }
@@ -52,14 +52,14 @@ namespace GpuImageProcessing.Events
         public List<Guid> FilterIds { get; set; }
     }
 
-    public class BatchJobStartedEvent : ProcessingEvent
+    public class BatchJobStartedEvent : DomainEvent
     {
         public Guid JobId { get; set; }
         public DateTime StartTime { get; set; }
         public int TotalImages { get; set; }
     }
 
-    public class BatchJobProgressEvent : ProcessingEvent
+    public class BatchJobProgressEvent : DomainEvent
     {
         public Guid JobId { get; set; }
         public int ProcessedCount { get; set; }
@@ -69,7 +69,7 @@ namespace GpuImageProcessing.Events
         public TimeSpan? EstimatedTimeRemaining { get; set; }
     }
 
-    public class BatchJobCompletedEvent : ProcessingEvent
+    public class BatchJobCompletedEvent : DomainEvent
     {
         public Guid JobId { get; set; }
         public int SuccessCount { get; set; }
@@ -78,7 +78,7 @@ namespace GpuImageProcessing.Events
         public double SuccessRate { get; set; }
     }
 
-    public class BatchJobFailedEvent : ProcessingEvent
+    public class BatchJobFailedEvent : DomainEvent
     {
         public Guid JobId { get; set; }
         public string ErrorMessage { get; set; }
@@ -86,7 +86,7 @@ namespace GpuImageProcessing.Events
         public int TotalCount { get; set; }
     }
 
-    public class ProcessingErrorEvent : ProcessingEvent
+    public class ProcessingErrorEvent : DomainEvent
     {
         public Guid ImageId { get; set; }
         public string OperationName { get; set; }
@@ -95,7 +95,7 @@ namespace GpuImageProcessing.Events
         public ErrorSeverity Severity { get; set; }
     }
 
-    public class PerformanceMetricsEvent : ProcessingEvent
+    public class PerformanceMetricsEvent : DomainEvent
     {
         public Guid ResourceId { get; set; }
         public string ResourceType { get; set; }
@@ -106,7 +106,7 @@ namespace GpuImageProcessing.Events
         public double AverageLatencyMilliseconds { get; set; }
     }
 
-    public class DeviceStatusChangedEvent : ProcessingEvent
+    public class GpuDeviceStatusChangedEvent : DomainEvent
     {
         public Guid DeviceId { get; set; }
         public string DeviceName { get; set; }
@@ -115,7 +115,7 @@ namespace GpuImageProcessing.Events
         public string Reason { get; set; }
     }
 
-    public class CacheHitEvent : ProcessingEvent
+    public class CacheHitEvent : DomainEvent
     {
         public Guid ResourceId { get; set; }
         public string CacheKey { get; set; }
@@ -123,7 +123,7 @@ namespace GpuImageProcessing.Events
         public TimeSpan TimeSavedMilliseconds { get; set; }
     }
 
-    public class ResourceMemoryWarningEvent : ProcessingEvent
+    public class ResourceMemoryWarningEvent : DomainEvent
     {
         public Guid ResourceId { get; set; }
         public string ResourceType { get; set; }

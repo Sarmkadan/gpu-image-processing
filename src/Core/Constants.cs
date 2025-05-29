@@ -9,7 +9,7 @@ namespace GpuImageProcessing.Core;
 /// <summary>
 /// Application-wide constants.
 /// </summary>
-public static class Constants
+public static class AppConstants
 {
     public const string ApplicationName = "GPU Image Processing";
     public const string ApplicationVersion = "1.0.0";

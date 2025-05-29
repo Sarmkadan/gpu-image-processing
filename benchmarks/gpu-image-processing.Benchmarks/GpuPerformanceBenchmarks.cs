@@ -6,7 +6,12 @@
 // =============================================================================
 
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Configs;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using GpuImageProcessing.Core;
 using GpuImageProcessing.Domain;
+using GpuImageProcessing.Repository;
 using GpuImageProcessing.Services;
 
 namespace GpuImageProcessing.Benchmarks;

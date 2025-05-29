@@ -4,7 +4,14 @@
 // CTO & Software Architect
 // =============================================================================
 
+using System;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using GpuImageProcessing.Fallback;
+using GpuImageProcessing.Repository;
+using GpuImageProcessing.Services;
+using GpuImageProcessing.Pipeline;
 
 namespace GpuImageProcessing.Configuration;
 

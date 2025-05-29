@@ -15,7 +15,7 @@ namespace GpuImageProcessing.Middleware
     /// Compression middleware for reducing data transfer size.
     /// Supports GZIP and Brotli compression algorithms with automatic selection based on size.
     /// </summary>
-    public class CompressionMiddleware : IProcessingMiddleware
+    public class CompressionMiddleware : IRequestMiddleware
     {
         private readonly int _minSizeToCompress;
         private readonly CompressionLevel _compressionLevel;
@@ -26,7 +26,7 @@ namespace GpuImageProcessing.Middleware
             _compressionLevel = compressionLevel;
         }
 
-        public async Task<MiddlewareResult> ProcessAsync(MiddlewareContext context)
+        public async Task<RequestMiddlewareResult> ProcessAsync(RequestMiddlewareContext context)
         {
             // Store original size for metrics
             if (context.ResponseData is not null && context.ResponseData is string responseStr)
@@ -50,12 +50,12 @@ namespace GpuImageProcessing.Middleware
                     }
                     catch (Exception ex)
                     {
-                        return MiddlewareResult.Failure($"Compression failed: {ex.Message}");
+                        return RequestMiddlewareResult.Failure($"Compression failed: {ex.Message}");
                     }
                 }
             }
 
-            return await Task.FromResult(MiddlewareResult.Success());
+            return await Task.FromResult(RequestMiddlewareResult.Success());
         }
 
         public int Order => 50;
