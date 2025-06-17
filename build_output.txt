@@ -1,0 +1,12 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  gpu-image-processing -> /home/redrocket/task-factory/workdir/gpu-image-processing/bin/gpu-image-processing.lib/Debug/net10.0/gpu-image-processing.dll
+  GpuImageProcessing -> /home/redrocket/task-factory/workdir/gpu-image-processing/bin/GpuImageProcessing/Debug/net10.0/GpuImageProcessing.dll
+  gpu-image-processing.Benchmarks -> /home/redrocket/task-factory/workdir/gpu-image-processing/benchmarks/gpu-image-processing.Benchmarks/bin/Debug/net10.0/gpu-image-processing.Benchmarks.dll
+  gpu-image-processing.Tests -> /home/redrocket/task-factory/workdir/gpu-image-processing/tests/gpu-image-processing.Tests/bin/Debug/net10.0/gpu-image-processing.Tests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:01.80
