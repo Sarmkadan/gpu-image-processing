@@ -13,64 +13,44 @@ namespace GpuImageProcessing.Core
         /// </summary>
         /// <param name="exception">The GPU exception to check.</param>
         /// <returns>True if the error code indicates a timeout; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="exception"/> is null.</exception>
         public static bool IsTimeoutError(this GpuException exception)
-        {
-            if (exception is null)
-            {
-                throw new ArgumentNullException(nameof(exception));
-            }
-
-            return exception.ErrorCode == -1 || exception.ErrorCode == 0x80000001;
-        }
+            => exception is not null && (exception.ErrorCode == -1 || exception.ErrorCode == 0x80000001);
 
         /// <summary>
         /// Determines whether the exception represents a memory-related error.
         /// </summary>
         /// <param name="exception">The GPU exception to check.</param>
         /// <returns>True if the error code indicates a memory issue; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="exception"/> is null.</exception>
         public static bool IsMemoryError(this GpuException exception)
-        {
-            if (exception is null)
-            {
-                throw new ArgumentNullException(nameof(exception));
-            }
-
-            return exception.ErrorCode >= 0x00000002 && exception.ErrorCode <= 0x0000001F;
-        }
+            => exception is not null && exception.ErrorCode is int code && code >= 0x00000002 && code <= 0x0000001F;
 
         /// <summary>
         /// Determines whether the exception represents a compute pipeline error.
         /// </summary>
         /// <param name="exception">The GPU exception to check.</param>
         /// <returns>True if the error code indicates a compute pipeline issue; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="exception"/> is null.</exception>
         public static bool IsComputePipelineError(this GpuException exception)
-        {
-            if (exception is null)
-            {
-                throw new ArgumentNullException(nameof(exception));
-            }
-
-            return exception.ErrorCode >= 0x00000020 && exception.ErrorCode <= 0x0000003F;
-        }
+            => exception is not null && exception.ErrorCode is int code && code >= 0x00000020 && code <= 0x0000003F;
 
         /// <summary>
         /// Formats the exception details as a multi-line string for logging purposes.
         /// </summary>
         /// <param name="exception">The GPU exception to format.</param>
         /// <returns>A formatted string containing all exception details.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="exception"/> is null.</exception>
         public static string FormatForLogging(this GpuException exception)
         {
-            if (exception is null)
-            {
-                throw new ArgumentNullException(nameof(exception));
-            }
+            ArgumentNullException.ThrowIfNull(exception);
 
             var builder = new StringBuilder();
             builder.AppendLine("GPU Exception Details:");
-            builder.AppendLine($"  Device: {exception.DeviceName ?? "Unknown"}");
-            builder.AppendLine($"  Error Code: 0x{exception.ErrorCode?.ToString("X8") ?? "N/A"}");
-            builder.AppendLine($"  Occurred At: {exception.OccurredAt:yyyy-MM-dd HH:mm:ss.fff}");
-            builder.AppendLine($"  Message: {exception}");
+            builder.AppendLine($" Device: {exception.DeviceName ?? "Unknown"}");
+            builder.AppendLine($" Error Code: 0x{exception.ErrorCode?.ToString("X8") ?? "N/A"}");
+            builder.AppendLine($" Occurred At: {exception.OccurredAt:yyyy-MM-dd HH:mm:ss.fff}");
+            builder.AppendLine($" Message: {exception}");
 
             return builder.ToString();
         }
