@@ -17,12 +17,12 @@ namespace GpuImageProcessing.Domain
         /// </summary>
         /// <param name="device">The GPU device.</param>
         /// <returns>Total memory in MB.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="device"/> is null.</exception>
         public static long GetTotalMemoryMb(this GpuDevice device)
         {
-            if (device == null)
-                throw new ArgumentNullException(nameof(device));
+            ArgumentNullException.ThrowIfNull(device);
 
-            return device.GlobalMemoryBytes / (1024 * 1024);
+            return device.GlobalMemoryBytes / (1024L * 1024);
         }
 
         /// <summary>
@@ -30,12 +30,12 @@ namespace GpuImageProcessing.Domain
         /// </summary>
         /// <param name="device">The GPU device.</param>
         /// <returns>Available memory in MB.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="device"/> is null.</exception>
         public static long GetAvailableMemoryMb(this GpuDevice device)
         {
-            if (device == null)
-                throw new ArgumentNullException(nameof(device));
+            ArgumentNullException.ThrowIfNull(device);
 
-            return device.MaxAllocatableMemoryBytes / (1024 * 1024);
+            return device.MaxAllocatableMemoryBytes / (1024L * 1024);
         }
 
         /// <summary>
@@ -44,13 +44,15 @@ namespace GpuImageProcessing.Domain
         /// <param name="device">The GPU device.</param>
         /// <param name="colorSpace">The color space to check (e.g., "RGB", "RGBA", "sRGB").</param>
         /// <returns>True if any supported format matches the color space.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="device"/> is null.</exception>
         public static bool SupportsColorSpace(this GpuDevice device, string colorSpace)
         {
-            if (device == null)
-                throw new ArgumentNullException(nameof(device));
+            ArgumentNullException.ThrowIfNull(device);
 
             if (string.IsNullOrWhiteSpace(colorSpace))
+            {
                 return false;
+            }
 
             return device.SupportedFormats.Any(format =>
                 format.Contains(colorSpace, StringComparison.OrdinalIgnoreCase));
@@ -61,10 +63,10 @@ namespace GpuImageProcessing.Domain
         /// </summary>
         /// <param name="device">The GPU device.</param>
         /// <returns>User-friendly device type name.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="device"/> is null.</exception>
         public static string GetDeviceTypeDisplayName(this GpuDevice device)
         {
-            if (device == null)
-                throw new ArgumentNullException(nameof(device));
+            ArgumentNullException.ThrowIfNull(device);
 
             return device.DeviceType switch
             {
