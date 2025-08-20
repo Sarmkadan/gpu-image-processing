@@ -50,9 +50,17 @@ public static class ImageRepositoryJsonExtensions
     /// Deserializes an ImageRepository from a JSON string.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized ImageRepository, or null if the JSON is invalid.</returns>
+    /// <returns>The deserialized ImageRepository, or null if the JSON is invalid or the input is null/empty.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static ImageRepository? FromJson(string json)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return null;
+        }
+
         try
         {
             return JsonSerializer.Deserialize<ImageRepository>(json, _jsonOptions);
