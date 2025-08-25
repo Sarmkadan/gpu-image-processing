@@ -17,14 +17,13 @@ namespace GpuImageProcessing.Integration
         /// Gets the count of active webhook subscriptions.
         /// </summary>
         /// <param name="handler">The webhook handler instance.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="handler"/> is null.</exception>
         /// <returns>The number of active webhook subscriptions.</returns>
         public static int GetActiveWebhookCount(this WebhookHandler handler)
         {
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
+            ArgumentNullException.ThrowIfNull(handler);
 
-            var subscriptions = handler.GetWebhooks();
-            return subscriptions.Count(s => s.IsActive);
+            return handler.GetWebhooks().Count(s => s.IsActive);
         }
 
         /// <summary>
@@ -32,17 +31,17 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         /// <param name="handler">The webhook handler instance.</param>
         /// <param name="eventType">The event type to filter by.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="handler"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="eventType"/> is null or whitespace.</exception>
         /// <returns>List of matching webhook subscriptions.</returns>
         public static List<WebhookSubscription> GetWebhooksByEventType(this WebhookHandler handler, string eventType)
         {
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
+            ArgumentNullException.ThrowIfNull(handler);
+            ArgumentException.ThrowIfNullOrWhiteSpace(eventType);
 
-            if (string.IsNullOrWhiteSpace(eventType))
-                throw new ArgumentException("Event type cannot be empty", nameof(eventType));
-
-            var subscriptions = handler.GetWebhooks();
-            return subscriptions.Where(s => s.EventType.Equals(eventType, StringComparison.OrdinalIgnoreCase)).ToList();
+            return handler.GetWebhooks()
+                .Where(s => s.EventType.Equals(eventType, StringComparison.OrdinalIgnoreCase))
+                .ToList();
         }
 
         /// <summary>
@@ -50,17 +49,17 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         /// <param name="handler">The webhook handler instance.</param>
         /// <param name="url">The URL to filter by.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="handler"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="url"/> is null or whitespace.</exception>
         /// <returns>List of matching webhook subscriptions.</returns>
         public static List<WebhookSubscription> GetWebhooksByUrl(this WebhookHandler handler, string url)
         {
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
+            ArgumentNullException.ThrowIfNull(handler);
+            ArgumentException.ThrowIfNullOrWhiteSpace(url);
 
-            if (string.IsNullOrWhiteSpace(url))
-                throw new ArgumentException("URL cannot be empty", nameof(url));
-
-            var subscriptions = handler.GetWebhooks();
-            return subscriptions.Where(s => s.WebhookUrl.Contains(url, StringComparison.OrdinalIgnoreCase)).ToList();
+            return handler.GetWebhooks()
+                .Where(s => s.WebhookUrl.Contains(url, StringComparison.OrdinalIgnoreCase))
+                .ToList();
         }
 
         /// <summary>
@@ -68,32 +67,31 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         /// <param name="handler">The webhook handler instance.</param>
         /// <param name="webhookId">The webhook ID to check.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="handler"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="webhookId"/> is null or whitespace.</exception>
         /// <returns>True if the webhook exists and is active; otherwise false.</returns>
         public static bool IsWebhookActive(this WebhookHandler handler, string webhookId)
         {
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
+            ArgumentNullException.ThrowIfNull(handler);
+            ArgumentException.ThrowIfNullOrWhiteSpace(webhookId);
 
-            if (string.IsNullOrWhiteSpace(webhookId))
-                return false;
+            var subscription = handler.GetWebhooks()
+                .FirstOrDefault(s => s.Id == webhookId);
 
-            var subscriptions = handler.GetWebhooks();
-            var subscription = subscriptions.FirstOrDefault(s => s.Id == webhookId);
-            return subscription != null && subscription.IsActive;
+            return subscription?.IsActive == true;
         }
 
         /// <summary>
         /// Gets the oldest active webhook subscription.
         /// </summary>
         /// <param name="handler">The webhook handler instance.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="handler"/> is null.</exception>
         /// <returns>The oldest active webhook subscription, or null if none exists.</returns>
         public static WebhookSubscription? GetOldestActiveWebhook(this WebhookHandler handler)
         {
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
+            ArgumentNullException.ThrowIfNull(handler);
 
-            var subscriptions = handler.GetWebhooks();
-            return subscriptions
+            return handler.GetWebhooks()
                 .Where(s => s.IsActive)
                 .OrderBy(s => s.CreatedAt)
                 .FirstOrDefault();
@@ -103,14 +101,13 @@ namespace GpuImageProcessing.Integration
         /// Gets the most recent webhook subscription.
         /// </summary>
         /// <param name="handler">The webhook handler instance.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="handler"/> is null.</exception>
         /// <returns>The most recently created webhook subscription, or null if none exists.</returns>
         public static WebhookSubscription? GetMostRecentWebhook(this WebhookHandler handler)
         {
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
+            ArgumentNullException.ThrowIfNull(handler);
 
-            var subscriptions = handler.GetWebhooks();
-            return subscriptions
+            return handler.GetWebhooks()
                 .OrderByDescending(s => s.CreatedAt)
                 .FirstOrDefault();
         }
