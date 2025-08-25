@@ -10,6 +10,9 @@ using Xunit;
 
 namespace GpuImageProcessing.Tests.Core.Services;
 
+/// <summary>
+/// Tests for the CoreImageProcessingService class.
+/// </summary>
 public class CoreImageProcessingServiceTests
 {
     private readonly Mock<ImageRepository> _imageRepositoryMock;
@@ -23,6 +26,9 @@ public class CoreImageProcessingServiceTests
     private readonly Mock<TransformService> _transformServiceMock;
     private readonly ImageProcessingService _sut;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="CoreImageProcessingServiceTests"/> class.
+    /// </summary>
     public CoreImageProcessingServiceTests()
     {
         _imageRepositoryMock = new Mock<ImageRepository>();
@@ -47,6 +53,10 @@ public class CoreImageProcessingServiceTests
             _transformServiceMock.Object);
     }
 
+    /// <summary>
+    /// Tests that registering an image with a valid path returns the image.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     [Fact]
     public async Task RegisterImageAsync_ValidPath_ReturnsImage()
     {
@@ -64,6 +74,10 @@ public class CoreImageProcessingServiceTests
         result.Name.Should().Be(name);
     }
 
+    /// <summary>
+    /// Tests that registering an image with an empty path throws an ArgumentException.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     [Fact]
     public async Task RegisterImageAsync_EmptyPath_ThrowsArgumentException()
     {
@@ -74,6 +88,11 @@ public class CoreImageProcessingServiceTests
         await act.Should().ThrowAsync<ArgumentException>();
     }
 
+    /// <summary>
+    /// Tests that getting an image by an existing ID returns the image.
+    /// </summary>
+    /// <param name="imageId">The ID of the image to retrieve.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     [Fact]
     public async Task GetImageAsync_ExistingId_ReturnsImage()
     {
@@ -89,6 +108,11 @@ public class CoreImageProcessingServiceTests
         result.Should().Be(expectedImage);
     }
 
+    /// <summary>
+    /// Tests that getting an image by a non-existing ID returns null.
+    /// </summary>
+    /// <param name="imageId">The ID of the image to retrieve.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     [Fact]
     public async Task GetImageAsync_NonExistingId_ReturnsNull()
     {
@@ -103,6 +127,10 @@ public class CoreImageProcessingServiceTests
         result.Should().BeNull();
     }
 
+    /// <summary>
+    /// Tests that checking if the service can process without a device returns false.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous operation.</returns>
     [Fact]
     public async Task CanProcessAsync_NoDevice_ReturnsFalse()
     {
