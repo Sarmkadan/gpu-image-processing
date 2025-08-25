@@ -16,9 +16,10 @@ namespace GpuImageProcessing.Tests.Integration
         /// The methods are invoked sequentially in the order they are discovered via reflection.
         /// </summary>
         /// <param name="tests">The test class instance.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="tests"/> is <see langword="null"/></exception>
         public static async Task RunAllAsync(this EndToEndProcessingTests tests)
         {
-            if (tests == null) throw new ArgumentNullException(nameof(tests));
+            ArgumentNullException.ThrowIfNull(tests);
 
             var testMethods = typeof(EndToEndProcessingTests)
                 .GetMethods(BindingFlags.Instance | BindingFlags.Public)
@@ -38,9 +39,10 @@ namespace GpuImageProcessing.Tests.Integration
         /// </summary>
         /// <param name="tests">The test class instance.</param>
         /// <returns>An enumerable of method names.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="tests"/> is <see langword="null"/></exception>
         public static IEnumerable<string> GetTestMethodNames(this EndToEndProcessingTests tests)
         {
-            if (tests == null) throw new ArgumentNullException(nameof(tests));
+            ArgumentNullException.ThrowIfNull(tests);
 
             return typeof(EndToEndProcessingTests)
                 .GetMethods(BindingFlags.Instance | BindingFlags.Public)
@@ -53,9 +55,10 @@ namespace GpuImageProcessing.Tests.Integration
         /// </summary>
         /// <param name="tests">The test class instance.</param>
         /// <returns>True when all tests succeed; otherwise false.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="tests"/> is <see langword="null"/></exception>
         public static async Task<bool> AllTestsPassAsync(this EndToEndProcessingTests tests)
         {
-            if (tests == null) throw new ArgumentNullException(nameof(tests));
+            ArgumentNullException.ThrowIfNull(tests);
 
             var testMethods = typeof(EndToEndProcessingTests)
                 .GetMethods(BindingFlags.Instance | BindingFlags.Public)
@@ -69,7 +72,7 @@ namespace GpuImageProcessing.Tests.Integration
                     var task = (Task)method.Invoke(tests, null)!;
                     await task.ConfigureAwait(false);
                 }
-                catch
+                catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     return false;
                 }
