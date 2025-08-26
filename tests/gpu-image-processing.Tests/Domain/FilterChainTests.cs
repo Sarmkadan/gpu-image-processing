@@ -11,8 +11,14 @@ using GpuImageProcessing.Domain;
 
 namespace GpuImageProcessing.Tests.Domain;
 
+/// <summary>
+/// Unit tests for the <see cref="FilterChain"/> class.
+/// </summary>
 public class FilterChainTests
 {
+    /// <summary>
+    /// Tests adding a filter step to the end of the chain with default ordering.
+    /// </summary>
     [Fact]
     public void AddStep_DefaultOrder_AppendsStepToEnd()
     {
@@ -31,6 +37,9 @@ public class FilterChainTests
         chain.Steps[1].FilterId.Should().Be(filterId2);
     }
 
+    /// <summary>
+    /// Tests removing an existing filter step from the chain and reorders the remaining steps.
+    /// </summary>
     [Fact]
     public void RemoveStep_ExistingFilter_ReturnsTrue_AndReordersRemainingSteps()
     {
@@ -53,6 +62,9 @@ public class FilterChainTests
         chain.Steps[1].Order.Should().Be(1);
     }
 
+    /// <summary>
+    /// Tests removing a non-existent filter step from the chain.
+    /// </summary>
     [Fact]
     public void RemoveStep_NonExistentFilter_ReturnsFalse()
     {
@@ -68,6 +80,9 @@ public class FilterChainTests
         chain.Steps.Should().HaveCount(1);
     }
 
+    /// <summary>
+    /// Tests reordering steps with a mismatched filter count.
+    /// </summary>
     [Fact]
     public void ReorderSteps_MismatchedFilterCount_ThrowsArgumentException()
     {
@@ -85,6 +100,9 @@ public class FilterChainTests
             .WithMessage("*match current step count*");
     }
 
+    /// <summary>
+    /// Tests getting enabled steps from the filter chain.
+    /// </summary>
     [Fact]
     public void GetEnabledSteps_WithMixedEnabledState_ReturnsOnlyEnabledSteps()
     {
@@ -105,6 +123,9 @@ public class FilterChainTests
         enabled[0].FilterId.Should().Be(filterId2);
     }
 
+    /// <summary>
+    /// Tests cloning a filter chain and verifying the cloned chain's independence.
+    /// </summary>
     [Fact]
     public void Clone_CreatesIndependentCopy_WithSuffixedName()
     {
@@ -121,6 +142,9 @@ public class FilterChainTests
         original.Steps.Should().HaveCount(1); // original is unaffected by clone mutation
     }
 
+    /// <summary>
+    /// Tests validating a filter configuration with a missing parameter type.
+    /// </summary>
     [Fact]
     public void FilterConfiguration_Validate_ParameterWithoutMatchingType_ReturnsFalse()
     {
