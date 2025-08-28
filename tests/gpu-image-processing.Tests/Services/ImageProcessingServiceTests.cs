@@ -10,6 +10,10 @@ using Xunit;
 
 namespace GpuImageProcessing.Tests.Services;
 
+/// <summary>
+/// Contains unit tests for the <see cref="ImageProcessingService"/> class, focusing on image processing pipelines,
+/// error handling, and statistics calculation.
+/// </summary>
 public class ImageProcessingServiceTests
 {
     private readonly Mock<ImageRepository> _imageRepositoryMock;
@@ -21,6 +25,9 @@ public class ImageProcessingServiceTests
     private readonly Mock<ILogger<ImageProcessingService>> _loggerMock;
     private readonly ImageProcessingService _sut;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ImageProcessingServiceTests"/> class and configures the mock dependencies.
+    /// </summary>
     public ImageProcessingServiceTests()
     {
         _imageRepositoryMock = new Mock<ImageRepository>();
@@ -69,6 +76,11 @@ public class ImageProcessingServiceTests
         };
     }
 
+    /// <summary>
+    /// Validates that <see cref="ImageProcessingService.ProcessImageAsync"/> throws an <see cref="InvalidImageException"/>
+    /// if the target image is not found in the repository.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task ProcessImageAsync_ImageNotFound_ThrowsInvalidImageException()
     {
@@ -82,6 +94,11 @@ public class ImageProcessingServiceTests
             .Should().ThrowAsync<InvalidImageException>();
     }
 
+    /// <summary>
+    /// Validates that <see cref="ImageProcessingService.ProcessImageAsync"/> throws an <see cref="InvalidImageException"/>
+    /// if the target image exists but is considered invalid (e.g., zero width).
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task ProcessImageAsync_InvalidImage_ThrowsInvalidImageException()
     {
@@ -98,6 +115,11 @@ public class ImageProcessingServiceTests
             .Should().ThrowAsync<InvalidImageException>();
     }
 
+    /// <summary>
+    /// Validates that <see cref="ImageProcessingService.ProcessImageAsync"/> throws a <see cref="GpuException"/>
+    /// when no suitable GPU device is available for processing.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task ProcessImageAsync_NoGpuDevice_ThrowsGpuException()
     {
@@ -115,6 +137,11 @@ public class ImageProcessingServiceTests
             .Should().ThrowAsync<GpuException>();
     }
 
+    /// <summary>
+    /// Validates that <see cref="ImageProcessingService.ProcessImageAsync"/> successfully processes an image
+    /// with a single filter and returns a successful <see cref="ProcessingResult"/>.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task ProcessImageAsync_SuccessfulProcessing_ReturnsCompletedResult()
     {
@@ -160,6 +187,11 @@ public class ImageProcessingServiceTests
         _gpuServiceMock.Verify(x => x.DeallocateMemory(It.IsAny<long>(), device.Id), Times.Once);
     }
 
+    /// <summary>
+    /// Validates that <see cref="ImageProcessingService.ProcessImageAsync"/> correctly applies multiple filters
+    /// in sequential order to an image.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task ProcessImageAsync_MultipleFilters_AppliesAllSequentially()
     {
@@ -224,6 +256,11 @@ public class ImageProcessingServiceTests
             Times.Once);
     }
 
+    /// <summary>
+    /// Validates that <see cref="ImageProcessingService.ProcessImageAsync"/> correctly handles filter application
+    /// failures by marking the image as failed and throwing a <see cref="ProcessingException"/>.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task ProcessImageAsync_FilterApplicationFails_ReturnsFailedResult()
     {
@@ -251,6 +288,11 @@ public class ImageProcessingServiceTests
             Times.Once);
     }
 
+    /// <summary>
+    /// Validates that <see cref="ImageProcessingService.ProcessImageAsync"/> sets the image status to
+    /// <see cref="ProcessingStatus.Processing"/> during the operation.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task ProcessImageAsync_MarksImageAsProcessing()
     {
@@ -284,6 +326,11 @@ public class ImageProcessingServiceTests
             Times.Once);
     }
 
+    /// <summary>
+    /// Validates that <see cref="ImageProcessingService.GetProcessingResultAsync"/> returns the most recent
+    /// <see cref="ProcessingResult"/> for a given image ID when multiple results exist.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task GetProcessingResultAsync_ExistingResults_ReturnsLatestResult()
     {
@@ -303,6 +350,11 @@ public class ImageProcessingServiceTests
         result!.StartedAt.Should().Be(result2.StartedAt);
     }
 
+    /// <summary>
+    /// Validates that <see cref="ImageProcessingService.GetProcessingResultAsync"/> returns <c>null</c>
+    /// when no processing results exist for a given image ID.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task GetProcessingResultAsync_NoResults_ReturnsNull()
     {
@@ -319,6 +371,11 @@ public class ImageProcessingServiceTests
         result.Should().BeNull();
     }
 
+    /// <summary>
+    /// Validates that <see cref="ImageProcessingService.GetStatisticsAsync"/> calculates and returns the
+    /// correct processing metrics, including success rates and average processing times.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task GetStatisticsAsync_ReturnsCorrectMetrics()
     {
@@ -352,6 +409,11 @@ public class ImageProcessingServiceTests
         ((double)stats["AverageProcessingTime"]).Should().BeApproximately(100.0, precision: 1);
     }
 
+    /// <summary>
+    /// Validates that <see cref="ImageProcessingService.GetStatisticsAsync"/> returns zeroed metrics
+    /// when no processing results are present in the repository.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     [Fact]
     public async Task GetStatisticsAsync_NoResults_ReturnsZeroMetrics()
     {
