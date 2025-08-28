@@ -15,12 +15,18 @@ using Moq;
 
 namespace GpuImageProcessing.Tests.Services;
 
+/// <summary>
+/// Contains unit tests for the <see cref="FilterService"/> class.
+/// </summary>
 public class FilterServiceTests
 {
     private readonly FilterConfigurationRepository _repository;
     private readonly Mock<ILogger<FilterService>> _loggerMock;
     private readonly FilterService _sut;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FilterServiceTests"/> class, setting up the repository and logger mock.
+    /// </summary>
     public FilterServiceTests()
     {
         _repository = new FilterConfigurationRepository();
@@ -48,6 +54,9 @@ public class FilterServiceTests
         MaxThreadsPerBlock = 256
     };
 
+    /// <summary>
+    /// Verifies that <see cref="FilterService.ApplyFilterAsync"/> throws an <see cref="InvalidFilterException"/> when applying a filter that does not exist.
+    /// </summary>
     [Fact]
     public async Task ApplyFilterAsync_FilterNotFound_ThrowsInvalidFilterException()
     {
@@ -62,6 +71,9 @@ public class FilterServiceTests
         await act.Should().ThrowAsync<InvalidFilterException>();
     }
 
+    /// <summary>
+    /// Verifies that <see cref="FilterService.ApplyFilterAsync"/> throws an <see cref="InvalidFilterException"/> when the requested filter is inactive.
+    /// </summary>
     [Fact]
     public async Task ApplyFilterAsync_InactiveFilter_ThrowsInvalidFilterException()
     {
@@ -78,6 +90,9 @@ public class FilterServiceTests
         assertion.Which.Message.Should().Contain("not active");
     }
 
+    /// <summary>
+    /// Verifies that <see cref="FilterService.ApplyFilterAsync"/> successfully applies the Grayscale filter, updating the image's color space and bits per pixel.
+    /// </summary>
     [Fact]
     public async Task ApplyFilterAsync_GrayscaleFilter_SetsColorSpaceToGrayscale()
     {
@@ -94,6 +109,9 @@ public class FilterServiceTests
         result.BitsPerPixel.Should().Be(8);
     }
 
+    /// <summary>
+    /// Verifies that <see cref="FilterService.CreateFilterAsync"/> throws an <see cref="ArgumentNullException"/> when the configuration is null.
+    /// </summary>
     [Fact]
     public async Task CreateFilterAsync_NullConfig_ThrowsArgumentNullException()
     {
@@ -105,6 +123,9 @@ public class FilterServiceTests
         assertion.Which.ParamName.Should().Be("config");
     }
 
+    /// <summary>
+    /// Verifies that <see cref="FilterService.CreateFilterAsync"/> throws an <see cref="InvalidFilterException"/> when providing an invalid configuration.
+    /// </summary>
     [Fact]
     public async Task CreateFilterAsync_InvalidConfig_ThrowsInvalidFilterException()
     {
@@ -123,6 +144,9 @@ public class FilterServiceTests
         await act.Should().ThrowAsync<InvalidFilterException>();
     }
 
+    /// <summary>
+    /// Verifies that <see cref="FilterService.GetFiltersByTypeAsync"/> returns only filters of the specified <see cref="FilterType"/> when multiple types are stored.
+    /// </summary>
     [Fact]
     public async Task GetFiltersByTypeAsync_MultipleTypesStored_ReturnsOnlyMatchingType()
     {
