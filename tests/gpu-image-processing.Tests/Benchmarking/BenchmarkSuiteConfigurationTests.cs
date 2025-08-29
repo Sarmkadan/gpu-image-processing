@@ -10,8 +10,14 @@ using GpuImageProcessing.Benchmarking;
 
 namespace GpuImageProcessing.Tests.Benchmarking;
 
+/// <summary>
+/// Tests for the <see cref="BenchmarkSuiteConfiguration"/> class.
+/// </summary>
 public class BenchmarkSuiteConfigurationTests
 {
+    /// <summary>
+    /// Validates that a valid default configuration returns no errors.
+    /// </summary>
     [Fact]
     public void Validate_ValidDefaultConfig_ReturnsNoErrors()
     {
@@ -22,6 +28,9 @@ public class BenchmarkSuiteConfigurationTests
         errors.Should().BeEmpty();
     }
 
+    /// <summary>
+    /// Validates that a configuration with a blank run name returns a name error.
+    /// </summary>
     [Fact]
     public void Validate_BlankRunName_ReturnsNameError()
     {
@@ -32,6 +41,9 @@ public class BenchmarkSuiteConfigurationTests
         errors.Should().ContainSingle(e => e.Contains(nameof(BenchmarkSuiteConfiguration.RunName)));
     }
 
+    /// <summary>
+    /// Validates that a configuration with all benchmark categories disabled returns at least one error.
+    /// </summary>
     [Fact]
     public void Validate_AllCategoriesDisabled_ReturnsAtLeastOneError()
     {
@@ -50,6 +62,10 @@ public class BenchmarkSuiteConfigurationTests
         errors.Should().ContainSingle(e => e.Contains("at least one benchmark category"));
     }
 
+    /// <summary>
+    /// Gets the enabled benchmark categories for a default configuration.
+    /// </summary>
+    /// <returns>A collection of enabled benchmark categories.</returns>
     [Fact]
     public void GetEnabledCategories_DefaultConfig_ContainsFourCategories()
     {
@@ -66,6 +82,10 @@ public class BenchmarkSuiteConfigurationTests
         categories.Should().NotContain("EnumerableExtensions");
     }
 
+    /// <summary>
+    /// Gets the enabled benchmark categories for a configuration with all categories enabled.
+    /// </summary>
+    /// <returns>A collection of enabled benchmark categories.</returns>
     [Fact]
     public void GetEnabledCategories_AllEnabled_ContainsFiveCategories()
     {
@@ -81,6 +101,11 @@ public class BenchmarkSuiteConfigurationTests
         categories.Should().Contain("EnumerableExtensions");
     }
 
+    /// <summary>
+    /// Creates a CI preset configuration with quick accuracy and three categories.
+    /// </summary>
+    /// <param name="runName">The run name for the configuration.</param>
+    /// <returns>A CI preset configuration.</returns>
     [Fact]
     public void ForCi_Preset_HasQuickAccuracyAndThreeCategories()
     {
@@ -93,6 +118,11 @@ public class BenchmarkSuiteConfigurationTests
         config.IncludeEnumerableExtensionsBenchmarks.Should().BeFalse();
     }
 
+    /// <summary>
+    /// Creates a release preset configuration with thorough accuracy and all categories.
+    /// </summary>
+    /// <param name="runName">The run name for the configuration.</param>
+    /// <returns>A release preset configuration.</returns>
     [Fact]
     public void ForRelease_Preset_HasThoroughAccuracyAndAllCategories()
     {
@@ -103,6 +133,9 @@ public class BenchmarkSuiteConfigurationTests
         config.GetEnabledCategories().Should().HaveCount(5);
     }
 
+    /// <summary>
+    /// Validates a release preset configuration.
+    /// </summary>
     [Fact]
     public void ForRelease_Preset_IsValid()
     {
@@ -110,6 +143,9 @@ public class BenchmarkSuiteConfigurationTests
         config.Validate().Should().BeEmpty();
     }
 
+    /// <summary>
+    /// Validates a CI preset configuration.
+    /// </summary>
     [Fact]
     public void ForCi_Preset_IsValid()
     {
