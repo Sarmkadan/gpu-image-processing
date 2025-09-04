@@ -35,6 +35,7 @@ namespace GpuImageProcessing.Core.Services
         private readonly FilterService _filterService; // Added
         private readonly TransformService _transformService; // Added
         private readonly Dictionary<Guid, List<ProcessingResult>> _resultsHistory = new();
+        private readonly object _resultsHistoryLock = new();
 
         public ImageProcessingService(
             ImageRepository imageRepository,
@@ -262,21 +263,27 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public Task<List<ProcessingResult>> GetProcessingResultsAsync(Guid imageId)
         {
-            var results = _resultsHistory.TryGetValue(imageId, out var history)
-                ? new List<ProcessingResult>(history)
-                : new List<ProcessingResult>();
-            return Task.FromResult(results);
+            lock (_resultsHistoryLock)
+            {
+                var results = _resultsHistory.TryGetValue(imageId, out var history)
+                    ? new List<ProcessingResult>(history)
+                    : new List<ProcessingResult>();
+                return Task.FromResult(results);
+            }
         }
 
         private void RecordResult(Guid imageId, ProcessingResult result)
         {
-            if (!_resultsHistory.TryGetValue(imageId, out var history))
+            lock (_resultsHistoryLock)
             {
-                history = new List<ProcessingResult>();
-                _resultsHistory[imageId] = history;
-            }
+                if (!_resultsHistory.TryGetValue(imageId, out var history))
+                {
+                    history = new List<ProcessingResult>();
+                    _resultsHistory[imageId] = history;
+                }
 
-            history.Add(result);
+                history.Add(result);
+            }
         }
 
         /// <summary>

@@ -5,6 +5,7 @@
 // =============================================================================
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,7 +24,7 @@ namespace GpuImageProcessing.Core.Services
     public class FilterService
     {
         private readonly GenericRepository<Filter> _filterRepository;
-        private Dictionary<FilterType, string> _kernelCache = new();
+        private readonly ConcurrentDictionary<FilterType, string> _kernelCache = new();
 
         public FilterService(GenericRepository<Filter> filterRepository)
         {
