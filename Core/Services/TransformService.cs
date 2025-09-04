@@ -5,6 +5,7 @@
 // =============================================================================
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ namespace GpuImageProcessing.Core.Services
     public class TransformService
     {
         private readonly GenericRepository<Transform> _transformRepository;
-        private Dictionary<TransformType, string> _kernelCache = new(); // Added
+        private readonly ConcurrentDictionary<TransformType, string> _kernelCache = new();
 
         public TransformService(GenericRepository<Transform> transformRepository)
         {

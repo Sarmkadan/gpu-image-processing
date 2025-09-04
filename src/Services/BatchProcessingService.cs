@@ -19,7 +19,7 @@ public class BatchProcessingService
     private readonly ImageProcessingService _processingService;
     private readonly ImageRepository _imageRepository;
     private readonly ILogger<BatchProcessingService> _logger;
-    private readonly Dictionary<Guid, ImageBatch> _activeBatches = new();
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, ImageBatch> _activeBatches = new();
     private readonly SemaphoreSlim _concurrencySemaphore;
 
     public BatchProcessingService(
@@ -98,7 +98,7 @@ public class BatchProcessingService
         }
         finally
         {
-            _activeBatches.Remove(batch.Id);
+            _activeBatches.TryRemove(batch.Id, out _);
         }
     }
 
