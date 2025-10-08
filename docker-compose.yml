@@ -1,0 +1,200 @@
+# =============================================================================
+# Author: Vladyslav Zaiets | https://sarmkadan.com
+# CTO & Software Architect
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # Main GPU Image Processing service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: gpu-image-processing:latest
+    container_name: gpu-image-processing
+
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:80
+      - ENABLE_GPU=true
+      - LOG_LEVEL=Information
+      - MAX_PARALLEL_OPERATIONS=4
+      - BATCH_SIZE=10
+      - CACHE_ENABLED=true
+      - CACHE_TTL_SECONDS=3600
+
+    ports:
+      - "8080:80"
+
+    volumes:
+      # Input images directory
+      - ./images:/app/images:ro
+      # Output results directory
+      - ./output:/app/output:rw
+      # Logs directory
+      - ./logs:/app/logs:rw
+      # Temporary files
+      - ./temp:/app/temp:rw
+
+    # GPU support (NVIDIA only, uncomment if using NVIDIA GPU)
+    # runtime: nvidia
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
+    # Health check
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    # Restart policy
+    restart: unless-stopped
+
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          cpus: '4'
+          memory: 4G
+        reservations:
+          cpus: '2'
+          memory: 2G
+
+    # Logging
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service=gpu-processing"
+
+    networks:
+      - gpu-network
+
+  # Optional: PostgreSQL for result storage
+  postgres:
+    image: postgres:15-alpine
+    container_name: gpu-processing-db
+
+    environment:
+      POSTGRES_USER: gpu_user
+      POSTGRES_PASSWORD: gpu_password
+      POSTGRES_DB: gpu_processing
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gpu_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+
+    networks:
+      - gpu-network
+
+    # Only uncomment if you want to use database storage
+    # profiles:
+    #   - database
+
+  # Optional: Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: gpu-processing-cache
+
+    ports:
+      - "6379:6379"
+
+    volumes:
+      - redis_data:/data
+
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    restart: unless-stopped
+
+    networks:
+      - gpu-network
+
+    # Only uncomment if you want to use distributed caching
+    # profiles:
+    #   - cache
+
+  # Optional: Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: gpu-processing-metrics
+
+    ports:
+      - "9090:9090"
+
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+    restart: unless-stopped
+
+    networks:
+      - gpu-network
+
+    # Only uncomment if you want to collect metrics
+    # profiles:
+    #   - monitoring
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  prometheus_data:
+    driver: local
+
+networks:
+  gpu-network:
+    driver: bridge
+
+# Usage:
+#
+# Start all services:
+#   docker-compose up -d
+#
+# Start with database:
+#   docker-compose --profile database up -d
+#
+# Start with caching:
+#   docker-compose --profile cache up -d
+#
+# Start with monitoring:
+#   docker-compose --profile monitoring up -d
+#
+# Start all services:
+#   docker-compose --profile database --profile cache --profile monitoring up -d
+#
+# Stop all services:
+#   docker-compose down
+#
+# View logs:
+#   docker-compose logs -f app
+#
+# Clean up volumes:
+#   docker-compose down -v
