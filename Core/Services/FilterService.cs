@@ -33,8 +33,15 @@ namespace GpuImageProcessing.Core.Services
         public async Task<Filter> CreateFilterAsync(FilterType type, string name, string description = "")
         {
             var filter = Filter.CreatePredefined(type);
-            filter.Name = name;
-            filter.Description = description;
+            // Fix: Only update name and description if provided and not empty, preserving predefined defaults.
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                filter.Name = name;
+            }
+            if (!string.IsNullOrWhiteSpace(description))
+            {
+                filter.Description = description;
+            }
 
             return await _filterRepository.AddAsync(filter);
         }
