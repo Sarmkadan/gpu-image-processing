@@ -25,9 +25,13 @@ public static class PerformanceMonitoringServiceValidation
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var problems = [];
+        var problems = new List<string>();
 
-        // No specific validation rules for PerformanceMonitoringService
+        // Add validation rules here
+        if (value.GetCurrentMetrics() == null)
+        {
+            problems.Add("Current metrics are null");
+        }
 
         return problems;
     }
@@ -54,7 +58,7 @@ public static class PerformanceMonitoringServiceValidation
         var problems = Validate(value);
         if (problems.Count > 0)
         {
-            throw new ArgumentException("Invalid PerformanceMonitoringService instance", nameof(value), string.Join(Environment.NewLine, problems));
+            throw new ArgumentException($"Invalid PerformanceMonitoringService instance: {string.Join(Environment.NewLine, problems)}", nameof(value));
         }
     }
 }
