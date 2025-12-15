@@ -28,13 +28,17 @@ namespace GpuImageProcessing.Core.Repository
             var problems = new List<string>();
 
             // Check for invalid state
-            if (value._entities == null)
+            if (value.GetAllAsync().Result == null)
             {
                 problems.Add("Entities list is null");
             }
-            else if (value._entities.Any(e => e == null))
+            else
             {
-                problems.Add("Entities list contains null items");
+                var entities = value.GetAllAsync().Result.ToList();
+                if (entities.Any(e => e == null))
+                {
+                    problems.Add("Entities list contains null items");
+                }
             }
 
             // No more specific validation rules for GenericRepository
