@@ -28,16 +28,18 @@ namespace GpuImageProcessing.Core.Repository
 
             var problems = new List<string>();
 
-            if (value.TotalJobs < 0) problems.Add("Total jobs cannot be negative.");
-            if (value.PendingJobs < 0) problems.Add("Pending jobs cannot be negative.");
-            if (value.RunningJobs < 0) problems.Add("Running jobs cannot be negative.");
-            if (value.CompletedJobs < 0) problems.Add("Completed jobs cannot be negative.");
-            if (value.FailedJobs < 0) problems.Add("Failed jobs cannot be negative.");
-            if (value.CancelledJobs < 0) problems.Add("Cancelled jobs cannot be negative.");
-            if (value.AverageCompletionTime < 0) problems.Add("Average completion time cannot be negative.");
-            if (value.SuccessRate < 0 || value.SuccessRate > 100) problems.Add("Success rate must be between 0 and 100.");
-            if (value.TotalImagesProcessed < 0) problems.Add("Total images processed cannot be negative.");
-            if (value.TotalImagesFailed < 0) problems.Add("Total images failed cannot be negative.");
+            var stats = value.GetStatisticsAsync().Result;
+
+            if (stats.TotalJobs < 0) problems.Add("Total jobs cannot be negative.");
+            if (stats.PendingJobs < 0) problems.Add("Pending jobs cannot be negative.");
+            if (stats.RunningJobs < 0) problems.Add("Running jobs cannot be negative.");
+            if (stats.CompletedJobs < 0) problems.Add("Completed jobs cannot be negative.");
+            if (stats.FailedJobs < 0) problems.Add("Failed jobs cannot be negative.");
+            if (stats.CancelledJobs < 0) problems.Add("Cancelled jobs cannot be negative.");
+            if (stats.AverageCompletionTime < 0) problems.Add("Average completion time cannot be negative.");
+            if (stats.SuccessRate < 0 || stats.SuccessRate > 100) problems.Add("Success rate must be between 0 and 100.");
+            if (stats.TotalImagesProcessed < 0) problems.Add("Total images processed cannot be negative.");
+            if (stats.TotalImagesFailed < 0) problems.Add("Total images failed cannot be negative.");
 
             return problems.AsReadOnly();
         }
