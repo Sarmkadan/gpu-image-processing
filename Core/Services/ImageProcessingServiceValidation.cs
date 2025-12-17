@@ -2,8 +2,8 @@ namespace GpuImageProcessing.Core.Services;
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
+using System.Reflection;
 
 public static class ImageProcessingServiceValidation
 {
@@ -16,16 +16,26 @@ public static class ImageProcessingServiceValidation
 
         var problems = new List<string>();
 
-        // No specific validation rules provided; focus on null/empty checks
-        if (value._imageRepository == null) problems.Add("Image repository cannot be null.");
-        if (value._filterRepository == null) problems.Add("Filter repository cannot be null.");
-        if (value._transformRepository == null) problems.Add("Transform repository cannot be null.");
-        if (value._profileRepository == null) problems.Add("Profile repository cannot be null.");
-        if (value._deviceService == null) problems.Add("Device service cannot be null.");
-        if (value._computeShaderPipeline == null) problems.Add("Compute shader pipeline cannot be null.");
-        if (value._logger == null) problems.Add("Logger cannot be null.");
-        if (value._filterService == null) problems.Add("Filter service cannot be null.");
-        if (value._transformService == null) problems.Add("Transform service cannot be null.");
+        var requiredFieldNames = new[] { "_imageRepository", "_filterRepository", "_transformRepository", 
+                                         "_profileRepository", "_deviceService", "_computeShaderPipeline", 
+                                         "_logger", "_filterService", "_transformService" };
+
+        foreach (var fieldName in requiredFieldNames)
+        {
+            var fieldInfo = typeof(ImageProcessingService).GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            if (fieldInfo?.GetValue(value) == null)
+            {
+                problems.Add($"{fieldName} cannot be null.");
+            }
+        }
+
+        // Add checks for numeric properties if they exist and have valid ranges
+        // For example:
+        // var propertyInfo = typeof(ImageProcessingService).GetProperty("SomeProperty");
+        // if (propertyInfo != null && (int)propertyInfo.GetValue(value) < 0)
+        // {
+        //     problems.Add("SomeProperty must be non-negative.");
+        // }
 
         return problems.AsReadOnly();
     }
