@@ -6,6 +6,44 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Collections;
+using System.Collections.Specialized;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Threading.Tasks;
+using System.Collections.Concurrent;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq.Expressions;
+using System.Net;
+using System.Numerics;
+using System.Reflection;
+using System.Reflection.Metadata;
+using System.Runtime.InteropServices;
+using System.Runtime.Intrinsics.X86;
+using System.Security;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Transactions;
+using System.Web;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.Serialization;
+using System.Xml.XPath;
+using System.Xml.Xsl;
+using Microsoft.Win32;
+using System.ComponentModel;
+using System.Data;
+using System.Data.Common;
+using System.Data.SqlClient;
+using System.Data.SqlTypes;
+
+using System.Collections.Generic;
 using System.Linq;
 
 namespace GpuImageProcessing.Utilities
