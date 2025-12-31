@@ -390,4 +390,20 @@ public class PerformanceMonitoringServiceTests
         // Assert
         metrics.TotalOperationsCount.Should().Be(100);
     }
+
+    [Fact]
+    public void GetPerformanceReport_ContainsValidationHelpersInformation()
+    {
+        // Arrange
+        _sut.RecordOperation(100, true);
+        _sut.RecordOperation(150, false);
+        _sut.UpdateSystemMetrics(75, 2_000_000_000, 1_000_000_000, 85.0);
+        _sut.UpdateThroughput(1_000_000, 500);
+
+        // Act
+        var report = _sut.GetPerformanceReport();
+
+        // Assert
+        report.Should().Contain("Validation Helpers");
+    }
 }
