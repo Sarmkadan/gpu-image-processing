@@ -481,6 +481,94 @@ pipeline.Add(new CustomLoggingMiddleware());
 pipeline.Add(new ErrorHandlingMiddleware());
 ```
 
+## PerformanceMonitoringServiceExtensions
+
+Extension methods for `PerformanceMonitoringService` that provide additional functionality for recording operations, analyzing performance trends, filtering metrics by time range, and generating performance alerts based on configurable thresholds.
+
+These extensions enable comprehensive performance monitoring and trend analysis for GPU-accelerated image processing operations.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Services;
+using Microsoft.Extensions.DependencyInjection;
+
+// Initialize services
+var settings = ConfigurationValidator.CreateDefaultSettings();
+var serviceProvider = await DependencyInjectionSetup.CreateAndInitializeServiceProviderAsync(settings);
+
+var performanceService = serviceProvider.GetRequiredService<PerformanceMonitoringService>();
+
+// Record multiple operations
+var executionTimes = new double[] { 12.5, 14.2, 11.8, 13.1 };
+performanceService.RecordOperations(executionTimes);
+
+// Get current metrics
+var currentMetrics = performanceService.GetCurrentMetrics();
+Console.WriteLine($"CPU: {currentMetrics.CpuUsagePercent}%, GPU: {currentMetrics.GpuUtilizationPercent}%");
+
+// Get metrics with trend analysis (compare to previous snapshot)
+var previousMetrics = await LoadPreviousMetricsAsync(); // Your implementation
+var trends = performanceService.GetMetricsWithTrends(previousMetrics);
+
+Console.WriteLine($"CPU Change: {trends.CpuChangePercent:+#;-#;0}%");
+Console.WriteLine($"GPU Change: {trends.GpuChangePercent:+#;-#;0}%");
+
+// Get metrics from specific time range
+var startTime = DateTime.UtcNow.AddHours(-1);
+var endTime = DateTime.UtcNow;
+var historicalMetrics = performanceService.GetMetricsInTimeRange(startTime, endTime);
+
+// Get performance alerts
+var alerts = performanceService.GetPerformanceAlerts();
+foreach (var alert in alerts)
+{
+    Console.WriteLine($"[{alert.Type}] {alert.Message}");
+}
+```
+
+### Key Extension Methods
+
+| Method | Description |
+|--------|-------------|
+| `RecordOperations(double[] executionTimesMs, bool success)` | Records multiple operations at once with a single call |
+| `GetMetricsWithTrends(PerformanceMetrics? previousMetrics)` | Gets performance metrics with trend analysis comparing to previous snapshot |
+| `GetMetricsInTimeRange(DateTime startTime, DateTime endTime)` | Gets performance metrics filtered by time range |
+| `GetPerformanceAlerts()` | Gets performance alerts based on configured thresholds |
+
+### PerformanceAlert Class
+
+The `GetPerformanceAlerts()` method returns a list of `PerformanceAlert` objects containing:
+
+- **Type**: The type of alert (CPU threshold, GPU threshold, memory threshold, execution time threshold, or success rate threshold)
+- **Message**: A descriptive message about the issue
+- **CurrentValue**: The current value that triggered the alert
+- **Threshold**: The threshold value that was exceeded
+- **Timestamp**: When the alert was generated
+
+### PerformanceMetricsWithTrends Class
+
+The `GetMetricsWithTrends()` method returns a `PerformanceMetricsWithTrends` object containing:
+
+- **Current**: Current performance metrics
+- **Previous**: Previous performance metrics for comparison (may be null)
+- **Timestamp**: When the trend analysis was performed
+- **CpuChangePercent**: Percentage change in CPU usage
+- **GpuChangePercent**: Percentage change in GPU utilization
+- **MemoryChangePercent**: Percentage change in GPU memory usage
+- **ThroughputChangePercent**: Percentage change in throughput
+- **ExecutionTimeChangePercent**: Percentage change in average execution time
+
+### AlertType Enum
+
+The alert types that can be generated:
+
+- **CpuThreshold**: Alert triggered when CPU usage exceeds the configured threshold
+- **GpuThreshold**: Alert triggered when GPU utilization exceeds the configured threshold
+- **MemoryThreshold**: Alert triggered when GPU memory usage exceeds the configured threshold
+- **ExecutionTimeThreshold**: Alert triggered when average execution time exceeds the configured threshold
+- **SuccessRateThreshold**: Alert triggered when success rate falls below the configured threshold
+
 ## API Reference
 
 ### ImageProcessingService
