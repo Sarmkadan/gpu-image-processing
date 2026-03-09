@@ -70,8 +70,12 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Processes a single image with specified filters and transforms
         /// </summary>
-        public async Task<ProcessingResult> ProcessImageAsync(Guid imageId, List<Guid> filterIds, List<Guid> transformIds, Guid profileId)
+        public async Task<ProcessingResult> ProcessImageAsync(Guid imageId, List<Guid> filterIds, List<Guid> transformIds, Guid? profileId)
         {
+            // Fix: Ensure filterIds and transformIds are not null.
+            filterIds ??= new List<Guid>();
+            transformIds ??= new List<Guid>();
+
             var stopwatch = Stopwatch.StartNew();
             var image = await _imageRepository.GetByIdAsync(imageId);
 
@@ -83,7 +87,12 @@ namespace GpuImageProcessing.Core.Services
 
             try
             {
-                var profile = await _profileRepository.GetByIdAsync(profileId);
+                ProcessingProfile? profile = null;
+                if (profileId.HasValue)
+                {
+                    profile = await _profileRepository.GetByIdAsync(profileId.Value);
+                }
+                
                 if (profile == null)
                     profile = ProcessingProfile.CreateBalanced();
 
@@ -134,23 +143,37 @@ namespace GpuImageProcessing.Core.Services
         public async Task<List<ProcessingResult>> ProcessBatchAsync(List<Guid> imageIds, List<Guid> filterIds,
             List<Guid> transformIds, Guid profileId)
         {
+            // Fix: Add null check for imageIds.
+            if (imageIds == null)
+                throw new ArgumentNullException(nameof(imageIds), "List of image IDs cannot be null for batch processing.");
+
+            // Fix: Ensure filterIds and transformIds are not null.
+            filterIds ??= new List<Guid>();
+            transformIds ??= new List<Guid>();
+
             var results = new List<ProcessingResult>();
             var profile = await _profileRepository.GetByIdAsync(profileId);
 
             if (profile == null)
                 profile = ProcessingProfile.CreateBalanced();
 
-            var effectiveBatchSize = imageIds.Count;
+            // Fix: Use the BatchSize from the profile for actual batching.
+            // If imageIds is empty, there are no batches to process.
+            if (!imageIds.Any())
+                return results;
+
+            var batchSize = profile.BatchSize > 0 ? profile.BatchSize : 1; // Ensure batchSize is at least 1
+            
             var batches = imageIds
                 .Select((id, index) => new { id, index })
-                .GroupBy(x => x.index / effectiveBatchSize)
+                .GroupBy(x => x.index / batchSize)
                 .Select(g => g.Select(x => x.id).ToList())
                 .ToList();
 
             foreach (var batch in batches)
             {
                 var batchResults = await Task.WhenAll(
-                    batch.Select(id => ProcessImageAsync(id, filterIds, transformIds, profileId))
+                    batch.Select(id => ProcessImageAsync(id, filterIds, transformIds, profile?.Id))
                 );
                 results.AddRange(batchResults);
             }

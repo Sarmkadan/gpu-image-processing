@@ -49,9 +49,11 @@ namespace GpuImageProcessing.Api
                 FieldName = fieldName,
                 Validator = v =>
                 {
-                    if (v is string str)
-                        return str.Length >= minLength && str.Length <= maxLength;
-                    return true;
+                    // Fix: Explicitly handle null or non-string values.
+                    // If the field is not required, null or non-string values should pass this length validation.
+                    if (v == null || v is not string str)
+                        return true;
+                    return str.Length >= minLength && str.Length <= maxLength;
                 },
                 ErrorMessage = $"{fieldName} must be between {minLength} and {maxLength} characters"
             });
@@ -71,7 +73,12 @@ namespace GpuImageProcessing.Api
                 FieldName = fieldName,
                 Validator = v =>
                 {
-                    if (double.TryParse(v?.ToString(), out var d))
+                    // Fix: Explicitly handle null values.
+                    // If the field is not required, null values should pass this range validation.
+                    if (v == null)
+                        return true;
+
+                    if (double.TryParse(v.ToString(), out var d))
                         return d >= minimum && d <= maximum;
                     return false;
                 },

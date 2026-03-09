@@ -41,6 +41,15 @@ namespace GpuImageProcessing.Api
         {
             try
             {
+                // Fix: Add input validation for filePath and description.
+                if (string.IsNullOrWhiteSpace(filePath))
+                {
+                    throw new ArgumentNullException(nameof(filePath), "Image file path cannot be null or empty.");
+                }
+
+                // Ensure description is not null, default to empty string if it is.
+                description ??= string.Empty;
+
                 var image = await _imageProcessingService.RegisterImageAsync(filePath, description);
                 return ApiResponse<ImageMetadata>.Success(new ImageMetadata
                 {
@@ -53,6 +62,10 @@ namespace GpuImageProcessing.Api
                     Description = image.Description,
                     RegisteredAt = image.RegisteredAt
                 });
+            }
+            catch (ArgumentNullException ex)
+            {
+                return ApiResponse<ImageMetadata>.Failure($"Validation error: {ex.Message}");
             }
             catch (Exception ex)
             {
@@ -144,7 +157,7 @@ namespace GpuImageProcessing.Api
                     imageIds,
                     filterIds,
                     transformIds,
-                    profileId ?? Guid.NewGuid()
+                    profileId
                 );
 
                 return ApiResponse<BatchJobMetadata>.Success(new BatchJobMetadata
