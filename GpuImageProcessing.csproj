@@ -10,7 +10,7 @@
     <PublishReadyToRun>true</PublishReadyToRun>
     <InvariantGlobalization>false</InvariantGlobalization>
     <PackageId>GpuImageProcessing</PackageId>
-    <Version>2.0.0</Version>
+    <Version>2.0.2</Version>
     <Description>GPU-accelerated image processing in C# using OpenCL — filters, transforms, and batch operations.</Description>
     <PackageTags>gpu image-processing opencl filters transforms csharp dotnet</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
