@@ -253,7 +253,7 @@ public sealed class ComputeShaderPipeline : IComputeShaderPipeline
         GpuDevice         device,
         CancellationToken cancellationToken)
     {
-        if (pass.WorkgroupConfiguration is null)
+        if (pass.WorkgroupConfiguration == null)
         {
             var (w, h) = InferImageDimensions(pass);
             pass.WorkgroupConfiguration = _options.BenchmarkGuidedOptimization
