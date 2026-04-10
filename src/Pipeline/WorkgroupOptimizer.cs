@@ -251,6 +251,26 @@ public sealed class WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger) : IWo
     private static int AlignUp(int value, int alignment) =>
         ((value + alignment - 1) / alignment) * alignment;
 
-    private static int DetectWavefrontSize(GpuDevice device) =>
-        device.Name?.Contains("AMD", StringComparison.OrdinalIgnoreCase) == true ? 64 : 32;
+    /// <summary>
+    /// Returns the device wavefront (warp) size. Prefers the value reported by the
+    /// device itself; falls back to vendor heuristics only when unavailable.
+    /// RDNA 2+ uses 32-wide wavefronts, older AMD GCN uses 64.
+    /// </summary>
+    private static int DetectWavefrontSize(GpuDevice device)
+    {
+        if (device.WavefrontSize > 0)
+            return device.WavefrontSize;
+
+        if (device.Vendor?.Contains("Intel", StringComparison.OrdinalIgnoreCase) == true)
+            return 16;
+
+        if (device.Name?.Contains("AMD", StringComparison.OrdinalIgnoreCase) != true)
+            return 32; // NVIDIA default
+
+        // RDNA 2/3 devices operate on wave32 by default
+        bool isRdna = device.Name.Contains("RX 6", StringComparison.OrdinalIgnoreCase) ||
+                      device.Name.Contains("RX 7", StringComparison.OrdinalIgnoreCase) ||
+                      device.Name.Contains("RDNA", StringComparison.OrdinalIgnoreCase);
+        return isRdna ? 32 : 64;
+    }
 }
