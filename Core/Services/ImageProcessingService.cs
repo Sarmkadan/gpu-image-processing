@@ -12,6 +12,9 @@ using System.Threading.Tasks;
 using GpuImageProcessing.Core.Exceptions;
 using GpuImageProcessing.Core.Models;
 using GpuImageProcessing.Core.Repository;
+using GpuImageProcessing.Pipeline; // Added for IComputeShaderPipeline
+using Microsoft.Extensions.Logging; // Added for ILogger
+using GpuImageProcessing.Domain; // Added for GpuImage
 
 namespace GpuImageProcessing.Core.Services
 {
@@ -25,19 +28,31 @@ namespace GpuImageProcessing.Core.Services
         private readonly GenericRepository<Transform> _transformRepository;
         private readonly GenericRepository<ProcessingProfile> _profileRepository;
         private readonly DeviceService _deviceService;
+        private readonly IComputeShaderPipeline _computeShaderPipeline;
+        private readonly ILogger<ImageProcessingService> _logger;
+        private readonly FilterService _filterService; // Added
+        private readonly TransformService _transformService; // Added
 
         public ImageProcessingService(
             ImageRepository imageRepository,
             GenericRepository<Filter> filterRepository,
             GenericRepository<Transform> transformRepository,
             GenericRepository<ProcessingProfile> profileRepository,
-            DeviceService deviceService)
+            DeviceService deviceService,
+            IComputeShaderPipeline computeShaderPipeline,
+            ILogger<ImageProcessingService> logger,
+            FilterService filterService, // Added
+            TransformService transformService) // Added
         {
             _imageRepository = imageRepository ?? throw new ArgumentNullException(nameof(imageRepository));
             _filterRepository = filterRepository ?? throw new ArgumentNullException(nameof(filterRepository));
             _transformRepository = transformRepository ?? throw new ArgumentNullException(nameof(transformRepository));
             _profileRepository = profileRepository ?? throw new ArgumentNullException(nameof(profileRepository));
             _deviceService = deviceService ?? throw new ArgumentNullException(nameof(deviceService));
+            _computeShaderPipeline = computeShaderPipeline ?? throw new ArgumentNullException(nameof(computeShaderPipeline));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _filterService = filterService ?? throw new ArgumentNullException(nameof(filterService)); // Added
+            _transformService = transformService ?? throw new ArgumentNullException(nameof(transformService)); // Added
         }
 
         /// <summary>
@@ -73,18 +88,23 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<ProcessingResult> ProcessImageAsync(Guid imageId, List<Guid> filterIds, List<Guid> transformIds, Guid? profileId)
         {
-            // Fix: Ensure filterIds and transformIds are not null.
             filterIds ??= new List<Guid>();
             transformIds ??= new List<Guid>();
 
             var stopwatch = Stopwatch.StartNew();
-            var image = await _imageRepository.GetByIdAsync(imageId);
+            var sourceImage = await _imageRepository.GetByIdAsync(imageId);
 
-            if (image == null)
+            if (sourceImage == null)
+            {
+                _logger.LogWarning("Image with ID {ImageId} not found.", imageId);
                 return ProcessingResult.CreateFailure(Guid.Empty, imageId, "", "Image not found");
+            }
 
-            if (!image.IsValid())
-                return ProcessingResult.CreateFailure(Guid.Empty, imageId, image.FilePath, "Image validation failed");
+            if (!sourceImage.IsValid())
+            {
+                _logger.LogError("Image {ImageName} (ID: {ImageId}) is invalid for processing.", sourceImage.Name, imageId);
+                return ProcessingResult.CreateFailure(Guid.Empty, imageId, sourceImage.FilePath, "Image validation failed");
+            }
 
             try
             {
@@ -95,45 +115,120 @@ namespace GpuImageProcessing.Core.Services
                 }
                 
                 if (profile == null)
+                {
                     profile = ProcessingProfile.CreateBalanced();
+                    _logger.LogInformation("No profile specified or found for image {ImageId}, using default balanced profile.", imageId);
+                }
 
-                var result = ProcessingResult.CreateSuccess(Guid.NewGuid(), imageId, image.FilePath, GenerateOutputPath(image));
+                // Get selected device
+                var selectedDevice = _deviceService.GetSelectedDevice();
+                if (selectedDevice == null)
+                {
+                    _logger.LogError("No compute device selected or available for processing image {ImageId}.", imageId);
+                    throw new GpuException("No compute device available.");
+                }
+                _logger.LogDebug("Processing image {ImageId} on device {DeviceName}.", imageId, selectedDevice.Name);
 
-                // Simulate filter application
+                // Prepare pipeline passes
+                var passes = new List<ComputeShaderPass>();
+                var currentImage = new GpuImage(sourceImage.Width, sourceImage.Height, sourceImage.Channels); // Represents image in GPU memory
+                // In a real scenario, image data would be loaded into currentImage
+
+                // Add filter passes
                 foreach (var filterId in filterIds)
                 {
                     var filter = await _filterRepository.GetByIdAsync(filterId);
                     if (filter != null && filter.IsActive)
                     {
-                        result.RecordAppliedFilter(filter.Name);
+                        var kernelCode = await _filterService.GetKernelCodeAsync(filter.Type);
+                        if (!string.IsNullOrEmpty(kernelCode))
+                        {
+                           var pass = new ComputeShaderPass
+                            {
+                                Id = Guid.NewGuid(),
+                                KernelName = filter.Name,
+                                KernelSource = kernelCode, // Now uses kernelCode from FilterService
+                                InputImages = new List<GpuImage> { currentImage },
+                                OutputImage = new GpuImage(currentImage.Width, currentImage.Height, currentImage.Channels),
+                                Parameters = filter.Parameters.ToDictionary(p => p.Name, p => p.Value)
+                            };
+                            passes.Add(pass);
+                            _logger.LogDebug("Added filter pass: {FilterName} for image {ImageId}.", filter.Name, imageId);
+                        }
                     }
                 }
 
-                // Simulate transform application
+                // Add transform passes
                 foreach (var transformId in transformIds)
                 {
                     var transform = await _transformRepository.GetByIdAsync(transformId);
                     if (transform != null && transform.IsActive)
                     {
-                        result.RecordAppliedTransform(transform.Name);
-                    }
+                        var kernelCode = await _transformService.GetKernelCodeAsync(transform.Type);
+                        if (!string.IsNullOrEmpty(kernelCode))
+                        {
+                            var pass = new ComputeShaderPass
+                            {
+                                Id = Guid.NewGuid(),
+                                KernelName = transform.Name,
+                                KernelSource = kernelCode, // Now uses kernelCode from TransformService
+                                InputImages = new List<GpuImage> { currentImage },
+                                OutputImage = new GpuImage(currentImage.Width, currentImage.Height, currentImage.Channels),
+                                Parameters = transform.Parameters
+                            };
+                            passes.Add(pass);
+                            _logger.LogDebug("Added transform pass: {TransformName} for image {ImageId}.", transform.Name, imageId);
+                        }
                 }
 
+                if (passes.Count == 0)
+                {
+                    _logger.LogInformation("No filters or transforms applied to image {ImageId}.", imageId);
+                    // If no operations, just return success with original image details
+                    stopwatch.Stop();
+                     return ProcessingResult.CreateSuccess(Guid.NewGuid(), imageId, sourceImage.FilePath,
+                        GenerateOutputPath(sourceImage)) with { ProcessingTimeMs = (float)stopwatch.ElapsedMilliseconds };
+                }
+
+                // Execute the pipeline
+                var pipelineResult = await _computeShaderPipeline.ExecuteAsync(passes, selectedDevice.Id);
+
+                // Assuming the last output image in the pipeline is the final result
+                var finalOutputImage = passes.Last().OutputImage;
+
+                // For now, simulate saving the output file and its size
+                var outputPath = GenerateOutputPath(sourceImage);
+                // In a real scenario, finalOutputImage data would be written to outputPath
+                long outputFileSize = (long)(sourceImage.FileSizeBytes * 0.95); // Simulated reduction
+
+                var processingResult = ProcessingResult.CreateSuccess(Guid.NewGuid(), imageId, sourceImage.FilePath, outputPath) with
+                {
+                    ProcessingTimeMs = (float)stopwatch.ElapsedMilliseconds,
+                    OutputFileSizeBytes = outputFileSize,
+                    DeviceUsed = selectedDevice.Name,
+                    ProfileUsed = profile.Name
+                };
+
+                foreach (var passRecord in pipelineResult.PassRecords)
+                {
+                    if (passRecord.Succeeded)
+                        processingResult.RecordAppliedOperation(passRecord.KernelName);
+                    else
+                        processingResult.RecordFailedOperation(passRecord.KernelName, passRecord.ErrorMessage ?? "Unknown error");
+                }
+
+                sourceImage.MarkAsProcessed();
+                await _imageRepository.UpdateAsync(sourceImage);
+
                 stopwatch.Stop();
-                result.ProcessingTimeMs = (float)stopwatch.ElapsedMilliseconds;
-                result.OutputFileSizeBytes = (long)(image.FileSizeBytes * 0.95);
-                result.AddMetric("profile_used", profile.Name);
-                result.AddMetric("device", _deviceService.GetSelectedDevice()?.Name ?? "Unknown");
-
-                image.MarkAsProcessed();
-                await _imageRepository.UpdateAsync(image);
-
-                return result;
+                _logger.LogInformation("Successfully processed image {ImageId} in {ElapsedMs:F1} ms.", imageId, stopwatch.ElapsedMilliseconds);
+                return processingResult;
             }
             catch (Exception ex)
             {
                 stopwatch.Stop();
-                return ProcessingResult.CreateFailure(Guid.Empty, imageId, image.FilePath,
+                _logger.LogError(ex, "Processing failed for image {ImageId}.", imageId);
+                return ProcessingResult.CreateFailure(Guid.Empty, imageId, sourceImage.FilePath,
                     $"Processing failed: {ex.Message}");
             }
         }
@@ -144,11 +239,9 @@ namespace GpuImageProcessing.Core.Services
         public async Task<List<ProcessingResult>> ProcessBatchAsync(List<Guid> imageIds, List<Guid> filterIds,
             List<Guid> transformIds, Guid profileId)
         {
-            // Fix: Add null check for imageIds.
             if (imageIds == null)
                 throw new ArgumentNullException(nameof(imageIds), "List of image IDs cannot be null for batch processing.");
 
-            // Fix: Ensure filterIds and transformIds are not null.
             filterIds ??= new List<Guid>();
             transformIds ??= new List<Guid>();
 
@@ -156,14 +249,18 @@ namespace GpuImageProcessing.Core.Services
             var profile = await _profileRepository.GetByIdAsync(profileId);
 
             if (profile == null)
+            {
                 profile = ProcessingProfile.CreateBalanced();
+                _logger.LogInformation("No profile specified or found for batch processing, using default balanced profile.");
+            }
 
-            // Fix: Use the BatchSize from the profile for actual batching.
-            // If imageIds is empty, there are no batches to process.
             if (!imageIds.Any())
+            {
+                _logger.LogWarning("No image IDs provided for batch processing.");
                 return results;
+            }
 
-            var batchSize = profile.BatchSize > 0 ? profile.BatchSize : 1; // Ensure batchSize is at least 1
+            var batchSize = profile.BatchSize > 0 ? profile.BatchSize : 1; 
             
             var batches = imageIds
                 .Select((id, index) => new { id, index })
@@ -173,12 +270,14 @@ namespace GpuImageProcessing.Core.Services
 
             foreach (var batch in batches)
             {
+                _logger.LogDebug("Processing batch of {Count} images.", batch.Count);
                 var batchResults = await Task.WhenAll(
                     batch.Select(id => ProcessImageAsync(id, filterIds, transformIds, profile?.Id))
                 );
                 results.AddRange(batchResults);
             }
 
+            _logger.LogInformation("Batch processing completed for {TotalImages} images.", imageIds.Count);
             return results;
         }
 
@@ -189,7 +288,10 @@ namespace GpuImageProcessing.Core.Services
         {
             var image = await _imageRepository.GetByIdAsync(imageId);
             if (image == null)
+            {
+                _logger.LogWarning("Image with ID {ImageId} not found for stats.", imageId);
                 throw new InvalidImageException("Image not found");
+            }
 
             var stats = new ImageProcessingStats
             {
@@ -218,7 +320,10 @@ namespace GpuImageProcessing.Core.Services
             var device = _deviceService.GetSelectedDevice();
 
             if (device == null)
+            {
+                _logger.LogWarning("Cannot process: No compute device selected.");
                 return false;
+            }
 
             long totalMemoryNeeded = 0;
             foreach (var imageId in imageIds)
@@ -227,7 +332,7 @@ namespace GpuImageProcessing.Core.Services
                 if (image != null)
                     totalMemoryNeeded += image.FileSizeBytes * 3; // Input, output, working buffer
             }
-
+            _logger.LogDebug("Total estimated memory needed: {MemoryNeeded} bytes.", totalMemoryNeeded);
             return device.HasSufficientMemory(totalMemoryNeeded);
         }
 
@@ -270,6 +375,7 @@ namespace GpuImageProcessing.Core.Services
         private string GenerateOutputPath(Image image)
         {
             var timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            // Ensure output directory exists if necessary
             return $"./output/{image.Name}_{timestamp}.processed.png";
         }
     }
