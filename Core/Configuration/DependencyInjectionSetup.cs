@@ -9,6 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 using GpuImageProcessing.Core.Models;
 using GpuImageProcessing.Core.Repository;
 using GpuImageProcessing.Core.Services;
+using GpuImageProcessing.Services; // Add this line
+using Microsoft.Extensions.Logging;
+using GpuImageProcessing.Pipeline; // Add this line
 
 namespace GpuImageProcessing.Core.Configuration
 {
@@ -56,7 +59,17 @@ namespace GpuImageProcessing.Core.Configuration
             services.AddSingleton<GenericRepository<DeviceInfo>>();
 
             // Register device service
-            services.AddSingleton<DeviceService>();
+            services.AddSingleton<GpuImageProcessing.Services.GpuManagementService>();
+            services.AddSingleton<DeviceService>(provider =>
+            {
+                var gpuManagementService = provider.GetRequiredService<GpuImageProcessing.Services.GpuManagementService>();
+                var logger = provider.GetRequiredService<ILogger<DeviceService>>();
+                return new DeviceService(gpuManagementService, logger);
+            });
+
+            // Register pipeline components
+            services.AddSingleton<IWorkgroupOptimizer, WorkgroupOptimizer>();
+            services.AddSingleton<IComputeShaderPipeline, ComputeShaderPipeline>();
 
             // Register filter service
             services.AddSingleton<FilterService>(provider =>
@@ -80,8 +93,12 @@ namespace GpuImageProcessing.Core.Configuration
                 var transformRepo = provider.GetRequiredService<GenericRepository<Transform>>();
                 var profileRepo = provider.GetRequiredService<GenericRepository<ProcessingProfile>>();
                 var deviceService = provider.GetRequiredService<DeviceService>();
+                var computeShaderPipeline = provider.GetRequiredService<IComputeShaderPipeline>();
+                var logger = provider.GetRequiredService<ILogger<ImageProcessingService>>();
+                var filterService = provider.GetRequiredService<FilterService>();
+                var transformService = provider.GetRequiredService<TransformService>();
 
-                return new ImageProcessingService(imageRepo, filterRepo, transformRepo, profileRepo, deviceService);
+                return new ImageProcessingService(imageRepo, filterRepo, transformRepo, profileRepo, deviceService, computeShaderPipeline, logger, filterService, transformService);
             });
 
             // Register batch processing service
