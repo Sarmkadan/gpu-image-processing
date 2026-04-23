@@ -41,6 +41,10 @@ public class BatchProcessingService
 
         _activeBatches[batch.Id] = batch;
 
+        // A linked source lets us cancel all in-flight tasks when one fails
+        // catastrophically, ensuring GPU buffers are released promptly.
+        using var batchCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+
         try
         {
             batch.Start();
@@ -50,7 +54,7 @@ public class BatchProcessingService
             Directory.CreateDirectory(batch.OutputDirectory);
 
             var tasks = batch.ImageIds
-                .Select(imageId => ProcessImageInBatchAsync(batch, imageId, cancellationToken))
+                .Select(imageId => ProcessImageInBatchAsync(batch, imageId, batchCts.Token))
                 .ToList();
 
             await Task.WhenAll(tasks);
@@ -61,8 +65,18 @@ public class BatchProcessingService
 
             return batch;
         }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            // Internal cancellation triggered by batchCts — treat as a failure.
+            _logger.LogError("Batch processing failed for {BatchId}", batch.Id);
+            batch.Status = ProcessingStatus.Failed;
+            throw new ProcessingException($"Batch {batch.Id} was aborted due to an internal error.");
+        }
         catch (Exception ex)
         {
+            // Cancel any tasks still waiting on the semaphore so their GPU
+            // allocations are freed before the exception propagates to the caller.
+            await batchCts.CancelAsync();
             _logger.LogError(ex, "Batch processing failed for {BatchId}", batch.Id);
             batch.Status = ProcessingStatus.Failed;
             throw;
@@ -97,10 +111,12 @@ public class BatchProcessingService
 
     private async Task ProcessImageInBatchAsync(ImageBatch batch, Guid imageId, CancellationToken cancellationToken)
     {
-        await _concurrencySemaphore.WaitAsync(cancellationToken);
-
+        bool semaphoreAcquired = false;
         try
         {
+            await _concurrencySemaphore.WaitAsync(cancellationToken);
+            semaphoreAcquired = true;
+
             if (batch.Status == ProcessingStatus.Cancelled)
                 return;
 
@@ -121,6 +137,11 @@ public class BatchProcessingService
                     _logger.LogWarning("Image {ImageId} processing failed: {Error}", imageId, result.ErrorMessage);
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // Propagate cancellation without marking as a processing failure.
+                throw;
+            }
             catch (Exception ex)
             {
                 batch.MarkImageProcessed(false);
@@ -129,7 +150,10 @@ public class BatchProcessingService
         }
         finally
         {
-            _concurrencySemaphore.Release();
+            // Only release if the semaphore was successfully acquired; releasing
+            // without a prior WaitAsync would incorrectly inflate the counter.
+            if (semaphoreAcquired)
+                _concurrencySemaphore.Release();
         }
     }
 
