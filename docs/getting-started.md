@@ -79,7 +79,85 @@ dotnet run
 dotnet test
 ```
 
-## First Program
+## OpenCL Device Selection
+
+When multiple OpenCL-capable devices are present (for example, an integrated Intel GPU alongside a discrete NVIDIA or AMD card), you need to tell the library which one to use.
+
+### Listing Available Platforms and Devices
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using GpuImageProcessing.Services;
+
+var sp = await DependencyInjectionSetup.CreateAndInitializeServiceProviderAsync(settings);
+var gpuManager = sp.GetRequiredService<GpuManagementService>();
+
+var devices = gpuManager.GetAvailableDevices();
+foreach (var d in devices)
+{
+    Console.WriteLine($"[{d.Id}] {d.Name}");
+    Console.WriteLine($"  Vendor : {d.Vendor}");
+    Console.WriteLine($"  Type   : {d.DeviceType}");       // Gpu / Cpu / Accelerator
+    Console.WriteLine($"  VRAM   : {d.GlobalMemoryBytes / 1024 / 1024} MB");
+    Console.WriteLine($"  CUs    : {d.MaxComputeUnits}");
+    Console.WriteLine($"  Clock  : {d.MaxClockFrequencyMhz} MHz");
+    Console.WriteLine();
+}
+```
+
+### Selecting the Best Device Automatically
+
+```csharp
+var best = gpuManager.GetBestDevice();
+if (best is null)
+    throw new InvalidOperationException("No GPU device available.");
+
+Console.WriteLine($"Auto-selected: {best.Name} (score {best.CalculatePerformanceScore():F0})");
+```
+
+### Targeting a Specific Device by ID
+
+Copy the `Guid` printed by the listing above and pass it wherever a `deviceId` is required:
+
+```csharp
+// Replace with the GUID from the listing output.
+var targetId = Guid.Parse("xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx");
+
+// Validate the device has enough memory for your workload.
+bool ready = gpuManager.ValidateDevice(targetId, requiredMemory: 512 * 1024 * 1024);
+if (!ready)
+    throw new InvalidOperationException("Device does not meet requirements.");
+
+// Pass the device ID to the pipeline.
+var pipeline = sp.GetRequiredService<IComputeShaderPipeline>();
+var result = await pipeline.ExecuteAsync(passes, deviceId: targetId, cancellationToken);
+```
+
+### Verifying GPU vs CPU Fallback
+
+The library logs a warning and falls back to a simulated device when no real OpenCL runtime is found. You can detect this at runtime:
+
+```csharp
+var devices = gpuManager.GetAvailableDevices().ToList();
+
+bool runningOnGpu = devices.Any(d => d.DeviceType == GpuDeviceType.Gpu);
+if (!runningOnGpu)
+{
+    Console.WriteLine("WARNING: no discrete GPU detected — running on CPU fallback.");
+    Console.WriteLine("Install OpenCL drivers and restart the application.");
+}
+else
+{
+    var gpu = devices.First(d => d.DeviceType == GpuDeviceType.Gpu);
+    Console.WriteLine($"GPU confirmed: {gpu.Name} ({gpu.Vendor})");
+}
+```
+
+> **Tip:** Enable `Debug` logging (`settings.Logging.LogLevel = LogLevel.Debug`) to see
+> detailed OpenCL initialisation messages including every platform and device detected,
+> the selected workgroup size, and per-pass occupancy estimates.
+
+
 
 Create a simple console application:
 
