@@ -25,6 +25,13 @@ public class GpuManagementService
     private readonly ILogger<GpuManagementService> _logger;
     private long _allocatedMemory;
     private readonly object _lockObject = new();
+    private bool _useFallback;
+
+    /// <summary>
+    /// <see langword="true"/> when no OpenCL device was found at startup and
+    /// processing is handled by the CPU fallback instead.
+    /// </summary>
+    public bool UseFallback => _useFallback;
 
     public GpuManagementService(ILogger<GpuManagementService> logger)
     {
@@ -202,7 +209,9 @@ public class GpuManagementService
             cl.GetPlatformIDs(0, null, &numPlatforms);
             if (numPlatforms == 0)
             {
-                _logger.LogWarning("No OpenCL platforms found.");
+                _logger.LogWarning("No OpenCL platforms found. Falling back to CPU-based processing.");
+                _useFallback = true;
+                AddCpuFallbackDevice();
                 return;
             }
 
@@ -359,9 +368,9 @@ public class GpuManagementService
 
             if (_devices.Count == 0)
             {
-                _logger.LogWarning("No GPU devices detected using OpenCL. Falling back to simulated data.");
-                // Fallback to simulated data if no real devices are found
-                AddSimulatedDevice();
+                _logger.LogWarning("No GPU devices detected using OpenCL. Falling back to CPU-based processing.");
+                _useFallback = true;
+                AddCpuFallbackDevice();
             }
 
             _logger.LogInformation("Finished GPU device initialization. Detected {DeviceCount} device(s).", _devices.Count);
@@ -369,9 +378,10 @@ public class GpuManagementService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to initialize GPU devices using OpenCL.");
-            // Fallback to simulated data on error
-            AddSimulatedDevice();
-            throw new GpuException("GPU initialization failed", ex, null, Constants.ErrorCodes.GpuInitializationFailed);
+            _useFallback = true;
+            _logger.LogWarning("No OpenCL device available, falling back to CPU-based processing.");
+            AddCpuFallbackDevice();
+            // Do not re-throw; the library remains operational via CPU fallback.
         }
     }
 
@@ -384,6 +394,37 @@ public class GpuManagementService
         if (openClDeviceType.HasFlag(DeviceType.Accelerator))
             return GpuDeviceType.Accelerator;
         return GpuDeviceType.Unknown;
+    }
+
+    private void AddCpuFallbackDevice()
+    {
+        var cpuDevice = new GpuDevice
+        {
+            Name = "CPU Fallback",
+            DeviceType = GpuDeviceType.Cpu,
+            Vendor = "System",
+            Version = "N/A",
+            Driver = "N/A",
+            GlobalMemoryBytes = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes,
+            LocalMemoryBytes = 256 * 1024,
+            MaxAllocatableMemoryBytes = GC.GetGCMemoryInfo().TotalAvailableMemoryBytes,
+            MaxComputeUnits = Environment.ProcessorCount,
+            MaxWorkGroupSize = 1,
+            MaxWorkItemDimensions = 1,
+            MaxWorkItemSizes = [1],
+            MaxClockFrequencyMhz = 0,
+            SupportsDoublePrecision = true,
+            SupportsHalfPrecision = false,
+            IsAvailable = true
+        };
+
+        lock (_lockObject)
+        {
+            _devices.Clear();
+            _devices.Add(cpuDevice);
+        }
+
+        _logger.LogInformation("CPU fallback device registered: {Cores} logical core(s).", cpuDevice.MaxComputeUnits);
     }
 
     private void AddSimulatedDevice()

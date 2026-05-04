@@ -4,6 +4,8 @@
 // CTO & Software Architect
 // =============================================================================
 
+using GpuImageProcessing.Fallback;
+
 namespace GpuImageProcessing.Configuration;
 
 /// <summary>
@@ -30,6 +32,7 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<FilterService>();
         services.AddSingleton<ImageProcessingService>();
         services.AddSingleton<BatchProcessingService>();
+        services.AddSingleton<CpuImageProcessor>();
 
         // Register configuration
         var appSettings = new AppSettings();
