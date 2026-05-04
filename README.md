@@ -569,6 +569,77 @@ The alert types that can be generated:
 - **ExecutionTimeThreshold**: Alert triggered when average execution time exceeds the configured threshold
 - **SuccessRateThreshold**: Alert triggered when success rate falls below the configured threshold
 
+## WebhookHandlerExtensions
+
+Extension methods for `WebhookHandler` that provide additional functionality for managing webhook subscriptions, querying subscriptions by event type or URL, checking webhook status, and retrieving oldest/most recent webhook subscriptions.
+
+These extensions enable comprehensive webhook management and monitoring capabilities for event-driven architectures.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Integration;
+using Microsoft.Extensions.DependencyInjection;
+
+// Initialize services
+var settings = ConfigurationValidator.CreateDefaultSettings();
+var serviceProvider = await DependencyInjectionSetup.CreateAndInitializeServiceProviderAsync(settings);
+
+var webhookHandler = serviceProvider.GetRequiredService<WebhookHandler>();
+
+// Register a webhook subscription
+var subscription = new WebhookSubscription
+{
+    Id = Guid.NewGuid().ToString(),
+    EventType = "ImageProcessed",
+    WebhookUrl = "https://api.example.com/webhooks/image-processing",
+    IsActive = true,
+    CreatedAt = DateTime.UtcNow
+};
+webhookHandler.RegisterWebhook(subscription);
+
+// Get active webhook count
+var activeCount = webhookHandler.GetActiveWebhookCount();
+Console.WriteLine($"Active webhooks: {activeCount}");
+
+// Get webhooks by event type
+var imageProcessedWebhooks = webhookHandler.GetWebhooksByEventType("ImageProcessed");
+Console.WriteLine($"ImageProcessed webhooks: {imageProcessedWebhooks.Count}");
+
+// Get webhooks by URL
+var exampleWebhooks = webhookHandler.GetWebhooksByUrl("api.example.com");
+Console.WriteLine($"Webhooks for example.com: {exampleWebhooks.Count}");
+
+// Check if a webhook is active
+var isActive = webhookHandler.IsWebhookActive(subscription.Id);
+Console.WriteLine($"Webhook {subscription.Id} is active: {isActive}");
+
+// Get oldest active webhook
+var oldestActive = webhookHandler.GetOldestActiveWebhook();
+if (oldestActive != null)
+{
+    Console.WriteLine($"Oldest active webhook: {oldestActive.Id} (created: {oldestActive.CreatedAt})");
+}
+
+// Get most recent webhook
+var mostRecent = webhookHandler.GetMostRecentWebhook();
+if (mostRecent != null)
+{
+    Console.WriteLine($"Most recent webhook: {mostRecent.Id} (created: {mostRecent.CreatedAt})");
+}
+```
+
+### Key Extension Methods
+
+| Method | Description |
+|--------|-------------|
+| `GetActiveWebhookCount()` | Returns the count of active webhook subscriptions |
+| `GetWebhooksByEventType(string eventType)` | Returns webhook subscriptions filtered by event type |
+| `GetWebhooksByUrl(string url)` | Returns webhook subscriptions filtered by URL |
+| `IsWebhookActive(string webhookId)` | Checks if a webhook with the specified ID is registered and active |
+| `GetOldestActiveWebhook()` | Returns the oldest active webhook subscription |
+| `GetMostRecentWebhook()` | Returns the most recently created webhook subscription |
+
 ## API Reference
 
 ### ImageProcessingService
