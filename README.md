@@ -1,10 +1,10 @@
+[![Build](https://github.com/sarmkadan/gpu-image-processing/actions/workflows/build.yml/badge.svg)](https://github.com/sarmkadan/gpu-image-processing/actions/workflows/build.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![.NET](https://img.shields.io/badge/.NET-10.0-purple.svg)](https://dotnet.microsoft.com/)
+
 # GPU-Accelerated Image Processing
 
 > High-performance GPU-powered image processing library in C# with OpenCL support, comprehensive filtering, geometric transforms, and batch operations.
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![.NET](https://img.shields.io/badge/.NET-10.0-blue)](https://dotnet.microsoft.com/download)
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/Sarmkadan/gpu-image-processing)
 
 ## Table of Contents
 
