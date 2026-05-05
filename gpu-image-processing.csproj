@@ -7,6 +7,9 @@
     <AssemblyName>gpu-image-processing</AssemblyName>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
+    <RepositoryUrl>https://github.com/sarmkadan/gpu-image-processing</RepositoryUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Authors>Vladyslav Zaiets</Authors>
   </PropertyGroup>
 
   <ItemGroup>

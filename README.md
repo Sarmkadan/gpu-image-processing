@@ -25,16 +25,16 @@
 
 ### Core Capabilities
 
-- **🚀 GPU Acceleration**: Leverages OpenCL 1.2+ for high-speed image processing on NVIDIA, AMD, and Intel devices
-- **🎨 Advanced Filtering**: Gaussian blur, bilateral filtering, median filters, Sobel edge detection, Canny edge detection, morphological operations
-- **🔄 Geometric Transforms**: Rotation, resizing, affine transforms, color space conversion (RGB/HSV/LAB), normalization, histogram equalization
-- **📦 Batch Processing**: Process thousands of images with job queuing, progress tracking, and distributed scheduling
-- **💻 Device Management**: Automatic detection and selection of compute devices (GPU/CPU) with fallback support
-- **⚙️ Customizable Profiles**: Speed-optimized, quality-optimized, and balanced processing profiles
-- **📊 Performance Analytics**: Detailed metrics on processing time, memory usage, GPU utilization, and throughput
-- **🔗 Async/Await Support**: Non-blocking operations with full async/await integration
-- **💾 Distributed Caching**: Result caching with configurable TTL and distributed cache support
-- **🔐 Security**: Input validation, safe type conversions, exception handling
+- **GPU Acceleration**: Leverages OpenCL 1.2+ for high-speed image processing on NVIDIA, AMD, and Intel devices
+- **Advanced Filtering**: Gaussian blur, bilateral filtering, median filters, Sobel edge detection, Canny edge detection, morphological operations
+- **Geometric Transforms**: Rotation, resizing, affine transforms, color space conversion (RGB/HSV/LAB), normalization, histogram equalization
+- **Batch Processing**: Process thousands of images with job queuing, progress tracking, and distributed scheduling
+- **Device Management**: Automatic detection and selection of compute devices (GPU/CPU) with fallback support
+- **Customizable Profiles**: Speed-optimized, quality-optimized, and balanced processing profiles
+- **Performance Analytics**: Detailed metrics on processing time, memory usage, GPU utilization, and throughput
+- **Async/Await Support**: Non-blocking operations with full async/await integration
+- **Distributed Caching**: Result caching with configurable TTL and distributed cache support
+- **Security**: Input validation, safe type conversions, exception handling
 
 ### Enterprise Features
 
