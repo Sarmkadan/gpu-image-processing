@@ -174,7 +174,7 @@ jobs:
         cd ..
 
     - name: Create GitHub Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v3
       with:
         files: gpu-image-processing-${{ github.ref_name }}.tar.gz
         draft: false
