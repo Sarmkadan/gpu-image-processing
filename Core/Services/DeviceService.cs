@@ -67,7 +67,7 @@ namespace GpuImageProcessing.Core.Services
                 var deviceInfo = MapGpuDeviceToDeviceInfo(gpuDevice);
                 _devices.Add(deviceInfo);
             }
-            
+
             // Add a simulated CPU device if no actual CPU device is found through OpenCL, for compatibility
             if (!_devices.Any(d => d.DeviceType == GpuDeviceType.Cpu.ToString()))
             {
@@ -236,13 +236,10 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public async Task<string> GetCapabilitiesSummaryAsync()
         {
-            var summary = "Available Compute Devices:
-";
+            var summary = "Available Compute Devices:\n";
             foreach (var device in _devices)
             {
-                summary += $"{device.GetCapabilitiesSummary()}
-
-";
+                summary += $"{device.GetCapabilitiesSummary()}\n";
             }
             return await Task.FromResult(summary);
         }
