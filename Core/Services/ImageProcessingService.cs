@@ -179,6 +179,7 @@ namespace GpuImageProcessing.Core.Services
                             passes.Add(pass);
                             _logger.LogDebug("Added transform pass: {TransformName} for image {ImageId}.", transform.Name, imageId);
                         }
+                    }
                 }
 
                 if (passes.Count == 0)
