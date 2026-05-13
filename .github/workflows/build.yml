@@ -124,7 +124,7 @@ jobs:
       if: secrets.DOCKER_USERNAME != ''
 
     - name: Build and push Docker image
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@v7
       with:
         context: .
         push: ${{ secrets.DOCKER_USERNAME != '' }}
@@ -136,7 +136,7 @@ jobs:
       if: secrets.DOCKER_USERNAME != ''
 
     - name: Build Docker image (local only)
-      uses: docker/build-push-action@v4
+      uses: docker/build-push-action@v7
       with:
         context: .
         push: false
