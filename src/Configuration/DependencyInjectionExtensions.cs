@@ -34,6 +34,10 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<BatchProcessingService>();
         services.AddSingleton<CpuImageProcessor>();
 
+        // Register pipeline
+        services.AddSingleton(new BatchPipelineOptions());
+        services.AddSingleton<BatchProcessingPipeline>();
+
         // Register configuration
         var appSettings = new AppSettings();
         configuration.GetSection(AppSettings.SectionName).Bind(appSettings);
