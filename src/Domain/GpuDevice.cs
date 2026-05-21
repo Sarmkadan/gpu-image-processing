@@ -34,6 +34,13 @@ public class GpuDevice
     public int ComputeCapabilityMajor { get; set; }
     public int ComputeCapabilityMinor { get; set; }
 
+    /// <summary>
+    /// The native wavefront (warp) size reported by the device via
+    /// CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE or equivalent query.
+    /// When zero, the optimizer falls back to vendor-based heuristics.
+    /// </summary>
+    public int WavefrontSize { get; set; }
+
     public GpuDevice()
     {
         Id = Guid.NewGuid();
