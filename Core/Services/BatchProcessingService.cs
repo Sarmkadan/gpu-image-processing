@@ -61,6 +61,10 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Executes a batch processing job with progress tracking
         /// </summary>
+        /// <param name="jobId">The identifier of the batch job to execute.</param>
+        /// <param name="profileId">The identifier of the processing profile to use.</param>
+        /// <param name="cancellationToken">Optional cancellation token.</param>
+        /// <returns>A task representing the asynchronous operation.</returns>
         public async Task ExecuteJobAsync(Guid jobId, Guid profileId, CancellationToken cancellationToken = default)
         {
             var job = await _jobRepository.GetByIdAsync(jobId);
@@ -302,6 +306,11 @@ namespace GpuImageProcessing.Core.Services
         public float SuccessRate { get; set; }
         public float AverageProcessingTimeMs { get; set; }
         public TimeSpan EstimatedRemainingTime { get; set; }
+        public double ProcessingRate { get; set; }
+        public int TotalOperations { get; set; }
+    }
+}
+imeSpan EstimatedRemainingTime { get; set; }
         public double ProcessingRate { get; set; }
         public int TotalOperations { get; set; }
     }

@@ -86,6 +86,11 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Processes a single image with specified filters and transforms
         /// </summary>
+        /// <param name="imageId">The identifier of the image to process.</param>
+        /// <param name="filterIds">The list of filter identifiers to apply.</param>
+        /// <param name="transformIds">The list of transform identifiers to apply.</param>
+        /// <param name="profileId">The optional identifier of the processing profile to use.</param>
+        /// <returns>The result of the processing operation.</returns>
         public async Task<ProcessingResult> ProcessImageAsync(Guid imageId, List<Guid> filterIds, List<Guid> transformIds, Guid? profileId)
         {
             filterIds ??= new List<Guid>();
