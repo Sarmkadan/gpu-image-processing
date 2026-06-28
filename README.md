@@ -227,6 +227,52 @@ app.Run();
 
 ## Usage Examples
 
+See the [examples/README.md](examples/README.md) file for complete, runnable examples demonstrating:
+
+- **Basic Usage** - Minimal setup and first call with the library
+- **Advanced Usage** - Configuration, custom options, and error handling patterns
+- **ASP.NET Core Integration** - How to wire the library into ASP.NET Core's dependency injection system
+
+
+### Quick Start Example
+
+```csharp
+using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using GpuImageProcessing.Core.Configuration;
+using GpuImageProcessing.Core.Services;
+
+// Initialize
+var settings = ConfigurationValidator.CreateDefaultSettings();
+var serviceProvider = await DependencyInjectionSetup
+    .CreateAndInitializeServiceProviderAsync(settings);
+
+// Get services
+var imageProcessing = serviceProvider.GetRequiredService<ImageProcessingService>();
+var filterService = serviceProvider.GetRequiredService<FilterService>();
+
+// Register image
+var image = await imageProcessing.RegisterImageAsync("input.jpg", "MyImage");
+
+// Create and apply a filter
+var filter = await filterService.CreateFilterAsync(
+    Core.Constants.FilterType.Gaussian,
+    "Blur",
+    "Gaussian blur filter"
+);
+
+// Process the image
+var result = await imageProcessing.ProcessImageAsync(
+    image.Id,
+    new List<Guid> { filter.Id },
+    new List<Guid>(),
+    Guid.Empty
+);
+
+Console.WriteLine($"Result saved to: {result.OutputPath}");
+```
+
 ### Example 1: Apply Gaussian Blur
 
 ```csharp

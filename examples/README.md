@@ -13,10 +13,10 @@ All examples are standalone C# files that can be compiled and run independently.
 cd examples
 
 # Compile a specific example
-dotnet csc 01-basic-blur.cs -r:../bin/Release/net10.0/GpuImageProcessing.dll
+dotnet csc BasicUsage.cs -r:../bin/Release/net10.0/GpuImageProcessing.dll
 
 # Run the compiled example
-./01-basic-blur
+./BasicUsage
 ```
 
 Or build from the project root:
@@ -26,14 +26,14 @@ Or build from the project root:
 make examples
 
 # Run specific example
-./examples/01-basic-blur
+./examples/BasicUsage
 ```
 
 ## Examples Overview
 
 ### 1. Basic Usage (`BasicUsage.cs`)
 
-**Difficulty**: Beginner  
+**Difficulty**: Beginner
 **Time**: 5 minutes
 
 The absolute minimum code required to use GPU Image Processing:
@@ -49,152 +49,85 @@ The absolute minimum code required to use GPU Image Processing:
 - Basic processing
 
 **Prerequisites**:
-- `photo.jpg` in the current directory (optional)
+- `input.jpg` in the current directory (optional)
 
 **Run**:
 ```bash
-dotnet run --project examples -- 01-basic-blur
+dotnet run --project examples -- BasicUsage
 ```
 
 ---
 
-### 2. Batch Processing (`02-batch-processing.cs`)
+### 2. Advanced Usage (`AdvancedUsage.cs`)
 
-**Difficulty**: Intermediate  
-**Time**: 10 minutes
+**Difficulty**: Intermediate
+**Time**: 15 minutes
 
-Process multiple images efficiently with:
-- Batch job creation and execution
-- Progress monitoring
-- Multiple filter application
-- Throughput measurement
+Advanced usage patterns including:
+- Custom configuration with performance tuning
+- Multiple filter types and parameter customization
+- Error handling and validation
+- Performance monitoring
+- Custom processing profiles
 
 **Key Concepts**:
-- Batch processing service
-- Job management
-- Progress tracking
-- Performance measurement
+- Advanced configuration
+- Multiple filters and transforms
+- Error handling
+- Performance monitoring
+- Processing profiles
 
 **Prerequisites**:
-- Multiple image files in `./images/` directory (optional)
+- `input.jpg` in the current directory (optional)
+
 
 **Run**:
 ```bash
-dotnet run --project examples -- 02-batch-processing
+dotnet run --project examples -- AdvancedUsage
 ```
 
 **Features**:
-- Progress bar visualization
-- Success/failure tracking
-- Throughput calculation
-- Job summary statistics
+- Custom settings configuration
+- Multiple filter creation
+- Transform application
+- Performance metrics collection
+- Comprehensive error handling
 
 ---
 
-### 3. Image Transforms (`03-transforms.cs`)
+### 3. ASP.NET Core Integration (`IntegrationExample.cs`)
 
-**Difficulty**: Intermediate  
-**Time**: 10 minutes
-
-Apply geometric transformations:
-- Resizing images
-- Rotation
-- Color space conversion
-- Combining filters with transforms
-
-**Key Concepts**:
-- Transform creation
-- Parameter configuration
-- Combining filters and transforms
-- Available transform types
-
-**Prerequisites**:
-- `photo.jpg` in the current directory (optional)
-
-**Run**:
-```bash
-dotnet run --project examples -- 03-transforms
-```
-
-**Transform Types**:
-- Resize: Scale dimensions
-- Rotate: Rotate by angle
-- ColorSpaceConversion: RGB/HSV/LAB conversion
-- Normalization: Normalize pixel values
-- HistogramEqualization: Enhance contrast
-- AffineTransform: Matrix-based transformation
-- WarpPerspective: Perspective correction
-- Crop: Extract region of interest
-
----
-
-### 4. Performance Monitoring (`04-performance-monitoring.cs`)
-
-**Difficulty**: Intermediate  
+**Difficulty**: Intermediate
 **Time**: 15 minutes
 
-Monitor and analyze performance:
-- Device detection and selection
-- Real-time metrics collection
-- Device capabilities
-- Performance optimization tips
+Demonstrates how to integrate GPU Image Processing into an ASP.NET Core application:
+- Configuring services in Program.cs
+- Using the library in controllers
+- Best practices for production deployment
+- Integration with ASP.NET Core's built-in DI container
+
 
 **Key Concepts**:
-- Device management
-- Metrics collection
-- Real-time monitoring
-- Performance analysis
+- ASP.NET Core dependency injection
+- Service configuration
+- Controller pattern usage
+- Production deployment considerations
 
 **Prerequisites**:
-- GPU with OpenCL support (CPU mode works too)
-- `photo.jpg` for processing simulation (optional)
+- Basic ASP.NET Core knowledge
+
 
 **Run**:
 ```bash
-dotnet run --project examples -- 04-performance-monitoring
+dotnet run --project examples -- IntegrationExample
 ```
 
-**Metrics Tracked**:
-- GPU utilization percentage
-- Memory usage
-- Throughput (images/second)
-- Average processing time
-- Active job count
-- Total processed bytes
-
----
-
-### 5. Advanced Filtering (`05-advanced-filtering.cs`)
-
-**Difficulty**: Advanced  
-**Time**: 15 minutes
-
-Explore advanced filtering with:
-- Multiple filter types (bilateral, median, Sobel, Canny, morphological)
-- Custom processing profiles
-- Speed vs. quality tradeoffs
-- Filter comparison
-
-**Key Concepts**:
-- Advanced filter types
-- Custom processing profiles
-- Parameter tuning
-- Performance profiling
-
-**Prerequisites**:
-- `photo.jpg` in the current directory (optional)
-
-**Run**:
-```bash
-dotnet run --project examples -- 05-advanced-filtering
-```
-
-**Filters Demonstrated**:
-- Bilateral: Edge-preserving blur
-- Median: Salt-and-pepper noise removal
-- Sobel: Fast edge detection
-- Canny: High-quality edge detection
-- Morphological: Binary image operations
+**Features**:
+- Service registration simulation
+- Controller pattern demonstration
+- Batch processing integration
+- Configuration best practices
+- Graceful shutdown handling
 
 ---
 
@@ -206,7 +139,7 @@ make examples
 
 # Or manually
 cd examples
-foreach ($file in Get-ChildItem "*.cs") {
+foreach ($file in Get-ChildItem "BasicUsage.cs", "AdvancedUsage.cs", "IntegrationExample.cs") {
     dotnet csc $file.Name -r:../bin/Release/net10.0/GpuImageProcessing.dll
 }
 ```
@@ -219,15 +152,15 @@ docker build -t gpu-image-processing:latest .
 
 # Run with example
 docker run -it \
-  -v $(pwd)/images:/app/images \
-  -v $(pwd)/output:/app/output \
-  gpu-image-processing:latest
+    -v $(pwd)/images:/app/images \
+    -v $(pwd)/output:/app/output \
+    gpu-image-processing:latest
 
 # Run with GPU support
 docker run -it --gpus all \
-  -v $(pwd)/images:/app/images \
-  -v $(pwd)/output:/app/output \
-  gpu-image-processing:latest
+    -v $(pwd)/images:/app/images \
+    -v $(pwd)/output:/app/output \
+    gpu-image-processing:latest
 ```
 
 ## Example Output
@@ -238,38 +171,18 @@ Each example produces console output showing:
 - Performance metrics
 - Results summary
 
-Example output from `01-basic-blur.cs`:
+Example output from `BasicUsage.cs`:
 
 ```
-=== GPU Image Processing: Basic Blur Example ===
+=== GPU Image Processing: Basic Usage ===
 
-Found 1 compute devices:
-  - NVIDIA RTX 3080 (GPU)
+✓ Image registered: MyImage (ID: a1b2c3d4-e5f6-7890-abcd-ef1234567890)
 
-Registering image: photo.jpg
-✓ Image registered with ID: a1b2c3d4-e5f6-7890-abcd-ef1234567890
-  Name: MyPhoto
-  Format: JPEG
-  Size: 1920x1080
-
-Creating Gaussian blur filter...
-✓ Filter created with ID: b2c3d4e5-f6a7-8901-bcde-f12345678901
-
-Configuring filter parameters...
-✓ Parameters configured:
-  - Sigma: 2
-  - KernelSize: 5
-
-Processing image...
 ✓ Processing complete!
+ Status: Success
+ Output: ./output/processed_image.jpg
 
-Results:
-  Status: Success
-  Duration: 2.34ms
-  Output Path: ./output/processed_image.jpg
-  Output Size: 512.50KB
-
-✓ Example completed successfully!
+✓ Basic usage example completed successfully!
 ```
 
 ## Common Issues and Solutions
@@ -294,20 +207,21 @@ settings.Device.AllowFallbackToCPU = true;
 
 Examples work without input images but show a note:
 ```
-Note: photo.jpg not found. Using placeholder processing.
+Note: input.jpg not found. Using placeholder processing.
 ```
 
 To use real images, place them in the expected location:
 ```bash
-cp your-image.jpg photo.jpg
+cp your-image.jpg input.jpg
 ```
 
 ### Insufficient Memory
 
 If you get memory errors:
-1. Reduce batch size in batch processing example
+1. Reduce parallel operations in settings
 2. Use speed-optimized profile
 3. Close other GPU-using applications
+4. Reduce batch size
 
 ### Build Errors
 
@@ -366,7 +280,7 @@ namespace GpuImageProcessing.Examples
 
 1. **Use appropriate profiles**:
    - Speed-optimized for real-time processing
-   - Quality-optimized for offline batch processing
+   - Quality-optimized for offline batch processing  
    - Balanced for general use
 
 2. **Batch processing**:
@@ -375,7 +289,7 @@ namespace GpuImageProcessing.Examples
    - Better throughput
 
 3. **GPU memory**:
-   - Monitor with example 4
+   - Monitor with AdvancedUsage example
    - Adjust batch size accordingly
    - Enable caching for repeated operations
 
