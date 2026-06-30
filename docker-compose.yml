@@ -15,17 +15,12 @@ services:
     container_name: gpu-image-processing
 
     environment:
-      - ASPNETCORE_ENVIRONMENT=Production
-      - ASPNETCORE_URLS=http://+:80
       - ENABLE_GPU=true
       - LOG_LEVEL=Information
       - MAX_PARALLEL_OPERATIONS=4
       - BATCH_SIZE=10
       - CACHE_ENABLED=true
       - CACHE_TTL_SECONDS=3600
-
-    ports:
-      - "8080:80"
 
     volumes:
       # Input images directory
@@ -46,14 +41,6 @@ services:
     #         - driver: nvidia
     #           count: 1
     #           capabilities: [gpu]
-
-    # Health check
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
 
     # Restart policy
     restart: unless-stopped
@@ -172,29 +159,3 @@ volumes:
 networks:
   gpu-network:
     driver: bridge
-
-# Usage:
-#
-# Start all services:
-#   docker-compose up -d
-#
-# Start with database:
-#   docker-compose --profile database up -d
-#
-# Start with caching:
-#   docker-compose --profile cache up -d
-#
-# Start with monitoring:
-#   docker-compose --profile monitoring up -d
-#
-# Start all services:
-#   docker-compose --profile database --profile cache --profile monitoring up -d
-#
-# Stop all services:
-#   docker-compose down
-#
-# View logs:
-#   docker-compose logs -f app
-#
-# Clean up volumes:
-#   docker-compose down -v
