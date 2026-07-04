@@ -6,9 +6,11 @@
 
 using System;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using GpuImageProcessing.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace GpuImageProcessing.Integration
@@ -44,10 +46,14 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public async Task<bool> DownloadImageAsync(string url, string outputPath, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(url) || string.IsNullOrWhiteSpace(outputPath))
+            if (string.IsNullOrWhiteSpace(url))
             {
-                _logger.LogError("Invalid URL or output path provided");
-                return false;
+                throw new ValidationException("URL cannot be null or whitespace", nameof(url));
+            }
+
+            if (string.IsNullOrWhiteSpace(outputPath))
+            {
+                throw new ValidationException("Output path cannot be null or whitespace", nameof(outputPath));
             }
 
             for (int attempt = 0; attempt < _maxRetries; attempt++)
@@ -64,27 +70,43 @@ namespace GpuImageProcessing.Integration
                     {
                         if (!response.IsSuccessStatusCode)
                         {
-                            _logger.LogWarning(
-                                "HTTP request failed - URL: {Url}, StatusCode: {StatusCode}",
-                                url,
-                                response.StatusCode);
+                            var statusCode = response.StatusCode;
+                            var reason = response.ReasonPhrase ?? "Unknown reason";
 
                             if (attempt < _maxRetries - 1)
                             {
+                                _logger.LogWarning(
+                                    "HTTP request failed - URL: {Url}, StatusCode: {StatusCode}, Reason: {Reason}",
+                                    url,
+                                    statusCode,
+                                    reason);
                                 await Task.Delay(GetBackoffDelay(attempt), cancellationToken);
                                 continue;
                             }
 
-                            return false;
+                            throw new HttpImageClientException(
+                                $"HTTP request failed after {_maxRetries} attempts",
+                                url,
+                                (int)statusCode,
+                                reason);
                         }
 
                         // Validate content type
-                        if (!IsValidImageContent(response.Content.Headers.ContentType?.MediaType))
+                        var contentType = response.Content.Headers.ContentType?.MediaType;
+                        if (!IsValidImageContent(contentType))
                         {
-                            _logger.LogError(
-                                "Invalid content type - Expected image/* but got {ContentType}",
-                                response.Content.Headers.ContentType?.MediaType);
-                            return false;
+                            throw new HttpImageClientException(
+                                $"Invalid content type received: {contentType}",
+                                url,
+                                (int)HttpStatusCode.UnsupportedMediaType);
+                        }
+
+                        // Validate output directory exists
+                        var outputDirectory = Path.GetDirectoryName(outputPath);
+                        if (!string.IsNullOrEmpty(outputDirectory) && !Directory.Exists(outputDirectory))
+                        {
+                            Directory.CreateDirectory(outputDirectory);
+                            _logger.LogInformation("Created output directory: {OutputDirectory}", outputDirectory);
                         }
 
                         // Save to file
@@ -96,37 +118,55 @@ namespace GpuImageProcessing.Integration
                             }
                         }
 
+                        var fileSize = new FileInfo(outputPath).Length;
                         _logger.LogInformation(
                             "Image downloaded successfully - URL: {Url}, Size: {FileSize} bytes",
                             url,
-                            new FileInfo(outputPath).Length);
+                            fileSize);
 
                         return true;
                     }
                 }
-                catch (HttpRequestException ex)
+                catch (HttpRequestException ex) when (attempt == _maxRetries - 1)
+                {
+                    throw new HttpImageClientException(
+                        $"Network error after {_maxRetries} attempts",
+                        ex,
+                        url,
+                        (int)HttpStatusCode.BadGateway);
+                }
+                catch (OperationCanceledException ex)
+                {
+                    throw new HttpImageClientException(
+                        "Download operation was cancelled",
+                        ex,
+                        url,
+                        (int)HttpStatusCode.RequestTimeout);
+                }
+                catch (IOException ex) when (attempt == _maxRetries - 1)
+                {
+                    throw new HttpImageClientException(
+                        "Failed to write image to disk",
+                        ex,
+                        url,
+                        (int)HttpStatusCode.InternalServerError);
+                }
+                catch (Exception ex) when (attempt < _maxRetries - 1)
                 {
                     _logger.LogWarning(
                         ex,
-                        "HTTP request failed - URL: {Url}, Error: {ErrorMessage}, Attempt: {Attempt}",
+                        "Attempt {Attempt} failed for URL: {Url}, Error: {ErrorMessage}",
+                        attempt + 1,
                         url,
-                        ex.Message,
-                        attempt + 1);
-
-                    if (attempt < _maxRetries - 1)
-                    {
-                        await Task.Delay(GetBackoffDelay(attempt), cancellationToken);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Unexpected error downloading image - URL: {Url}", url);
-                    return false;
+                        ex.Message);
+                    await Task.Delay(GetBackoffDelay(attempt), cancellationToken);
                 }
             }
 
-            _logger.LogError("Failed to download image after {MaxRetries} attempts - URL: {Url}", _maxRetries, url);
-            return false;
+            throw new HttpImageClientException(
+                $"Failed to download image after {_maxRetries} attempts",
+                url,
+                (int)HttpStatusCode.ServiceUnavailable);
         }
 
         /// <summary>
@@ -134,10 +174,22 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public async Task<bool> UploadImageAsync(string localPath, string uploadUrl, CancellationToken cancellationToken = default)
         {
-            if (string.IsNullOrWhiteSpace(localPath) || !File.Exists(localPath))
+            if (string.IsNullOrWhiteSpace(localPath))
             {
-                _logger.LogError("Local file not found - Path: {LocalPath}", localPath);
-                return false;
+                throw new ValidationException("Local path cannot be null or whitespace", nameof(localPath));
+            }
+
+            if (!File.Exists(localPath))
+            {
+                throw new ValidationException("Local file does not exist", nameof(localPath), validationErrors: new Dictionary<string, string>
+                {
+                    { nameof(localPath), $"File not found: {localPath}" }
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(uploadUrl))
+            {
+                throw new ValidationException("Upload URL cannot be null or whitespace", nameof(uploadUrl));
             }
 
             try
@@ -155,10 +207,11 @@ namespace GpuImageProcessing.Integration
                         {
                             if (!response.IsSuccessStatusCode)
                             {
+                                var errorContent = await response.Content.ReadAsStringAsync();
                                 _logger.LogError(
                                     "Upload failed - StatusCode: {StatusCode}, Error: {ErrorContent}",
                                     response.StatusCode,
-                                    await response.Content.ReadAsStringAsync());
+                                    errorContent);
                                 return false;
                             }
 
@@ -172,10 +225,29 @@ namespace GpuImageProcessing.Integration
                     }
                 }
             }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpImageClientException(
+                    "Failed to upload image",
+                    ex,
+                    uploadUrl,
+                    (int)HttpStatusCode.BadGateway);
+            }
+            catch (OperationCanceledException ex)
+            {
+                throw new HttpImageClientException(
+                    "Upload operation was cancelled",
+                    ex,
+                    uploadUrl,
+                    (int)HttpStatusCode.RequestTimeout);
+            }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error uploading image - LocalPath: {LocalPath}", localPath);
-                return false;
+                throw new HttpImageClientException(
+                    "Error uploading image",
+                    ex,
+                    uploadUrl,
+                    (int)HttpStatusCode.InternalServerError);
             }
         }
 
@@ -185,11 +257,15 @@ namespace GpuImageProcessing.Integration
         public async Task<bool> VerifyImageUrlAsync(string url, CancellationToken cancellationToken = default)
         {
             if (string.IsNullOrWhiteSpace(url))
-                return false;
+            {
+                throw new ValidationException("URL cannot be null or whitespace", nameof(url));
+            }
 
             try
             {
-                using (var response = await _httpClient.HeadAsync(url, cancellationToken))
+                using (var response = await _httpClient.SendAsync(
+                    new HttpRequestMessage(HttpMethod.Head, url),
+                    cancellationToken))
                 {
                     bool accessible = response.IsSuccessStatusCode;
                     bool validContent = IsValidImageContent(response.Content.Headers.ContentType?.MediaType);
@@ -209,10 +285,29 @@ namespace GpuImageProcessing.Integration
                     return false;
                 }
             }
+            catch (HttpRequestException ex)
+            {
+                throw new HttpImageClientException(
+                    "Failed to verify image URL",
+                    ex,
+                    url,
+                    (int)HttpStatusCode.BadGateway);
+            }
+            catch (OperationCanceledException ex)
+            {
+                throw new HttpImageClientException(
+                    "URL verification was cancelled",
+                    ex,
+                    url,
+                    (int)HttpStatusCode.RequestTimeout);
+            }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Error verifying image URL - URL: {Url}", url);
-                return false;
+                throw new HttpImageClientException(
+                    "Error verifying image URL",
+                    ex,
+                    url,
+                    (int)HttpStatusCode.InternalServerError);
             }
         }
 
@@ -257,6 +352,46 @@ namespace GpuImageProcessing.Integration
         public void Dispose()
         {
             _httpClient?.Dispose();
+        }
+    }
+
+    /// <summary>
+    /// Exception thrown when HTTP image client operations fail.
+    /// </summary>
+    public class HttpImageClientException : GpuImageProcessingException
+    {
+        /// <summary>
+        /// URL that caused the error.
+        /// </summary>
+        public string? Url { get; }
+
+        /// <summary>
+        /// HTTP status code associated with the error.
+        /// </summary>
+        public int? HttpStatusCode { get; }
+
+        public HttpImageClientException(string message, string? url, int? httpStatusCode, string? errorDetails = null)
+            : base(message, httpStatusCode)
+        {
+            Url = url;
+            HttpStatusCode = httpStatusCode;
+        }
+
+        public HttpImageClientException(string message, Exception innerException, string? url, int? httpStatusCode)
+            : base(message, innerException, httpStatusCode)
+        {
+            Url = url;
+            HttpStatusCode = httpStatusCode;
+        }
+
+        public override string ToString()
+        {
+            var result = base.ToString();
+            if (!string.IsNullOrEmpty(Url))
+                result += $"\nURL: {Url}";
+            if (HttpStatusCode.HasValue)
+                result += $"\nHTTP Status: {HttpStatusCode} ({(HttpStatusCode)HttpStatusCode.Value})\nError Details: {Message}";
+            return result;
         }
     }
 }
