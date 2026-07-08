@@ -216,7 +216,7 @@ namespace GpuImageProcessing.Utilities
                 var directory = new DirectoryInfo(directoryPath);
                 return directory
                     .GetFiles()
-                    .Where(f => IsSupportedImageFile(f.FullPath))
+                    .Where(f => IsSupportedImageFile(f.FullName))
                     .Sum(f => f.Length);
             }
             catch

@@ -4,6 +4,11 @@
 // CTO & Software Architect
 // =============================================================================
 
+using Microsoft.Extensions.Logging;
+using GpuImageProcessing.Core;
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Repository;
+
 namespace GpuImageProcessing.Services;
 
 /// <summary>
@@ -25,7 +30,7 @@ public class BatchProcessingService
         _processingService = processingService ?? throw new ArgumentNullException(nameof(processingService));
         _imageRepository = imageRepository ?? throw new ArgumentNullException(nameof(imageRepository));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _concurrencySemaphore = new SemaphoreSlim(Constants.Processing.MaxConcurrentOperations);
+        _concurrencySemaphore = new SemaphoreSlim(AppConstants.Processing.MaxConcurrentOperations);
     }
 
     /// <summary>

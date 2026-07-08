@@ -4,6 +4,8 @@
 // CTO & Software Architect
 // =============================================================================
 
+using GpuImageProcessing.Core;
+
 namespace GpuImageProcessing.Domain;
 
 /// <summary>
@@ -18,6 +20,7 @@ public class Image
     public ColorSpace ColorSpace { get; set; }
     public int Width { get; set; }
     public int Height { get; set; }
+    public int Channels { get; set; }
     public int BitsPerPixel { get; set; }
     public long FileSizeBytes { get; set; }
     public byte[]? PixelData { get; set; }
@@ -36,6 +39,16 @@ public class Image
     }
 
     /// <summary>
+    /// Creates an in-memory GPU-side image buffer with the given dimensions.
+    /// </summary>
+    public Image(int width, int height, int channels) : this()
+    {
+        Width = width;
+        Height = height;
+        Channels = channels;
+    }
+
+    /// <summary>
     /// Validates image properties before processing.
     /// </summary>
     public bool Validate()
@@ -43,13 +56,13 @@ public class Image
         if (string.IsNullOrWhiteSpace(FilePath))
             return false;
 
-        if (Width < Constants.Processing.MinImageWidth || Width > Constants.Processing.MaxImageWidth)
+        if (Width < AppConstants.Processing.MinImageWidth || Width > AppConstants.Processing.MaxImageWidth)
             return false;
 
-        if (Height < Constants.Processing.MinImageHeight || Height > Constants.Processing.MaxImageHeight)
+        if (Height < AppConstants.Processing.MinImageHeight || Height > AppConstants.Processing.MaxImageHeight)
             return false;
 
-        if (FileSizeBytes > Constants.Memory.MaxMemoryPerImage)
+        if (FileSizeBytes > AppConstants.Memory.MaxMemoryPerImage)
             return false;
 
         if (BitsPerPixel is not (8 or 16 or 24 or 32))

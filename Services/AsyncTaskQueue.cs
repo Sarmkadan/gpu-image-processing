@@ -217,7 +217,7 @@ namespace GpuImageProcessing.Services
             TaskFailed?.Invoke(this, new TaskEventArgs { Task = task });
         }
 
-        private class QueuedTask : IComparable<QueuedTask>
+        public class QueuedTask : IComparable<QueuedTask>
         {
             public Guid Id { get; set; }
             public string Name { get; set; }
@@ -286,7 +286,7 @@ namespace GpuImageProcessing.Services
 
     public class TaskEventArgs : EventArgs
     {
-        public QueuedTask Task { get; set; }
+        public AsyncTaskQueue.QueuedTask Task { get; set; }
     }
 
     public enum TaskState

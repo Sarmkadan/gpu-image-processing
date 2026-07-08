@@ -233,14 +233,14 @@ namespace GpuImageProcessing.Cli
             }
         }
 
-        private class CommandDefinition
+        internal class CommandDefinition
         {
             public string Name { get; set; }
             public string Description { get; set; }
             public List<OptionDefinition> Options { get; set; } = new();
         }
 
-        private class OptionDefinition
+        internal class OptionDefinition
         {
             public string LongForm { get; set; }
             public string ShortForm { get; set; }

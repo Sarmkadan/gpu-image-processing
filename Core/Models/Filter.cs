@@ -10,6 +10,8 @@ using GpuImageProcessing.Core.Constants;
 
 namespace GpuImageProcessing.Core.Models
 {
+    using FilterType = GpuImageProcessing.Core.Constants.FilterType;
+
     /// <summary>
     /// Represents an image filter with configurable parameters
     /// </summary>

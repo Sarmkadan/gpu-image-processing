@@ -5,6 +5,7 @@
 // =============================================================================
 
 using FluentAssertions;
+using Xunit;
 using GpuImageProcessing.Core;
 using GpuImageProcessing.Domain;
 using GpuImageProcessing.Repository;

@@ -16,6 +16,8 @@ using GpuImageProcessing.Core.Repository;
 
 namespace GpuImageProcessing.Core.Services
 {
+    using ProcessingStatus = GpuImageProcessing.Core.Constants.ProcessingStatus;
+
     /// <summary>
     /// Service for managing batch processing jobs with progress tracking
     /// </summary>
@@ -240,6 +242,36 @@ namespace GpuImageProcessing.Core.Services
         }
 
         /// <summary>
+        /// Gets a lightweight progress snapshot for a job
+        /// </summary>
+        public async Task<JobProgressInfo> GetJobProgressAsync(Guid jobId)
+        {
+            var job = await _jobRepository.GetByIdAsync(jobId);
+            if (job == null)
+                throw new InvalidOperationException("Job not found");
+
+            var results = (await _resultRepository.GetByJobAsync(jobId)).ToList();
+            var errors = results
+                .Where(r => !r.IsSuccessful && !string.IsNullOrEmpty(r.ErrorMessage))
+                .Select(r => r.ErrorMessage!)
+                .ToList();
+
+            if (!string.IsNullOrEmpty(job.ErrorMessage))
+                errors.Add(job.ErrorMessage);
+
+            return new JobProgressInfo
+            {
+                JobId = jobId,
+                ProcessedCount = job.ProcessedImages,
+                TotalCount = job.TotalImages,
+                PercentComplete = job.ProgressPercentage,
+                ElapsedTime = job.GetElapsedTime(),
+                EstimatedTimeRemaining = job.EstimateRemainingTime(),
+                Errors = errors
+            };
+        }
+
+        /// <summary>
         /// Gets all pending jobs
         /// </summary>
         public async Task<IEnumerable<ProcessingJob>> GetPendingJobsAsync()
@@ -308,5 +340,19 @@ namespace GpuImageProcessing.Core.Services
         public TimeSpan EstimatedRemainingTime { get; set; }
         public double ProcessingRate { get; set; }
         public int TotalOperations { get; set; }
+    }
+
+    /// <summary>
+    /// Lightweight progress snapshot for a running or completed job
+    /// </summary>
+    public class JobProgressInfo
+    {
+        public Guid JobId { get; set; }
+        public int ProcessedCount { get; set; }
+        public int TotalCount { get; set; }
+        public double PercentComplete { get; set; }
+        public TimeSpan ElapsedTime { get; set; }
+        public TimeSpan? EstimatedTimeRemaining { get; set; }
+        public List<string> Errors { get; set; } = new();
     }
 }

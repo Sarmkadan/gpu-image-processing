@@ -4,6 +4,8 @@
 // CTO & Software Architect
 // =============================================================================
 
+using GpuImageProcessing.Core;
+
 namespace GpuImageProcessing.Domain;
 
 /// <summary>
@@ -77,7 +79,7 @@ public class FilterConfiguration
         return FilterType switch
         {
             FilterType.Blur or FilterType.GaussianBlur when Parameters.TryGetValue("radius", out var radius) =>
-                radius is float r && r >= Constants.Filters.MinKernelRadius && r <= Constants.Filters.MaxKernelRadius,
+                radius is float r && r >= AppConstants.Filters.MinKernelRadius && r <= AppConstants.Filters.MaxKernelRadius,
 
             FilterType.Sharpen when Parameters.TryGetValue("strength", out var strength) =>
                 strength is float s && s >= 0.0f && s <= 10.0f,

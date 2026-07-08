@@ -14,7 +14,9 @@ using GpuImageProcessing.Core.Models;
 using GpuImageProcessing.Core.Repository;
 using GpuImageProcessing.Pipeline; // Added for IComputeShaderPipeline
 using Microsoft.Extensions.Logging; // Added for ILogger
-using GpuImageProcessing.Domain; // Added for GpuImage
+using GpuImageProcessing.Domain; // Added for ComputeShaderPass GPU-side image buffers
+using Image = GpuImageProcessing.Core.Models.Image;
+using ProcessingResult = GpuImageProcessing.Core.Models.ProcessingResult;
 
 namespace GpuImageProcessing.Core.Services
 {
@@ -32,6 +34,7 @@ namespace GpuImageProcessing.Core.Services
         private readonly ILogger<ImageProcessingService> _logger;
         private readonly FilterService _filterService; // Added
         private readonly TransformService _transformService; // Added
+        private readonly Dictionary<Guid, List<ProcessingResult>> _resultsHistory = new();
 
         public ImageProcessingService(
             ImageRepository imageRepository,
@@ -136,7 +139,7 @@ namespace GpuImageProcessing.Core.Services
 
                 // Prepare pipeline passes
                 var passes = new List<ComputeShaderPass>();
-                var currentImage = new GpuImage(sourceImage.Width, sourceImage.Height, sourceImage.Channels); // Represents image in GPU memory
+                var currentImage = new GpuImageProcessing.Domain.Image(sourceImage.Width, sourceImage.Height, sourceImage.Channels); // Represents image in GPU memory
                 // In a real scenario, image data would be loaded into currentImage
 
                 // Add filter passes
@@ -148,15 +151,13 @@ namespace GpuImageProcessing.Core.Services
                         var kernelCode = await _filterService.GetKernelCodeAsync(filter.Type);
                         if (!string.IsNullOrEmpty(kernelCode))
                         {
-                           var pass = new ComputeShaderPass
+                           var pass = new ComputeShaderPass(filter.Name, kernelCode) // Now uses kernelCode from FilterService
                             {
-                                Id = Guid.NewGuid(),
-                                KernelName = filter.Name,
-                                KernelSource = kernelCode, // Now uses kernelCode from FilterService
-                                InputImages = new List<GpuImage> { currentImage },
-                                OutputImage = new GpuImage(currentImage.Width, currentImage.Height, currentImage.Channels),
-                                Parameters = filter.Parameters.ToDictionary(p => p.Name, p => p.Value)
+                                OutputImage = new GpuImageProcessing.Domain.Image(currentImage.Width, currentImage.Height, currentImage.Channels)
                             };
+                            pass.InputImages.Add(currentImage);
+                            foreach (var p in filter.Parameters.ToDictionary(p => p.Name, p => (object)p.Value))
+                                pass.Parameters[p.Key] = p.Value;
                             passes.Add(pass);
                             _logger.LogDebug("Added filter pass: {FilterName} for image {ImageId}.", filter.Name, imageId);
                         }
@@ -172,15 +173,13 @@ namespace GpuImageProcessing.Core.Services
                         var kernelCode = await _transformService.GetKernelCodeAsync(transform.Type);
                         if (!string.IsNullOrEmpty(kernelCode))
                         {
-                            var pass = new ComputeShaderPass
+                            var pass = new ComputeShaderPass(transform.Name, kernelCode) // Now uses kernelCode from TransformService
                             {
-                                Id = Guid.NewGuid(),
-                                KernelName = transform.Name,
-                                KernelSource = kernelCode, // Now uses kernelCode from TransformService
-                                InputImages = new List<GpuImage> { currentImage },
-                                OutputImage = new GpuImage(currentImage.Width, currentImage.Height, currentImage.Channels),
-                                Parameters = transform.Parameters
+                                OutputImage = new GpuImageProcessing.Domain.Image(currentImage.Width, currentImage.Height, currentImage.Channels)
                             };
+                            pass.InputImages.Add(currentImage);
+                            foreach (var p in transform.Parameters)
+                                pass.Parameters[p.Key] = p.Value;
                             passes.Add(pass);
                             _logger.LogDebug("Added transform pass: {TransformName} for image {ImageId}.", transform.Name, imageId);
                         }
@@ -228,15 +227,56 @@ namespace GpuImageProcessing.Core.Services
 
                 stopwatch.Stop();
                 _logger.LogInformation("Successfully processed image {ImageId} in {ElapsedMs:F1} ms.", imageId, stopwatch.ElapsedMilliseconds);
+                RecordResult(imageId, processingResult);
                 return processingResult;
             }
             catch (Exception ex)
             {
                 stopwatch.Stop();
                 _logger.LogError(ex, "Processing failed for image {ImageId}.", imageId);
-                return ProcessingResult.CreateFailure(Guid.Empty, imageId, sourceImage.FilePath,
+                var failureResult = ProcessingResult.CreateFailure(Guid.Empty, imageId, sourceImage.FilePath,
                     $"Processing failed: {ex.Message}");
+                RecordResult(imageId, failureResult);
+                return failureResult;
             }
+        }
+
+        /// <summary>
+        /// Applies a single filter to an image and returns the processing result.
+        /// </summary>
+        public Task<ProcessingResult> ApplyFilterAsync(Guid imageId, Guid filterId)
+        {
+            return ProcessImageAsync(imageId, new List<Guid> { filterId }, new List<Guid>(), null);
+        }
+
+        /// <summary>
+        /// Applies a single transform to an image and returns the processing result.
+        /// </summary>
+        public Task<ProcessingResult> ApplyTransformAsync(Guid imageId, Guid transformId)
+        {
+            return ProcessImageAsync(imageId, new List<Guid>(), new List<Guid> { transformId }, null);
+        }
+
+        /// <summary>
+        /// Gets the history of processing results recorded for an image.
+        /// </summary>
+        public Task<List<ProcessingResult>> GetProcessingResultsAsync(Guid imageId)
+        {
+            var results = _resultsHistory.TryGetValue(imageId, out var history)
+                ? new List<ProcessingResult>(history)
+                : new List<ProcessingResult>();
+            return Task.FromResult(results);
+        }
+
+        private void RecordResult(Guid imageId, ProcessingResult result)
+        {
+            if (!_resultsHistory.TryGetValue(imageId, out var history))
+            {
+                history = new List<ProcessingResult>();
+                _resultsHistory[imageId] = history;
+            }
+
+            history.Add(result);
         }
 
         /// <summary>

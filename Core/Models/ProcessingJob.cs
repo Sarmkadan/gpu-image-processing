@@ -10,6 +10,8 @@ using GpuImageProcessing.Core.Constants;
 
 namespace GpuImageProcessing.Core.Models
 {
+    using ProcessingStatus = GpuImageProcessing.Core.Constants.ProcessingStatus;
+
     /// <summary>
     /// Represents a batch processing job that applies multiple filters and transforms to images
     /// </summary>
@@ -32,6 +34,20 @@ namespace GpuImageProcessing.Core.Models
         public string OutputDirectory { get; set; } = string.Empty;
         public Dictionary<string, string> JobMetadata { get; set; } = new();
         public string? ErrorMessage { get; set; }
+
+        /// <summary>Alias for <see cref="FilterIds"/>.</summary>
+        public List<Guid> Filters
+        {
+            get => FilterIds;
+            set => FilterIds = value;
+        }
+
+        /// <summary>Alias for <see cref="TransformIds"/>.</summary>
+        public List<Guid> Transforms
+        {
+            get => TransformIds;
+            set => TransformIds = value;
+        }
 
         /// <summary>
         /// Initializes a new instance of the ProcessingJob class
@@ -139,6 +155,9 @@ namespace GpuImageProcessing.Core.Models
             var secondsRemaining = remaining / rate;
             return TimeSpan.FromSeconds(secondsRemaining);
         }
+
+        /// <summary>Convenience accessor for <see cref="EstimateRemainingTime"/>.</summary>
+        public TimeSpan? EstimatedCompletionTime => EstimateRemainingTime();
 
         /// <summary>
         /// Adds metadata to the job

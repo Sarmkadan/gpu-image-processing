@@ -59,7 +59,7 @@ public class BatchProcessingServiceTests
     public async Task ProcessBatchAsync_NullBatch_ThrowsArgumentNullException()
     {
         // Act & Assert
-        await _sut.ProcessBatchAsync(null!).Should().ThrowAsync<ArgumentNullException>();
+        await _sut.Invoking(s => s.ProcessBatchAsync(null!)).Should().ThrowAsync<ArgumentNullException>();
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public class BatchProcessingServiceTests
         // Missing images and filters
 
         // Act & Assert
-        await _sut.ProcessBatchAsync(batch).Should().ThrowAsync<ProcessingException>();
+        await _sut.Invoking(s => s.ProcessBatchAsync(batch)).Should().ThrowAsync<ProcessingException>();
     }
 
     [Fact]
@@ -202,7 +202,7 @@ public class BatchProcessingServiceTests
     public async Task CreateBatchAsync_EmptyImageIds_ThrowsArgumentException()
     {
         // Act & Assert
-        await _sut.CreateBatchAsync([], [Guid.NewGuid()], "Test", "/output")
+        await _sut.Invoking(s => s.CreateBatchAsync([], [Guid.NewGuid()], "Test", "/output"))
             .Should().ThrowAsync<ArgumentException>()
             .WithMessage("*Images and filters are required*");
     }
@@ -211,7 +211,7 @@ public class BatchProcessingServiceTests
     public async Task CreateBatchAsync_EmptyFilterIds_ThrowsArgumentException()
     {
         // Act & Assert
-        await _sut.CreateBatchAsync([Guid.NewGuid()], [], "Test", "/output")
+        await _sut.Invoking(s => s.CreateBatchAsync([Guid.NewGuid()], [], "Test", "/output"))
             .Should().ThrowAsync<ArgumentException>()
             .WithMessage("*Images and filters are required*");
     }

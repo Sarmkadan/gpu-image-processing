@@ -18,6 +18,51 @@ namespace GpuImageProcessing.Formatters
     /// </summary>
     public class MarkdownResultFormatter : IResultFormatter
     {
+        public string GetFileExtension() => ".md";
+
+        public string GetMimeType() => "text/markdown";
+
+        public string FormatResult(ProcessingResult result) => Format(new List<ProcessingResult> { result });
+
+        public string FormatResults(List<ProcessingResult> results) => Format(results);
+
+        public string FormatJob(ProcessingJob job)
+        {
+            var md = new StringBuilder();
+            md.AppendLine($"## Job: {job.Name}");
+            md.AppendLine();
+            md.AppendLine($"- **Status:** {job.Status}");
+            md.AppendLine($"- **Progress:** {job.ProcessedImages}/{job.TotalImages} ({job.ProgressPercentage:F1}%)");
+            if (!string.IsNullOrEmpty(job.ErrorMessage))
+                md.AppendLine($"- **Error:** {EscapeMarkdown(job.ErrorMessage)}");
+            return md.ToString();
+        }
+
+        public string FormatDevice(DeviceInfo device)
+        {
+            var md = new StringBuilder();
+            md.AppendLine($"## Device: {device.Name}");
+            md.AppendLine();
+            md.AppendLine($"- **Vendor:** {device.Vendor}");
+            md.AppendLine($"- **Type:** {device.DeviceType}");
+            md.AppendLine($"- **Available:** {device.IsAvailable}");
+            md.AppendLine($"- **Global Memory:** {FormatBytes(device.GlobalMemoryBytes)}");
+            return md.ToString();
+        }
+
+        public string FormatError(string errorMessage, string? errorCode = null, Exception? exception = null)
+        {
+            var md = new StringBuilder();
+            md.AppendLine("## Error");
+            md.AppendLine();
+            md.AppendLine($"- **Message:** {EscapeMarkdown(errorMessage)}");
+            if (!string.IsNullOrEmpty(errorCode))
+                md.AppendLine($"- **Code:** {errorCode}");
+            if (exception != null)
+                md.AppendLine($"- **Exception:** {EscapeMarkdown(exception.ToString())}");
+            return md.ToString();
+        }
+
         public string Format(List<ProcessingResult> results)
         {
             var md = new StringBuilder();
@@ -38,7 +83,7 @@ namespace GpuImageProcessing.Formatters
             md.AppendLine();
             md.AppendLine($"- **Total Operations:** {results.Count}");
 
-            var successCount = results.Count(r => r.Success);
+            var successCount = results.Count(r => r.IsSuccessful);
             var failureCount = results.Count - successCount;
             var successRate = (successCount / (double)results.Count) * 100;
 
@@ -47,9 +92,9 @@ namespace GpuImageProcessing.Formatters
             md.AppendLine();
 
             // Statistics section
-            var totalDuration = results.Sum(r => r.DurationMilliseconds);
-            var avgDuration = results.Average(r => r.DurationMilliseconds);
-            var totalOutputSize = results.Sum(r => r.OutputSizeBytes);
+            var totalDuration = results.Sum(r => r.ProcessingTimeMs);
+            var avgDuration = results.Average(r => r.ProcessingTimeMs);
+            var totalOutputSize = results.Sum(r => r.OutputFileSizeBytes);
 
             md.AppendLine("## Performance Metrics");
             md.AppendLine();
@@ -57,8 +102,8 @@ namespace GpuImageProcessing.Formatters
             md.AppendLine("|--------|-------|");
             md.AppendLine($"| Total Duration | {totalDuration:F2}ms |");
             md.AppendLine($"| Average Duration | {avgDuration:F2}ms |");
-            md.AppendLine($"| Min Duration | {results.Min(r => r.DurationMilliseconds):F2}ms |");
-            md.AppendLine($"| Max Duration | {results.Max(r => r.DurationMilliseconds):F2}ms |");
+            md.AppendLine($"| Min Duration | {results.Min(r => r.ProcessingTimeMs):F2}ms |");
+            md.AppendLine($"| Max Duration | {results.Max(r => r.ProcessingTimeMs):F2}ms |");
             md.AppendLine($"| Total Output Size | {FormatBytes(totalOutputSize)} |");
             md.AppendLine();
 
@@ -70,19 +115,19 @@ namespace GpuImageProcessing.Formatters
 
             foreach (var result in results)
             {
-                var status = result.Success ? "✓ Success" : "✗ Failed";
+                var status = result.IsSuccessful ? "✓ Success" : "✗ Failed";
                 md.AppendLine($"| {result.Id} " +
                             $"| {result.ImageId} " +
-                            $"| {EscapeMarkdown(result.OperationName)} " +
+                            $"| {EscapeMarkdown(GetOperationLabel(result))} " +
                             $"| {status} " +
-                            $"| {result.DurationMilliseconds:F2} " +
-                            $"| {FormatBytes(result.OutputSizeBytes)} |");
+                            $"| {result.ProcessingTimeMs:F2} " +
+                            $"| {FormatBytes(result.OutputFileSizeBytes)} |");
             }
 
             md.AppendLine();
 
             // Errors section
-            var failedResults = results.Where(r => !r.Success).ToList();
+            var failedResults = results.Where(r => !r.IsSuccessful).ToList();
             if (failedResults.Any())
             {
                 md.AppendLine("## Errors");
@@ -90,7 +135,7 @@ namespace GpuImageProcessing.Formatters
 
                 foreach (var result in failedResults)
                 {
-                    md.AppendLine($"### Operation: {EscapeMarkdown(result.OperationName)}");
+                    md.AppendLine($"### Operation: {EscapeMarkdown(GetOperationLabel(result))}");
                     md.AppendLine($"- **ID:** {result.Id}");
                     md.AppendLine($"- **Image ID:** {result.ImageId}");
                     md.AppendLine($"- **Error:** {EscapeMarkdown(result.ErrorMessage)}");
@@ -102,12 +147,12 @@ namespace GpuImageProcessing.Formatters
             md.AppendLine("## Operations Breakdown");
             md.AppendLine();
 
-            var operationGroups = results.GroupBy(r => r.OperationName);
+            var operationGroups = results.GroupBy(r => GetOperationLabel(r));
             foreach (var group in operationGroups)
             {
                 var count = group.Count();
-                var successes = group.Count(r => r.Success);
-                var avgDur = group.Average(r => r.DurationMilliseconds);
+                var successes = group.Count(r => r.IsSuccessful);
+                var avgDur = group.Average(r => r.ProcessingTimeMs);
 
                 md.AppendLine($"- **{EscapeMarkdown(group.Key)}**");
                 md.AppendLine($"  - Count: {count}");
@@ -137,6 +182,12 @@ namespace GpuImageProcessing.Formatters
                 .Replace("_", "\\_")
                 .Replace("<", "&lt;")
                 .Replace(">", "&gt;");
+        }
+
+        private static string GetOperationLabel(ProcessingResult result)
+        {
+            var operations = result.AppliedFilters.Concat(result.AppliedTransforms).ToList();
+            return operations.Count > 0 ? string.Join(", ", operations) : "N/A";
         }
 
         private string FormatBytes(long bytes)

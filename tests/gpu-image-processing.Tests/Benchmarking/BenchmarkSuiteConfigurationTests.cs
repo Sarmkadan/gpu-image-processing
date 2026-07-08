@@ -5,6 +5,7 @@
 // =============================================================================
 
 using FluentAssertions;
+using Xunit;
 using GpuImageProcessing.Benchmarking;
 
 namespace GpuImageProcessing.Tests.Benchmarking;

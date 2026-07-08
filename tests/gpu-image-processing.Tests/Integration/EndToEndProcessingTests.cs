@@ -159,7 +159,7 @@ public class EndToEndProcessingTests
         };
 
         // Act & Assert
-        await _filterService.CreateFilterAsync(invalidFilter)
+        await _filterService.Invoking(s => s.CreateFilterAsync(invalidFilter))
             .Should().ThrowAsync<InvalidFilterException>();
     }
 
@@ -185,7 +185,7 @@ public class EndToEndProcessingTests
             CreateValidFilter("Blur", FilterType.Blur));
 
         // Act & Assert
-        await _filterService.ApplyFilterAsync(savedImage, validFilter.Id)
+        await _filterService.Invoking(s => s.ApplyFilterAsync(savedImage, validFilter.Id))
             .Should().ThrowAsync<InvalidImageException>();
     }
 
@@ -355,7 +355,7 @@ public class EndToEndProcessingTests
         var invalidFilterId = Guid.NewGuid();
 
         // Act & Assert
-        await _filterService.ApplyFilterAsync(image, invalidFilterId)
+        await _filterService.Invoking(s => s.ApplyFilterAsync(image, invalidFilterId))
             .Should().ThrowAsync<InvalidFilterException>();
     }
 
@@ -379,7 +379,7 @@ public class EndToEndProcessingTests
         {
             ImageId = Guid.NewGuid(),
             IsSuccessful = true,
-            OutputFilePath = "/output/image.png"
+            OutputPath = "/output/image.png"
         };
 
         // Act

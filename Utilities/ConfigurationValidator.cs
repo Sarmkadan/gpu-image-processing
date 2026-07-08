@@ -19,7 +19,7 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Validates required configuration keys are present
         /// </summary>
-        public static ValidationResult ValidateConfiguration(Dictionary<string, string> config, params string[] requiredKeys)
+        public static ConfigurationValidationResult ValidateConfiguration(Dictionary<string, string> config, params string[] requiredKeys)
         {
             var missingKeys = new List<string>();
 
@@ -31,124 +31,124 @@ namespace GpuImageProcessing.Utilities
 
             if (missingKeys.Count > 0)
             {
-                return ValidationResult.Failure(
+                return ConfigurationValidationResult.Failure(
                     $"Missing required configuration keys: {string.Join(", ", missingKeys)}"
                 );
             }
 
-            return ValidationResult.Success();
+            return ConfigurationValidationResult.Success();
         }
 
         /// <summary>
         /// Validates an integer configuration value is within bounds
         /// </summary>
-        public static ValidationResult ValidateIntegerRange(
+        public static ConfigurationValidationResult ValidateIntegerRange(
             string value,
             int minimum,
             int maximum,
             string parameterName)
         {
             if (!int.TryParse(value, out var intValue))
-                return ValidationResult.Failure($"{parameterName} must be a valid integer");
+                return ConfigurationValidationResult.Failure($"{parameterName} must be a valid integer");
 
             if (intValue < minimum || intValue > maximum)
-                return ValidationResult.Failure(
+                return ConfigurationValidationResult.Failure(
                     $"{parameterName} must be between {minimum} and {maximum}, got {intValue}"
                 );
 
-            return ValidationResult.Success();
+            return ConfigurationValidationResult.Success();
         }
 
         /// <summary>
         /// Validates a timeout duration is reasonable
         /// </summary>
-        public static ValidationResult ValidateTimeout(
+        public static ConfigurationValidationResult ValidateTimeout(
             TimeSpan timeout,
             TimeSpan minimum,
             TimeSpan maximum,
             string parameterName = "Timeout")
         {
             if (timeout < minimum)
-                return ValidationResult.Failure(
+                return ConfigurationValidationResult.Failure(
                     $"{parameterName} ({timeout.TotalSeconds:F1}s) is below minimum ({minimum.TotalSeconds:F1}s)"
                 );
 
             if (timeout > maximum)
-                return ValidationResult.Failure(
+                return ConfigurationValidationResult.Failure(
                     $"{parameterName} ({timeout.TotalSeconds:F1}s) exceeds maximum ({maximum.TotalSeconds:F1}s)"
                 );
 
-            return ValidationResult.Success();
+            return ConfigurationValidationResult.Success();
         }
 
         /// <summary>
         /// Validates batch size is reasonable
         /// </summary>
-        public static ValidationResult ValidateBatchSize(int batchSize)
+        public static ConfigurationValidationResult ValidateBatchSize(int batchSize)
         {
             if (batchSize <= 0)
-                return ValidationResult.Failure("Batch size must be positive");
+                return ConfigurationValidationResult.Failure("Batch size must be positive");
 
             if (batchSize > 10000)
-                return ValidationResult.Failure("Batch size exceeds maximum of 10000");
+                return ConfigurationValidationResult.Failure("Batch size exceeds maximum of 10000");
 
-            return ValidationResult.Success();
+            return ConfigurationValidationResult.Success();
         }
 
         /// <summary>
         /// Validates memory size specification
         /// </summary>
-        public static ValidationResult ValidateMemorySize(string sizeSpec, long minimumBytes)
+        public static ConfigurationValidationResult ValidateMemorySize(string sizeSpec, long minimumBytes)
         {
             try
             {
                 var bytes = DataConversionUtilities.ParseFileSize(sizeSpec);
                 if (bytes < minimumBytes)
-                    return ValidationResult.Failure(
+                    return ConfigurationValidationResult.Failure(
                         $"Memory size ({sizeSpec}) is below minimum ({DataConversionUtilities.FormatFileSize(minimumBytes)})"
                     );
 
-                return ValidationResult.Success();
+                return ConfigurationValidationResult.Success();
             }
             catch (Exception ex)
             {
-                return ValidationResult.Failure($"Invalid memory size specification: {ex.Message}");
+                return ConfigurationValidationResult.Failure($"Invalid memory size specification: {ex.Message}");
             }
         }
 
         /// <summary>
         /// Validates a URL is properly formatted
         /// </summary>
-        public static ValidationResult ValidateUrl(string url)
+        public static ConfigurationValidationResult ValidateUrl(string url)
         {
             if (string.IsNullOrWhiteSpace(url))
-                return ValidationResult.Failure("URL cannot be empty");
+                return ConfigurationValidationResult.Failure("URL cannot be empty");
 
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
-                return ValidationResult.Failure($"Invalid URL format: {url}");
+                return ConfigurationValidationResult.Failure($"Invalid URL format: {url}");
 
             if (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps)
-                return ValidationResult.Failure("URL must use HTTP or HTTPS protocol");
+                return ConfigurationValidationResult.Failure("URL must use HTTP or HTTPS protocol");
 
-            return ValidationResult.Success();
+            return ConfigurationValidationResult.Success();
         }
 
         /// <summary>
         /// Validates environment variable is set
         /// </summary>
-        public static ValidationResult ValidateEnvironmentVariable(string variableName, bool required = true)
+        public static ConfigurationValidationResult ValidateEnvironmentVariable(string variableName, bool required = true)
         {
             var value = Environment.GetEnvironmentVariable(variableName);
 
             if (string.IsNullOrWhiteSpace(value))
             {
                 if (required)
-                    return ValidationResult.Failure($"Required environment variable '{variableName}' is not set");
+                    return ConfigurationValidationResult.Failure($"Required environment variable '{variableName}' is not set");
 
-                return ValidationResult.Success();
+                return ConfigurationValidationResult.Success();
             }
 
-            return ValidationResult.Success();
+            return ConfigurationValidationResult.Success();
         }
 
         /// <summary>
@@ -195,7 +195,7 @@ namespace GpuImageProcessing.Utilities
             var errors = new List<ConfigurationValidationError>();
 
             // Validate common configuration patterns
-            var validationRules = new[]
+            var validationRules = new (string Key, Func<string, bool> Validator)[]
             {
                 ("MaxBatchSize", (string v) => int.TryParse(v, out var i) && i > 0 && i <= 10000),
                 ("TimeoutSeconds", (string v) => int.TryParse(v, out var i) && i > 0 && i <= 3600),
@@ -223,13 +223,13 @@ namespace GpuImageProcessing.Utilities
         }
     }
 
-    public class ValidationResult
+    public class ConfigurationValidationResult
     {
         public bool IsValid { get; set; }
         public string Message { get; set; }
 
-        public static ValidationResult Success() => new() { IsValid = true };
-        public static ValidationResult Failure(string message) => new() { IsValid = false, Message = message };
+        public static ConfigurationValidationResult Success() => new() { IsValid = true };
+        public static ConfigurationValidationResult Failure(string message) => new() { IsValid = false, Message = message };
     }
 
     public class ConfigurationValidationError

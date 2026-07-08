@@ -33,6 +33,20 @@ namespace GpuImageProcessing.Core.Models
         public bool SupportsDoublePrecision { get; set; }
         public string? Extensions_String { get; set; }
 
+        /// <summary>Alias for <see cref="DeviceType"/>.</summary>
+        public string Type
+        {
+            get => DeviceType;
+            set => DeviceType = value;
+        }
+
+        /// <summary>Alias for <see cref="GlobalMemoryBytes"/>.</summary>
+        public long MemoryBytes
+        {
+            get => GlobalMemoryBytes;
+            set => GlobalMemoryBytes = value;
+        }
+
         /// <summary>
         /// Initializes a new instance of the DeviceInfo class
         /// </summary>

@@ -36,7 +36,7 @@ public sealed class FilterChainBuilder
     private readonly string _name;
     private string _description = string.Empty;
     private bool _allowParallel;
-    private int _maxParallelSteps = Constants.Processing.DefaultThreadCount;
+    private int _maxParallelSteps = AppConstants.Processing.DefaultThreadCount;
     private bool _cacheIntermediates;
     private int _executionOrder;
 
@@ -81,14 +81,14 @@ public sealed class FilterChainBuilder
     /// Allows independent steps to be dispatched in parallel on the GPU.
     /// </summary>
     /// <param name="maxParallelSteps">
-    /// Maximum concurrent steps. Clamped to [1, <see cref="Constants.Processing.DefaultThreadCount"/> × 4].
+    /// Maximum concurrent steps. Clamped to [1, <see cref="AppConstants.Processing.DefaultThreadCount"/> × 4].
     /// </param>
     public FilterChainBuilder AllowParallelExecution(int maxParallelSteps = 0)
     {
         _allowParallel = true;
         _maxParallelSteps = maxParallelSteps > 0
-            ? Math.Clamp(maxParallelSteps, 1, Constants.Processing.DefaultThreadCount * 4)
-            : Constants.Processing.DefaultThreadCount;
+            ? Math.Clamp(maxParallelSteps, 1, AppConstants.Processing.DefaultThreadCount * 4)
+            : AppConstants.Processing.DefaultThreadCount;
         return this;
     }
 
@@ -107,18 +107,18 @@ public sealed class FilterChainBuilder
 
     /// <summary>Appends a Gaussian blur step.</summary>
     /// <param name="radius">Blur radius in pixels (0.5 – 50.0). Defaults to the system default.</param>
-    public FilterChainBuilder AddBlur(float radius = Constants.Filters.DefaultBlurRadius)
+    public FilterChainBuilder AddBlur(float radius = AppConstants.Filters.DefaultBlurRadius)
     {
-        if (radius < Constants.Filters.MinKernelRadius || radius > Constants.Filters.MaxKernelRadius)
+        if (radius < AppConstants.Filters.MinKernelRadius || radius > AppConstants.Filters.MaxKernelRadius)
             throw new ArgumentOutOfRangeException(nameof(radius),
-                $"Blur radius must be between {Constants.Filters.MinKernelRadius} and {Constants.Filters.MaxKernelRadius}.");
+                $"Blur radius must be between {AppConstants.Filters.MinKernelRadius} and {AppConstants.Filters.MaxKernelRadius}.");
 
         return AddStep(FilterType.Blur, estimatedMs: 5.0 + radius * 0.5);
     }
 
     /// <summary>Appends a sharpening step.</summary>
     /// <param name="strength">Sharpening strength (0.0 – 10.0). Defaults to the system default.</param>
-    public FilterChainBuilder AddSharpen(float strength = Constants.Filters.DefaultSharpenStrength)
+    public FilterChainBuilder AddSharpen(float strength = AppConstants.Filters.DefaultSharpenStrength)
     {
         if (strength < 0.0f || strength > 10.0f)
             throw new ArgumentOutOfRangeException(nameof(strength),
@@ -133,7 +133,7 @@ public sealed class FilterChainBuilder
 
     /// <summary>Appends a color correction step.</summary>
     /// <param name="brightness">Brightness delta (-1.0 – 1.0).</param>
-    public FilterChainBuilder AddColorCorrection(float brightness = Constants.Filters.DefaultBrightnessAdjustment)
+    public FilterChainBuilder AddColorCorrection(float brightness = AppConstants.Filters.DefaultBrightnessAdjustment)
     {
         if (brightness < -1.0f || brightness > 1.0f)
             throw new ArgumentOutOfRangeException(nameof(brightness),

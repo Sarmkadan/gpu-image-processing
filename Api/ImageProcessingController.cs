@@ -158,7 +158,7 @@ namespace GpuImageProcessing.Api
                     imageIds,
                     filterIds,
                     transformIds,
-                    profileId
+                    profileId ?? Guid.Empty
                 );
 
                 return ApiResponse<BatchJobMetadata>.Success(new BatchJobMetadata

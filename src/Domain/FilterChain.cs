@@ -4,6 +4,8 @@
 // CTO & Software Architect
 // =============================================================================
 
+using GpuImageProcessing.Core;
+
 namespace GpuImageProcessing.Domain;
 
 /// <summary>
@@ -30,7 +32,7 @@ public class FilterChain
         IsEnabled = true;
         CreatedAt = DateTime.UtcNow;
         ModifiedAt = DateTime.UtcNow;
-        MaxParallelSteps = Constants.Processing.DefaultThreadCount;
+        MaxParallelSteps = AppConstants.Processing.DefaultThreadCount;
     }
 
     /// <summary>
@@ -112,7 +114,7 @@ public class FilterChain
         if (GetEnabledSteps().Count == 0)
             return false;
 
-        if (AllowParallelExecution && MaxParallelSteps is < 1 or > Constants.Processing.DefaultThreadCount * 4)
+        if (AllowParallelExecution && MaxParallelSteps is < 1 or > AppConstants.Processing.DefaultThreadCount * 4)
             return false;
 
         return true;

@@ -8,9 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using GpuImageProcessing.Core;
 using GpuImageProcessing.Core.Exceptions;
 using GpuImageProcessing.Core.Models;
-using GpuImageProcessing.Core.Enums;
 using GpuImageProcessing.Services;
 using Microsoft.Extensions.Logging;
 
@@ -109,7 +109,7 @@ namespace GpuImageProcessing.Core.Services
                 OpenCLVersion = gpuDevice.Version,
                 DriverVersion = gpuDevice.Driver,
                 IsAvailable = gpuDevice.IsAvailable,
-                ClockFrequencyMHz = gpuDevice.MaxClockFrequencyMhz,
+                ClockFrequencyMHz = (float)gpuDevice.MaxClockFrequencyMhz,
                 SupportsDoublePrecision = gpuDevice.SupportsDoublePrecision
             };
         }

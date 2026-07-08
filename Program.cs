@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using GpuImageProcessing.Core.Configuration;
 using GpuImageProcessing.Core.Constants;
+using GpuImageProcessing.Core.Models;
 using GpuImageProcessing.Core.Services;
 
 namespace GpuImageProcessing

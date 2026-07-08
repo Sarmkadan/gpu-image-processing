@@ -4,6 +4,8 @@
 // CTO & Software Architect
 // =============================================================================
 
+using GpuImageProcessing.Core;
+
 namespace GpuImageProcessing.Domain;
 
 /// <summary>
@@ -42,7 +44,7 @@ public class ImageBatch
         if (ImageIds.Contains(imageId))
             return false;
 
-        if (ImageIds.Count >= Constants.Processing.MaxBatchSize)
+        if (ImageIds.Count >= AppConstants.Processing.MaxBatchSize)
             return false;
 
         ImageIds.Add(imageId);

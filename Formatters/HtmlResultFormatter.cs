@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using GpuImageProcessing.Core.Models;
 
@@ -17,6 +18,54 @@ namespace GpuImageProcessing.Formatters
     /// </summary>
     public class HtmlResultFormatter : IResultFormatter
     {
+        public string GetFileExtension() => ".html";
+
+        public string GetMimeType() => "text/html";
+
+        public string FormatResult(ProcessingResult result) => Format(new List<ProcessingResult> { result });
+
+        public string FormatResults(List<ProcessingResult> results) => Format(results);
+
+        public string FormatJob(ProcessingJob job)
+        {
+            var html = new StringBuilder();
+            html.AppendLine("<div class=\"job\">");
+            html.AppendLine($"  <h2>Job: {job.Name}</h2>");
+            html.AppendLine($"  <p>Status: {job.Status}</p>");
+            html.AppendLine($"  <p>Progress: {job.ProcessedImages}/{job.TotalImages} ({job.ProgressPercentage:F1}%)</p>");
+            if (!string.IsNullOrEmpty(job.ErrorMessage))
+                html.AppendLine($"  <p class=\"error\">Error: {job.ErrorMessage}</p>");
+            html.AppendLine("</div>");
+            return html.ToString();
+        }
+
+        public string FormatDevice(DeviceInfo device)
+        {
+            var html = new StringBuilder();
+            html.AppendLine("<div class=\"device\">");
+            html.AppendLine($"  <h2>Device: {device.Name}</h2>");
+            html.AppendLine($"  <p>Vendor: {device.Vendor}</p>");
+            html.AppendLine($"  <p>Type: {device.DeviceType}</p>");
+            html.AppendLine($"  <p>Available: {device.IsAvailable}</p>");
+            html.AppendLine($"  <p>Global Memory: {FormatBytes(device.GlobalMemoryBytes)}</p>");
+            html.AppendLine("</div>");
+            return html.ToString();
+        }
+
+        public string FormatError(string errorMessage, string? errorCode = null, Exception? exception = null)
+        {
+            var html = new StringBuilder();
+            html.AppendLine("<div class=\"error-report\">");
+            html.AppendLine($"  <h2>Error</h2>");
+            html.AppendLine($"  <p>{errorMessage}</p>");
+            if (!string.IsNullOrEmpty(errorCode))
+                html.AppendLine($"  <p>Code: {errorCode}</p>");
+            if (exception != null)
+                html.AppendLine($"  <pre>{exception}</pre>");
+            html.AppendLine("</div>");
+            return html.ToString();
+        }
+
         public string Format(List<ProcessingResult> results)
         {
             var html = new StringBuilder();
@@ -60,14 +109,14 @@ namespace GpuImageProcessing.Formatters
 
                 foreach (var result in results)
                 {
-                    var statusClass = result.Success ? "success" : "failure";
+                    var statusClass = result.IsSuccessful ? "success" : "failure";
                     html.AppendLine("        <tr class=\"" + statusClass + "\">");
                     html.AppendLine($"          <td>{result.Id}</td>");
                     html.AppendLine($"          <td>{result.ImageId}</td>");
-                    html.AppendLine($"          <td>{result.OperationName}</td>");
-                    html.AppendLine($"          <td><span class=\"status {statusClass}\">{(result.Success ? "✓ Success" : "✗ Failed")}</span></td>");
-                    html.AppendLine($"          <td>{result.DurationMilliseconds:F2}</td>");
-                    html.AppendLine($"          <td>{FormatBytes(result.OutputSizeBytes)}</td>");
+                    html.AppendLine($"          <td>{GetOperationLabel(result)}</td>");
+                    html.AppendLine($"          <td><span class=\"status {statusClass}\">{(result.IsSuccessful ? "✓ Success" : "✗ Failed")}</span></td>");
+                    html.AppendLine($"          <td>{result.ProcessingTimeMs:F2}</td>");
+                    html.AppendLine($"          <td>{FormatBytes(result.OutputFileSizeBytes)}</td>");
                     html.AppendLine("        </tr>");
 
                     if (!string.IsNullOrEmpty(result.ErrorMessage))
@@ -227,6 +276,12 @@ namespace GpuImageProcessing.Formatters
   </style>";
         }
 
+        private static string GetOperationLabel(ProcessingResult result)
+        {
+            var operations = result.AppliedFilters.Concat(result.AppliedTransforms).ToList();
+            return operations.Count > 0 ? string.Join(", ", operations) : "N/A";
+        }
+
         private string GenerateStatistics(List<ProcessingResult> results)
         {
             var successCount = 0;
@@ -236,13 +291,13 @@ namespace GpuImageProcessing.Formatters
 
             foreach (var result in results)
             {
-                if (result.Success)
+                if (result.IsSuccessful)
                     successCount++;
                 else
                     failureCount++;
 
-                totalDuration += result.DurationMilliseconds;
-                totalOutputSize += result.OutputSizeBytes;
+                totalDuration += result.ProcessingTimeMs;
+                totalOutputSize += result.OutputFileSizeBytes;
             }
 
             var successRate = (successCount / (double)results.Count) * 100;

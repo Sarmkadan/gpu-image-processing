@@ -13,6 +13,8 @@ using GpuImageProcessing.Core.Models;
 
 namespace GpuImageProcessing.Core.Repository
 {
+    using ProcessingStatus = GpuImageProcessing.Core.Constants.ProcessingStatus;
+
     /// <summary>
     /// Repository for processing job data access operations
     /// </summary>

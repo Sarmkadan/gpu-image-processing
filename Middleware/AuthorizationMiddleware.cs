@@ -15,7 +15,7 @@ namespace GpuImageProcessing.Middleware
     /// Authorization middleware for validating API keys and user permissions.
     /// Supports role-based access control (RBAC) and scope-based restrictions.
     /// </summary>
-    public class AuthorizationMiddleware : IProcessingMiddleware
+    public class AuthorizationMiddleware : IRequestMiddleware
     {
         private readonly List<ApiKey> _validKeys;
         private readonly Dictionary<string, UserRole> _userRoles;
@@ -43,7 +43,7 @@ namespace GpuImageProcessing.Middleware
             _userRoles[userId] = role;
         }
 
-        public async Task<MiddlewareResult> ProcessAsync(MiddlewareContext context)
+        public async Task<RequestMiddlewareResult> ProcessAsync(RequestMiddlewareContext context)
         {
             // Validate API key if provided
             if (!string.IsNullOrEmpty(context.ApiKey))
@@ -51,7 +51,7 @@ namespace GpuImageProcessing.Middleware
                 var apiKey = _validKeys.FirstOrDefault(k => k.Key == context.ApiKey && k.IsActive);
                 if (apiKey == null)
                 {
-                    return MiddlewareResult.Failure("Invalid or inactive API key");
+                    return RequestMiddlewareResult.Failure("Invalid or inactive API key");
                 }
 
                 context.UserId = apiKey.UserId;
@@ -59,7 +59,7 @@ namespace GpuImageProcessing.Middleware
                 // Check scope
                 if (!context.Scopes.All(s => apiKey.Scopes.Contains(s)))
                 {
-                    return MiddlewareResult.Failure("Insufficient scope for requested operation");
+                    return RequestMiddlewareResult.Failure("Insufficient scope for requested operation");
                 }
             }
 
@@ -71,11 +71,11 @@ namespace GpuImageProcessing.Middleware
                 // Check if role has required permissions
                 if (!CanPerformOperation(role, context.Operation))
                 {
-                    return MiddlewareResult.Failure($"Role {role} is not authorized for {context.Operation}");
+                    return RequestMiddlewareResult.Failure($"Role {role} is not authorized for {context.Operation}");
                 }
             }
 
-            return await Task.FromResult(MiddlewareResult.Success());
+            return await Task.FromResult(RequestMiddlewareResult.Success());
         }
 
         public int Order => 10;

@@ -19,21 +19,21 @@ namespace GpuImageProcessing.Events
     public class EventAggregator
     {
         private readonly Dictionary<string, List<EventSubscription>> _subscriptions;
-        private readonly Dictionary<string, Func<ProcessingEvent, Task>> _asyncHandlers;
+        private readonly Dictionary<string, Func<DomainEvent, Task>> _asyncHandlers;
         private readonly ReaderWriterLockSlim _subscriptionLock;
         private bool _disposed = false;
 
         public EventAggregator()
         {
             _subscriptions = new Dictionary<string, List<EventSubscription>>();
-            _asyncHandlers = new Dictionary<string, Func<ProcessingEvent, Task>>();
+            _asyncHandlers = new Dictionary<string, Func<DomainEvent, Task>>();
             _subscriptionLock = new ReaderWriterLockSlim();
         }
 
         /// <summary>
         /// Subscribes to events of a specific type
         /// </summary>
-        public IDisposable Subscribe<T>(Action<T> handler) where T : ProcessingEvent
+        public IDisposable Subscribe<T>(Action<T> handler) where T : DomainEvent
         {
             ThrowIfDisposed();
 
@@ -65,7 +65,7 @@ namespace GpuImageProcessing.Events
         /// <summary>
         /// Subscribes to events asynchronously
         /// </summary>
-        public IDisposable SubscribeAsync<T>(Func<T, Task> handler) where T : ProcessingEvent
+        public IDisposable SubscribeAsync<T>(Func<T, Task> handler) where T : DomainEvent
         {
             ThrowIfDisposed();
 
@@ -100,7 +100,7 @@ namespace GpuImageProcessing.Events
         /// <summary>
         /// Publishes an event to all subscribers
         /// </summary>
-        public async Task PublishAsync(ProcessingEvent @event)
+        public async Task PublishAsync(DomainEvent @event)
         {
             ThrowIfDisposed();
 
@@ -150,7 +150,7 @@ namespace GpuImageProcessing.Events
         /// <summary>
         /// Publishes an event synchronously
         /// </summary>
-        public void Publish(ProcessingEvent @event)
+        public void Publish(DomainEvent @event)
         {
             PublishAsync(@event).GetAwaiter().GetResult();
         }
@@ -213,16 +213,16 @@ namespace GpuImageProcessing.Events
             _subscriptionLock?.Dispose();
         }
 
-        private class EventSubscription
+        internal class EventSubscription
         {
             public Guid Id { get; set; }
             public string EventType { get; set; }
-            public Action<ProcessingEvent> Handler { get; set; }
+            public Action<DomainEvent> Handler { get; set; }
             public bool IsAsync { get; set; }
             public DateTime SubscribedAt { get; set; }
         }
 
-        private class EventSubscriptionDisposable : IDisposable
+        internal class EventSubscriptionDisposable : IDisposable
         {
             private readonly EventAggregator _aggregator;
             private readonly EventSubscription _subscription;
@@ -258,13 +258,13 @@ namespace GpuImageProcessing.Events
         public List<string> EventTypes { get; set; }
     }
 
-    public abstract class ProcessingEvent
+    public abstract class DomainEvent
     {
         public Guid Id { get; set; }
         public DateTime OccurredAt { get; set; }
         public string Source { get; set; }
 
-        protected ProcessingEvent()
+        protected DomainEvent()
         {
             Id = Guid.NewGuid();
             OccurredAt = DateTime.UtcNow;

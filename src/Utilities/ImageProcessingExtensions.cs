@@ -4,6 +4,9 @@
 // CTO & Software Architect
 // =============================================================================
 
+using GpuImageProcessing.Core;
+using GpuImageProcessing.Domain;
+
 namespace GpuImageProcessing.Utilities;
 
 /// <summary>
@@ -41,10 +44,10 @@ public static class ImageProcessingExtensions
     /// </summary>
     public static bool IsResolutionValid(this Image image)
     {
-        return image.Width >= Constants.Processing.MinImageWidth &&
-               image.Width <= Constants.Processing.MaxImageWidth &&
-               image.Height >= Constants.Processing.MinImageHeight &&
-               image.Height <= Constants.Processing.MaxImageHeight;
+        return image.Width >= AppConstants.Processing.MinImageWidth &&
+               image.Width <= AppConstants.Processing.MaxImageWidth &&
+               image.Height >= AppConstants.Processing.MinImageHeight &&
+               image.Height <= AppConstants.Processing.MaxImageHeight;
     }
 
     /// <summary>
@@ -125,7 +128,7 @@ public static class ImageProcessingExtensions
         {
             FilterType.Blur or FilterType.GaussianBlur => 2.5,
             FilterType.EdgeDetection or FilterType.Sobel => 2.0,
-            FilterType.MedianFilter => 3.0,
+            FilterType.Median => 3.0,
             FilterType.Rotation => 1.5,
             FilterType.Scaling => 1.8,
             _ => 1.0
@@ -208,7 +211,7 @@ public static class MetricsExtensions
     /// </summary>
     public static bool IsSlowdownDetected(this PerformanceMetrics metrics)
     {
-        return metrics.AverageExecutionTimeMs > Constants.Performance.SlowOperationThresholdMs ||
+        return metrics.AverageExecutionTimeMs > AppConstants.Performance.SlowOperationThresholdMs ||
                metrics.FailedOperationsCount > metrics.TotalOperationsCount * 0.1;
     }
 

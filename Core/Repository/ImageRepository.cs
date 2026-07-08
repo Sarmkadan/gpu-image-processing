@@ -13,6 +13,8 @@ using GpuImageProcessing.Core.Models;
 
 namespace GpuImageProcessing.Core.Repository
 {
+    using ImageFormat = GpuImageProcessing.Core.Constants.ImageFormat;
+
     /// <summary>
     /// Repository for image data access operations
     /// </summary>

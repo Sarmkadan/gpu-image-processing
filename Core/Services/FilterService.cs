@@ -15,6 +15,8 @@ using GpuImageProcessing.Core.Repository;
 
 namespace GpuImageProcessing.Core.Services
 {
+    using FilterType = GpuImageProcessing.Core.Constants.FilterType;
+
     /// <summary>
     /// Service for managing and applying image filters
     /// </summary>
@@ -62,6 +64,9 @@ namespace GpuImageProcessing.Core.Services
         {
             return await _filterRepository.GetAllAsync();
         }
+
+        /// <summary>Alias for <see cref="GetAllFiltersAsync"/>.</summary>
+        public Task<IEnumerable<Filter>> ListFiltersAsync() => GetAllFiltersAsync();
 
         /// <summary>
         /// Gets all active filters
