@@ -1,4 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>obj\gpu-image-processing.lib\</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin\gpu-image-processing.lib\</BaseOutputPath>
+  </PropertyGroup>
+
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
@@ -39,5 +46,7 @@
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
 </Project>

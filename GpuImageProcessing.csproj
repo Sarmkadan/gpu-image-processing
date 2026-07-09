@@ -1,4 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project>
+
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>obj\GpuImageProcessing\</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin\GpuImageProcessing\</BaseOutputPath>
+  </PropertyGroup>
+
+  <Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -21,12 +28,24 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Authors>Vladyslav Zaiets</Authors>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="benchmarks\**\*.cs" />
-    <Compile Remove="tests\**\*.cs" />
-    <Compile Remove="examples\**\*.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Events\**\*.cs" />
+    <Compile Include="Integration\**\*.cs" />
+    <Compile Include="Cli\**\*.cs" />
+    <Compile Include="Core\**\*.cs" />
+    <Compile Include="BackgroundWorkers\**\*.cs" />
+    <Compile Include="Middleware\**\*.cs" />
+    <Compile Include="Services\**\*.cs" />
+    <Compile Include="Api\**\*.cs" />
+    <Compile Include="Caching\**\*.cs" />
+    <Compile Include="Monitoring\**\*.cs" />
+    <Compile Include="Utilities\**\*.cs" />
+    <Compile Include="Formatters\**\*.cs" />
+    <Compile Include="src\**\*.cs" />
     <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
@@ -41,5 +60,7 @@
     <PackageReference Include="Silk.NET.OpenCL" Version="2.23.0" />
     <PackageReference Include="System.Diagnostics.PerformanceCounter" Version="9.0.0" />
   </ItemGroup>
+
+  <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
 </Project>
