@@ -65,18 +65,11 @@ public static class SimdFallbackExtensions
         var logger = provider.GetRequiredService<ILoggerFactory>()
             .CreateLogger(nameof(SimdFallbackExtensions));
 
-        if (simd.Capabilities.IsAnySimdAvailable)
-        {
-            logger.LogInformation(
-                "CPU SIMD fallback active — {Capabilities}",
-                simd.Capabilities);
-        }
-        else
-        {
-            logger.LogWarning(
-                "No SIMD extensions detected on this CPU. " +
-                "Fallback processing will use scalar code and may be slower.");
-        }
+        var message = simd.Capabilities.IsAnySimdAvailable
+            ? string.Format("CPU SIMD fallback active — {0}", simd.Capabilities)
+            : "No SIMD extensions detected on this CPU. Fallback processing will use scalar code and may be slower.";
+
+        logger.Log(simd.Capabilities.IsAnySimdAvailable ? LogLevel.Information : LogLevel.Warning, message);
 
         return provider;
     }
