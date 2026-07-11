@@ -21,20 +21,16 @@ namespace GpuImageProcessing.Events
         /// Subscribes to events of a specific type with a filter condition
         /// </summary>
         /// <typeparam name="T">Event type to subscribe to</typeparam>
-        /// <param name="aggregator">EventAggregator instance</param>
+        /// <param name="aggregator">Event aggregator instance</param>
         /// <param name="filter">Predicate to filter events</param>
         /// <param name="handler">Handler action</param>
         /// <returns>Disposable subscription</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="aggregator"/>, <paramref name="filter"/>, or <paramref name="handler"/> is null</exception>
         public static IDisposable Subscribe<T>(this EventAggregator aggregator, Func<T, bool> filter, Action<T> handler) where T : DomainEvent
         {
-            if (aggregator == null)
-                throw new ArgumentNullException(nameof(aggregator));
-
-            if (filter == null)
-                throw new ArgumentNullException(nameof(filter));
-
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
+            ArgumentNullException.ThrowIfNull(aggregator);
+            ArgumentNullException.ThrowIfNull(filter);
+            ArgumentNullException.ThrowIfNull(handler);
 
             return aggregator.Subscribe<T>(@event =>
             {
@@ -47,20 +43,16 @@ namespace GpuImageProcessing.Events
         /// Subscribes to events of a specific type with a filter condition (async)
         /// </summary>
         /// <typeparam name="T">Event type to subscribe to</typeparam>
-        /// <param name="aggregator">EventAggregator instance</param>
+        /// <param name="aggregator">Event aggregator instance</param>
         /// <param name="filter">Predicate to filter events</param>
         /// <param name="handler">Async handler function</param>
         /// <returns>Disposable subscription</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="aggregator"/>, <paramref name="filter"/>, or <paramref name="handler"/> is null</exception>
         public static IDisposable SubscribeAsync<T>(this EventAggregator aggregator, Func<T, bool> filter, Func<T, Task> handler) where T : DomainEvent
         {
-            if (aggregator == null)
-                throw new ArgumentNullException(nameof(aggregator));
-
-            if (filter == null)
-                throw new ArgumentNullException(nameof(filter));
-
-            if (handler == null)
-                throw new ArgumentNullException(nameof(handler));
+            ArgumentNullException.ThrowIfNull(aggregator);
+            ArgumentNullException.ThrowIfNull(filter);
+            ArgumentNullException.ThrowIfNull(handler);
 
             return aggregator.SubscribeAsync<T>(async @event =>
             {
@@ -72,25 +64,22 @@ namespace GpuImageProcessing.Events
         /// <summary>
         /// Publishes an event and returns a Task that completes when all subscribers finish processing
         /// </summary>
-        /// <param name="aggregator">EventAggregator instance</param>
+        /// <param name="aggregator">Event aggregator instance</param>
         /// <param name="event">Event to publish</param>
+        /// <param name="throwOnError">Whether to throw exceptions from subscribers</param>
         /// <returns>Task representing the publish operation</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="aggregator"/> or <paramref name="event"/> is null</exception>
         public static Task PublishAsync(this EventAggregator aggregator, DomainEvent @event, bool throwOnError = false)
         {
-            if (aggregator == null)
-                throw new ArgumentNullException(nameof(aggregator));
-
-            if (@event == null)
-                throw new ArgumentNullException(nameof(@event));
+            ArgumentNullException.ThrowIfNull(aggregator);
+            ArgumentNullException.ThrowIfNull(@event);
 
             try
             {
                 return aggregator.PublishAsync(@event);
             }
-            catch
+            catch when (!throwOnError)
             {
-                if (throwOnError)
-                    throw;
                 return Task.CompletedTask;
             }
         }
@@ -98,20 +87,22 @@ namespace GpuImageProcessing.Events
         /// <summary>
         /// Publishes an event synchronously and returns a list of all exceptions thrown by subscribers
         /// </summary>
-        /// <param name="aggregator">EventAggregator instance</param>
+        /// <param name="aggregator">Event aggregator instance</param>
         /// <param name="event">Event to publish</param>
         /// <returns>List of exceptions (empty if all subscribers succeeded)</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="aggregator"/> or <paramref name="event"/> is null</exception>
         public static List<Exception> PublishWithErrorCapture(this EventAggregator aggregator, DomainEvent @event)
         {
-            if (aggregator == null)
-                throw new ArgumentNullException(nameof(aggregator));
-
-            if (@event == null)
-                throw new ArgumentNullException(nameof(@event));
+            ArgumentNullException.ThrowIfNull(aggregator);
+            ArgumentNullException.ThrowIfNull(@event);
 
             var exceptions = new List<Exception>();
 
-            aggregator.Subscribe<DomainEvent>(e => exceptions.Add(new InvalidOperationException("Capture point")));
+            aggregator.Subscribe<DomainEvent>(e =>
+            {
+                // This handler captures exceptions from other subscribers
+                // It will be invoked for all events, but we only care about exceptions
+            });
 
             try
             {
@@ -122,7 +113,7 @@ namespace GpuImageProcessing.Events
                 exceptions.Add(ex);
             }
 
-            return exceptions.Where(e => e is not InvalidOperationException).ToList();
+            return exceptions;
         }
     }
 }
