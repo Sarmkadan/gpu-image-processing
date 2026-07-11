@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using FluentAssertions;
 using Xunit;
@@ -16,13 +16,37 @@ using Moq;
 
 namespace GpuImageProcessing.Tests.Pipeline;
 
+/// <summary>
+/// Unit tests for <see cref="BatchProcessingPipeline"/> class that verify batch image processing pipeline functionality.
+/// Tests cover error handling, success scenarios, progress reporting, retry logic,
+/// and constructor validation for the batch processing pipeline.
+/// </summary>
 public class BatchProcessingPipelineTests
 {
+    /// <summary>
+    /// Mock of <see cref="ImageProcessingService"/> used to simulate image processing operations.
+    /// </summary>
     private readonly Mock<ImageProcessingService> _processingServiceMock;
+
+    /// <summary>
+    /// Mock of <see cref="PerformanceMonitoringService"/> used to track performance metrics.
+    /// </summary>
     private readonly Mock<PerformanceMonitoringService> _performanceMonitorMock;
+
+    /// <summary>
+    /// Mock of <see cref="ILogger"/> for <see cref="BatchProcessingPipeline"/> used to verify logging behavior.
+    /// </summary>
     private readonly Mock<ILogger<BatchProcessingPipeline>> _loggerMock;
+
+    /// <summary>
+    /// System under test - the batch processing pipeline instance being tested.
+    /// </summary>
     private readonly BatchProcessingPipeline _sut;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BatchProcessingPipelineTests"/> class.
+    /// Sets up mock dependencies and creates a test instance of <see cref="BatchProcessingPipeline"/>.
+    /// </summary>
     public BatchProcessingPipelineTests()
     {
         _processingServiceMock = new Mock<ImageProcessingService>(
@@ -43,7 +67,7 @@ public class BatchProcessingPipelineTests
         {
             MaxConcurrency = 2,
             MaxRetries = 1,
-            RetryBaseDelayMs = 0   // no real delay in tests
+            RetryBaseDelayMs = 0 // no real delay in tests
         };
 
         _sut = new BatchProcessingPipeline(
@@ -53,6 +77,12 @@ public class BatchProcessingPipelineTests
             _loggerMock.Object);
     }
 
+    /// <summary>
+    /// Creates a valid <see cref="ImageBatch"/> for testing with the specified number of images.
+    /// </summary>
+    /// <param name="imageCount">Number of images to add to the batch. Defaults to 3.</param>
+    /// <param name="outputDir">Optional output directory path. If not provided, a temporary directory is created.</param>
+    /// <returns>A configured <see cref="ImageBatch"/> instance ready for pipeline testing.</returns>
     private static ImageBatch CreateValidBatch(int imageCount = 3, string? outputDir = null)
     {
         var dir = outputDir ?? Path.Combine(Path.GetTempPath(), $"pipeline-test-{Guid.NewGuid()}");
@@ -70,14 +100,21 @@ public class BatchProcessingPipelineTests
         return batch;
     }
 
+    /// <summary>
+    /// Tests that <see cref="BatchProcessingPipeline.RunAsync"/> throws <see cref="ArgumentNullException"/> when passed a null batch.
+    /// </summary>
     [Fact]
     public async Task RunAsync_NullBatch_ThrowsArgumentNullException()
     {
         await _sut.Invoking(s => s.RunAsync(null!))
-            .Should().ThrowAsync<ArgumentNullException>()
-            .WithParameterName("batch");
+        .Should().ThrowAsync<ArgumentNullException>()
+        .WithParameterName("batch");
     }
 
+    /// <summary>
+    /// Tests that <see cref="BatchProcessingPipeline.RunAsync"/> throws <see cref="ProcessingException"/> when passed an invalid batch.
+    /// An invalid batch has no images and no filters, causing validation to fail.
+    /// </summary>
     [Fact]
     public async Task RunAsync_InvalidBatch_ThrowsProcessingException()
     {
@@ -85,9 +122,13 @@ public class BatchProcessingPipelineTests
         // no images, no filters — fails Validate()
 
         await _sut.Invoking(s => s.RunAsync(batch))
-            .Should().ThrowAsync<ProcessingException>();
+        .Should().ThrowAsync<ProcessingException>();
     }
 
+    /// <summary>
+    /// Tests that <see cref="BatchProcessingPipeline.RunAsync"/> returns a full success result when all images are processed successfully.
+    /// Verifies that SucceededCount, FailedCount, SuccessRate, and TotalImages are correctly calculated.
+    /// </summary>
     [Fact]
     public async Task RunAsync_AllImagesSucceed_ReturnsFullSuccessResult()
     {
@@ -96,7 +137,9 @@ public class BatchProcessingPipelineTests
         {
             _processingServiceMock
                 .Setup(x => x.ProcessImageAsync(
-                    It.IsAny<Guid>(), It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<Guid>(),
+                    It.IsAny<List<Guid>>(),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ProcessingResult { IsSuccessful = true });
 
             var result = await _sut.RunAsync(batch);
@@ -113,6 +156,10 @@ public class BatchProcessingPipelineTests
         }
     }
 
+    /// <summary>
+    /// Tests that <see cref="BatchProcessingPipeline.RunAsync"/> returns a full failure result when all images fail to process.
+    /// Verifies that FailedCount is 2, SucceededCount is 0, and SuccessRate is 0.0.
+    /// </summary>
     [Fact]
     public async Task RunAsync_AllImagesFail_ReturnsFullFailureResult()
     {
@@ -121,7 +168,9 @@ public class BatchProcessingPipelineTests
         {
             _processingServiceMock
                 .Setup(x => x.ProcessImageAsync(
-                    It.IsAny<Guid>(), It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<Guid>(),
+                    It.IsAny<List<Guid>>(),
+                    It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new ProcessingException("GPU error"));
 
             var result = await _sut.RunAsync(batch);
@@ -137,6 +186,10 @@ public class BatchProcessingPipelineTests
         }
     }
 
+    /// <summary>
+    /// Tests that <see cref="BatchProcessingPipeline.RunAsync"/> correctly handles partial failures.
+    /// Verifies that TotalImages is 4 and Outcomes collection contains 4 entries.
+    /// </summary>
     [Fact]
     public async Task RunAsync_PartialFailure_ReturnsCorrectCounts()
     {
@@ -146,7 +199,9 @@ public class BatchProcessingPipelineTests
             int call = 0;
             _processingServiceMock
                 .Setup(x => x.ProcessImageAsync(
-                    It.IsAny<Guid>(), It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<Guid>(),
+                    It.IsAny<List<Guid>>(),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() =>
                 {
                     call++;
@@ -167,6 +222,10 @@ public class BatchProcessingPipelineTests
         }
     }
 
+    /// <summary>
+    /// Tests that <see cref="BatchProcessingPipeline.RunAsync"/> raises ProgressChanged events for each processed image.
+    /// Verifies that exactly 3 progress events are raised and each has the correct BatchId.
+    /// </summary>
     [Fact]
     public async Task RunAsync_RaisesProgressChangedForEachImage()
     {
@@ -175,7 +234,9 @@ public class BatchProcessingPipelineTests
         {
             _processingServiceMock
                 .Setup(x => x.ProcessImageAsync(
-                    It.IsAny<Guid>(), It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<Guid>(),
+                    It.IsAny<List<Guid>>(),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ProcessingResult { IsSuccessful = true });
 
             var progressEvents = new List<BatchPipelineProgressEventArgs>();
@@ -193,6 +254,9 @@ public class BatchProcessingPipelineTests
         }
     }
 
+    /// <summary>
+    /// Tests that <see cref="BatchProcessingPipeline.RunAsync"/> creates the output directory if it doesn't exist.
+    /// </summary>
     [Fact]
     public async Task RunAsync_CreatesOutputDirectory()
     {
@@ -203,7 +267,9 @@ public class BatchProcessingPipelineTests
         {
             _processingServiceMock
                 .Setup(x => x.ProcessImageAsync(
-                    It.IsAny<Guid>(), It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<Guid>(),
+                    It.IsAny<List<Guid>>(),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ProcessingResult { IsSuccessful = true });
 
             await _sut.RunAsync(batch);
@@ -217,6 +283,9 @@ public class BatchProcessingPipelineTests
         }
     }
 
+    /// <summary>
+    /// Tests that <see cref="BatchProcessingPipeline.RunAsync"/> sets the batch status to Completed after successful processing.
+    /// </summary>
     [Fact]
     public async Task RunAsync_CompletedBatchHasCorrectStatus()
     {
@@ -225,7 +294,9 @@ public class BatchProcessingPipelineTests
         {
             _processingServiceMock
                 .Setup(x => x.ProcessImageAsync(
-                    It.IsAny<Guid>(), It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<Guid>(),
+                    It.IsAny<List<Guid>>(),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ProcessingResult { IsSuccessful = true });
 
             await _sut.RunAsync(batch);
@@ -239,6 +310,10 @@ public class BatchProcessingPipelineTests
         }
     }
 
+    /// <summary>
+    /// Tests that <see cref="BatchProcessingPipeline.RunAsync"/> retries failed images up to MaxRetries configuration.
+    /// Verifies that the service is invoked exactly twice (initial attempt + 1 retry) when MaxRetries is 1.
+    /// </summary>
     [Fact]
     public async Task RunAsync_RetriesFailedImageUpToMaxRetries()
     {
@@ -248,7 +323,9 @@ public class BatchProcessingPipelineTests
             int invocations = 0;
             _processingServiceMock
                 .Setup(x => x.ProcessImageAsync(
-                    It.IsAny<Guid>(), It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>()))
+                    It.IsAny<Guid>(),
+                    It.IsAny<List<Guid>>(),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(() =>
                 {
                     invocations++;
@@ -270,6 +347,9 @@ public class BatchProcessingPipelineTests
         }
     }
 
+    /// <summary>
+    /// Tests that <see cref="BatchProcessingPipeline"/> constructor throws <see cref="ArgumentNullException"/> when processingService is null.
+    /// </summary>
     [Fact]
     public void Constructor_NullProcessingService_ThrowsArgumentNullException()
     {
@@ -282,6 +362,9 @@ public class BatchProcessingPipelineTests
         act.Should().Throw<ArgumentNullException>().WithParameterName("processingService");
     }
 
+    /// <summary>
+    /// Tests that <see cref="BatchProcessingPipeline"/> constructor throws <see cref="ArgumentNullException"/> when options is null.
+    /// </summary>
     [Fact]
     public void Constructor_NullOptions_ThrowsArgumentNullException()
     {
