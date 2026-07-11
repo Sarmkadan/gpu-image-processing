@@ -1,4 +1,5 @@
 #nullable enable
+
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -32,7 +33,7 @@ public sealed class ComputeShaderPipelineOptions
 
     /// <summary>
     /// Gets or sets the optimisation strategy applied when no per-pass strategy is
-    /// specified.  Defaults to <see cref="WorkgroupOptimizationStrategy.Balanced"/>.
+    /// specified. Defaults to <see cref="WorkgroupOptimizationStrategy.Balanced"/>.
     /// </summary>
     public WorkgroupOptimizationStrategy DefaultStrategy { get; set; } =
         WorkgroupOptimizationStrategy.Balanced;
@@ -56,8 +57,8 @@ public sealed class ComputeShaderPipelineOptions
 
     /// <summary>
     /// Gets or sets whether per-pass timing and occupancy data are emitted to
-    /// the diagnostic logger.  When enabled, low-occupancy passes also trigger
-    /// a warning.  Defaults to <see langword="false"/>.
+    /// the diagnostic logger. When enabled, low-occupancy passes also trigger
+    /// a warning. Defaults to <see langword="false"/>.
     /// </summary>
     public bool EnableProfiling { get; set; } = false;
 
@@ -78,7 +79,7 @@ public sealed class ComputeShaderPipelineOptions
 
     /// <summary>
     /// Gets or sets the occupancy ratio below which the profiling logger emits
-    /// a warning for a pass.  Expressed as a fraction in [0, 1].
+    /// a warning for a pass. Expressed as a fraction in [0, 1].
     /// Defaults to <c>0.3</c> (30 %).
     /// </summary>
     public double OccupancyWarningThreshold { get; set; } = 0.3;
@@ -87,6 +88,7 @@ public sealed class ComputeShaderPipelineOptions
     /// Validates this options instance and returns <see langword="true"/> when all
     /// constraint invariants are satisfied.
     /// </summary>
+    /// <returns><see langword="true"/> if all constraints are satisfied; otherwise, <see langword="false"/>.</returns>
     public bool Validate() =>
         MaxWorkgroupDimension is >= 1 and <= 1024 &&
         MaxPipelineDepth >= 1 &&
@@ -105,12 +107,9 @@ public static class ComputeShaderPipelineExtensions
     /// binding options from the <c>"ComputeShaderPipeline"</c> configuration section.
     /// </summary>
     /// <remarks>
-    /// Registers:
-    /// <list type="bullet">
-    ///   <item><description><see cref="ComputeShaderPipelineOptions"/> — bound from <paramref name="configuration"/></description></item>
-    ///   <item><description><see cref="IWorkgroupOptimizer"/> → <see cref="WorkgroupOptimizer"/> (Singleton)</description></item>
-    ///   <item><description><see cref="IComputeShaderPipeline"/> → <see cref="ComputeShaderPipeline"/> (Singleton)</description></item>
-    /// </list>
+    /// Registers: 1) <see cref="ComputeShaderPipelineOptions"/> — bound from <paramref name="configuration"/>
+    /// 2) <see cref="IWorkgroupOptimizer"/> → <see cref="WorkgroupOptimizer"/> (Singleton)
+    /// 3) <see cref="IComputeShaderPipeline"/> → <see cref="ComputeShaderPipeline"/> (Singleton)
     /// Requires <see cref="GpuManagementService"/> and
     /// <see cref="PerformanceMonitoringService"/> to be already registered —
     /// typically via <c>AddGpuImageProcessing</c>.
@@ -118,6 +117,7 @@ public static class ComputeShaderPipelineExtensions
     /// <param name="services">The service collection to configure.</param>
     /// <param name="configuration">Application configuration used to bind pipeline options.</param>
     /// <returns>The same <paramref name="services"/> instance for fluent chaining.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> or <paramref name="configuration"/> is null.</exception>
     /// <exception cref="InvalidOperationException">
     /// Thrown when the bound options fail <see cref="ComputeShaderPipelineOptions.Validate"/>.
     /// </exception>
@@ -141,7 +141,7 @@ public static class ComputeShaderPipelineExtensions
     /// <param name="services">The service collection to configure.</param>
     /// <param name="configure">Action that mutates a <see cref="ComputeShaderPipelineOptions"/> instance.</param>
     /// <returns>The same <paramref name="services"/> instance for fluent chaining.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="configure"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="services"/> or <paramref name="configure"/> is null.</exception>
     /// <exception cref="InvalidOperationException">
     /// Thrown when the configured options fail <see cref="ComputeShaderPipelineOptions.Validate"/>.
     /// </exception>
@@ -159,16 +159,18 @@ public static class ComputeShaderPipelineExtensions
     }
 
     /// <summary>
-    /// Logs the active pipeline settings using the application logger.
-    /// Call this after <see cref="IServiceCollection.BuildServiceProvider"/> for
-    /// start-up diagnostics.
+    /// Logs the active pipeline settings using the application logger. Call this after
+    /// <see cref="IServiceCollection.BuildServiceProvider"/> for start-up diagnostics.
     /// </summary>
     /// <param name="provider">The built service provider.</param>
     /// <returns>The same <paramref name="provider"/> for fluent chaining.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="provider"/> is null.</exception>
     public static IServiceProvider LogComputeShaderPipelineSettings(this IServiceProvider provider)
     {
+        ArgumentNullException.ThrowIfNull(provider);
+
         var options = provider.GetRequiredService<ComputeShaderPipelineOptions>();
-        var logger  = provider.GetRequiredService<ILogger<ComputeShaderPipeline>>();
+        var logger = provider.GetRequiredService<ILogger<ComputeShaderPipeline>>();
 
         logger.LogInformation(
             "Compute shader pipeline active — " +
