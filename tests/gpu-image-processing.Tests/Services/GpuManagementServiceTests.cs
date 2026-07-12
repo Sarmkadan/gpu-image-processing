@@ -9,326 +9,410 @@ using Xunit;
 
 namespace GpuImageProcessing.Tests.Services;
 
+/// <summary>
+/// Unit tests for <see cref="GpuManagementService"/> which provides GPU device management functionality
+/// including device discovery, memory allocation, and performance validation.
+/// </summary>
 public class GpuManagementServiceTests
 {
-    private readonly Mock<ILogger<GpuManagementService>> _loggerMock;
-    private readonly GpuManagementService _sut;
+	/// <summary>
+	/// Mock logger for testing GPU service operations
+	/// </summary>
+	private readonly Mock<ILogger<GpuManagementService>> _loggerMock;
 
-    public GpuManagementServiceTests()
-    {
-        _loggerMock = new Mock<ILogger<GpuManagementService>>();
-        _sut = new GpuManagementService(_loggerMock.Object);
-    }
+	/// <summary>
+	/// System under test - the GPU management service instance
+	/// </summary>
+	private readonly GpuManagementService _sut;
 
-    private static GpuDevice CreateTestDevice(
-        string name = "Test GPU",
-        long globalMemory = 4L * 1024 * 1024 * 1024,
-        int computeUnits = 64)
-    {
-        return new GpuDevice
-        {
-            Id = Guid.NewGuid(),
-            Name = name,
-            GlobalMemoryBytes = globalMemory,
-            MaxAllocatableMemoryBytes = globalMemory,
-            LocalMemoryBytes = 96 * 1024,
-            MaxComputeUnits = computeUnits,
-            MaxWorkGroupSize = 256,
-            DeviceType = GpuDeviceType.Gpu,
-            Vendor = "Test Vendor",
-            Version = "1.0",
-            Driver = "Test Driver",
-            IsAvailable = true
-        };
-    }
+	public GpuManagementServiceTests()
+	{
+		_loggerMock = new Mock<ILogger<GpuManagementService>>();
+		_sut = new GpuManagementService(_loggerMock.Object);
+	}
 
-    [Fact]
-    public void Constructor_NullLogger_ThrowsArgumentNullException()
-    {
-        // Act & Assert
-        var act = () => new GpuManagementService(null!);
-        act.Should().Throw<ArgumentNullException>();
-    }
+	/// <summary>
+	/// Creates a test GPU device with configurable parameters for testing purposes
+	/// </summary>
+	/// <param name="name">The name of the GPU device (default: "Test GPU")</param>
+	/// <param name="globalMemory">The total global memory in bytes (default: 4GB)</param>
+	/// <param name="computeUnits">The number of compute units (default: 64)</param>
+	/// <returns>A configured <see cref="GpuDevice"/> instance for testing</returns>
+	private static GpuDevice CreateTestDevice(
+		string name = "Test GPU",
+		long globalMemory = 4L * 1024 * 1024 * 1024,
+		int computeUnits = 64)
+	{
+		return new GpuDevice
+		{
+			Id = Guid.NewGuid(),
+			Name = name,
+			GlobalMemoryBytes = globalMemory,
+			MaxAllocatableMemoryBytes = globalMemory,
+			LocalMemoryBytes = 96 * 1024,
+			MaxComputeUnits = computeUnits,
+			MaxWorkGroupSize = 256,
+			DeviceType = GpuDeviceType.Gpu,
+			Vendor = "Test Vendor",
+			Version = "1.0",
+			Driver = "Test Driver",
+			IsAvailable = true
+		};
+	}
 
-    [Fact]
-    public void GetAvailableDevices_AlwaysContainsAtLeastOneDevice()
-    {
-        // Act
-        var devices = _sut.GetAvailableDevices();
+	/// <summary>
+	/// Tests that the constructor throws ArgumentNullException when null logger is provided
+	/// </summary>
+	[Fact]
+	public void Constructor_NullLogger_ThrowsArgumentNullException()
+	{
+		// Act & Assert
+		var act = () => new GpuManagementService(null!);
+		act.Should().Throw<ArgumentNullException>();
+	}
 
-        // Assert
-        devices.Should().NotBeEmpty();
-    }
+	/// <summary>
+	/// Tests that GetAvailableDevices always returns at least one available device
+	/// </summary>
+	[Fact]
+	public void GetAvailableDevices_AlwaysContainsAtLeastOneDevice()
+	{
+		// Act
+		var devices = _sut.GetAvailableDevices();
 
-    [Fact]
-    public void GetBestDevice_ReturnsDeviceWithHighestPerformanceScore()
-    {
-        // Act
-        var bestDevice = _sut.GetBestDevice();
+		// Assert
+		devices.Should().NotBeEmpty();
+	}
 
-        // Assert
-        bestDevice.Should().NotBeNull();
-        bestDevice!.IsAvailable.Should().BeTrue();
-    }
+	/// <summary>
+	/// Tests that GetBestDevice returns the device with the highest performance score
+	/// </summary>
+	[Fact]
+	public void GetBestDevice_ReturnsDeviceWithHighestPerformanceScore()
+	{
+		// Act
+		var bestDevice = _sut.GetBestDevice();
 
-    [Fact]
-    public void GetDeviceWithMostMemory_ReturnsDeviceWithLargestMemory()
-    {
-        // Act
-        var device = _sut.GetDeviceWithMostMemory();
+		// Assert
+		bestDevice.Should().NotBeNull();
+		bestDevice!.IsAvailable.Should().BeTrue();
+	}
 
-        // Assert
-        device.Should().NotBeNull();
-        device!.IsAvailable.Should().BeTrue();
-    }
+	/// <summary>
+	/// Tests that GetDeviceWithMostMemory returns the device with the largest memory capacity
+	/// </summary>
+	[Fact]
+	public void GetDeviceWithMostMemory_ReturnsDeviceWithLargestMemory()
+	{
+		// Act
+		var device = _sut.GetDeviceWithMostMemory();
 
-    [Fact]
-    public void AllocateMemory_ZeroBytes_ReturnsFalse()
-    {
-        // Arrange
-        var device = _sut.GetBestDevice();
+		// Assert
+		device.Should().NotBeNull();
+		device!.IsAvailable.Should().BeTrue();
+	}
 
-        // Act
-        var allocated = _sut.AllocateMemory(0, device!.Id);
+	/// <summary>
+	/// Tests that AllocateMemory returns false when attempting to allocate zero bytes
+	/// </summary>
+	[Fact]
+	public void AllocateMemory_ZeroBytes_ReturnsFalse()
+	{
+		// Arrange
+		var device = _sut.GetBestDevice();
 
-        // Assert
-        allocated.Should().BeFalse();
-    }
+		// Act
+		var allocated = _sut.AllocateMemory(0, device!.Id);
 
-    [Fact]
-    public void AllocateMemory_NegativeBytes_ReturnsFalse()
-    {
-        // Arrange
-        var device = _sut.GetBestDevice();
+		// Assert
+		allocated.Should().BeFalse();
+	}
 
-        // Act
-        var allocated = _sut.AllocateMemory(-100, device!.Id);
+	/// <summary>
+	/// Tests that AllocateMemory returns false when attempting to allocate negative bytes
+	/// </summary>
+	[Fact]
+	public void AllocateMemory_NegativeBytes_ReturnsFalse()
+	{
+		// Arrange
+		var device = _sut.GetBestDevice();
 
-        // Assert
-        allocated.Should().BeFalse();
-    }
+		// Act
+		var allocated = _sut.AllocateMemory(-100, device!.Id);
 
-    [Fact]
-    public void AllocateMemory_InvalidDevice_ThrowsGpuException()
-    {
-        // Arrange
-        var invalidDeviceId = Guid.NewGuid();
-        var bytes = 1024L;
+		// Assert
+		allocated.Should().BeFalse();
+	}
 
-        // Act & Assert
-        _sut.Invoking(x => x.AllocateMemory(bytes, invalidDeviceId))
-            .Should().Throw<GpuException>();
-    }
+	/// <summary>
+	/// Tests that AllocateMemory throws GpuException when an invalid device ID is provided
+	/// </summary>
+	[Fact]
+	public void AllocateMemory_InvalidDevice_ThrowsGpuException()
+	{
+		// Arrange
+		var invalidDeviceId = Guid.NewGuid();
+		var bytes = 1024L;
 
-    [Fact]
-    public void AllocateMemory_SufficientMemory_ReturnsTrue()
-    {
-        // Arrange
-        var device = _sut.GetBestDevice();
-        var availableMemory = device!.GetAvailableMemory();
-        var allocateBytes = availableMemory / 2; // Half of available
+		// Act & Assert
+		_sut.Invoking(x => x.AllocateMemory(bytes, invalidDeviceId))
+			.Should().Throw<GpuException>();
+	}
 
-        // Act
-        var allocated = _sut.AllocateMemory(allocateBytes, device.Id);
+	/// <summary>
+	/// Tests that AllocateMemory succeeds when sufficient memory is available
+	/// </summary>
+	[Fact]
+	public void AllocateMemory_SufficientMemory_ReturnsTrue()
+	{
+		// Arrange
+		var device = _sut.GetBestDevice();
+		var availableMemory = device!.GetAvailableMemory();
+		var allocateBytes = availableMemory / 2; // Half of available
 
-        // Assert
-        allocated.Should().BeTrue();
-    }
+		// Act
+		var allocated = _sut.AllocateMemory(allocateBytes, device.Id);
 
-    [Fact]
-    public void AllocateMemory_InsufficientMemory_ThrowsGpuException()
-    {
-        // Arrange
-        var device = _sut.GetBestDevice();
-        var tooMuchMemory = device!.GetAvailableMemory() * 2;
+		// Assert
+		allocated.Should().BeTrue();
+	}
 
-        // Act & Assert
-        _sut.Invoking(x => x.AllocateMemory(tooMuchMemory, device.Id))
-            .Should().Throw<GpuException>();
-    }
+	/// <summary>
+	/// Tests that AllocateMemory throws GpuException when attempting to allocate more memory than is available
+	/// </summary>
+	[Fact]
+	public void AllocateMemory_InsufficientMemory_ThrowsGpuException()
+	{
+		// Arrange
+		var device = _sut.GetBestDevice();
+		var tooMuchMemory = device!.GetAvailableMemory() * 2;
 
-    [Fact]
-    public void AllocateMemory_DecreasesAvailableMemory()
-    {
-        // Arrange
-        var device = _sut.GetBestDevice();
-        var initialAvailable = device!.GetAvailableMemory();
-        var allocateBytes = 100 * 1024 * 1024; // 100 MB
+		// Act & Assert
+		_sut.Invoking(x => x.AllocateMemory(tooMuchMemory, device.Id))
+			.Should().Throw<GpuException>();
+	}
 
-        // Act
-        _sut.AllocateMemory(allocateBytes, device.Id);
-        var afterAllocate = device.GetAvailableMemory();
+	/// <summary>
+	/// Tests that AllocateMemory decreases the available memory on the device
+	/// </summary>
+	[Fact]
+	public void AllocateMemory_DecreasesAvailableMemory()
+	{
+		// Arrange
+		var device = _sut.GetBestDevice();
+		var initialAvailable = device!.GetAvailableMemory();
+		var allocateBytes = 100 * 1024 * 1024; // 100 MB
 
-        // Assert
-        afterAllocate.Should().BeLessThan(initialAvailable);
-    }
+		// Act
+		_sut.AllocateMemory(allocateBytes, device.Id);
+		var afterAllocate = device.GetAvailableMemory();
 
-    [Fact]
-    public void DeallocateMemory_ZeroBytes_DoesNothing()
-    {
-        // Arrange
-        var device = _sut.GetBestDevice();
-        var initialTotal = _sut.GetTotalAllocatedMemory();
+		// Assert
+		afterAllocate.Should().BeLessThan(initialAvailable);
+	}
 
-        // Act
-        _sut.DeallocateMemory(0, device!.Id);
+	/// <summary>
+	/// Tests that DeallocateMemory does nothing when attempting to deallocate zero bytes
+	/// </summary>
+	[Fact]
+	public void DeallocateMemory_ZeroBytes_DoesNothing()
+	{
+		// Arrange
+		var device = _sut.GetBestDevice();
+		var initialTotal = _sut.GetTotalAllocatedMemory();
 
-        // Assert
-        _sut.GetTotalAllocatedMemory().Should().Be(initialTotal);
-    }
+		// Act
+		_sut.DeallocateMemory(0, device!.Id);
 
-    [Fact]
-    public void DeallocateMemory_NegativeBytes_DoesNothing()
-    {
-        // Arrange
-        var device = _sut.GetBestDevice();
-        var initialTotal = _sut.GetTotalAllocatedMemory();
+		// Assert
+		_sut.GetTotalAllocatedMemory().Should().Be(initialTotal);
+	}
 
-        // Act
-        _sut.DeallocateMemory(-100, device!.Id);
+	/// <summary>
+	/// Tests that DeallocateMemory does nothing when attempting to deallocate negative bytes
+	/// </summary>
+	[Fact]
+	public void DeallocateMemory_NegativeBytes_DoesNothing()
+	{
+		// Arrange
+		var device = _sut.GetBestDevice();
+		var initialTotal = _sut.GetTotalAllocatedMemory();
 
-        // Assert
-        _sut.GetTotalAllocatedMemory().Should().Be(initialTotal);
-    }
+		// Act
+		_sut.DeallocateMemory(-100, device!.Id);
 
-    [Fact]
-    public void DeallocateMemory_IncreaseAvailableMemory()
-    {
-        // Arrange
-        var device = _sut.GetBestDevice();
-        var allocateBytes = 100 * 1024 * 1024;
-        _sut.AllocateMemory(allocateBytes, device!.Id);
-        var afterAllocate = device.GetAvailableMemory();
+		// Assert
+		_sut.GetTotalAllocatedMemory().Should().Be(initialTotal);
+	}
 
-        // Act
-        _sut.DeallocateMemory(allocateBytes, device.Id);
-        var afterDeallocate = device.GetAvailableMemory();
+	/// <summary>
+	/// Tests that DeallocateMemory increases available memory after allocation
+	/// </summary>
+	[Fact]
+	public void DeallocateMemory_IncreaseAvailableMemory()
+	{
+		// Arrange
+		var device = _sut.GetBestDevice();
+		var allocateBytes = 100 * 1024 * 1024;
+		_sut.AllocateMemory(allocateBytes, device!.Id);
+		var afterAllocate = device.GetAvailableMemory();
 
-        // Assert
-        afterDeallocate.Should().BeGreaterThan(afterAllocate);
-    }
+		// Act
+		_sut.DeallocateMemory(allocateBytes, device.Id);
+		var afterDeallocate = device.GetAvailableMemory();
 
-    [Fact]
-    public void GetTotalAllocatedMemory_ReturnsAccumulatedAllocation()
-    {
-        // Arrange
-        var device = _sut.GetBestDevice();
-        var bytes1 = 50 * 1024 * 1024;
-        var bytes2 = 100 * 1024 * 1024;
+		// Assert
+		afterDeallocate.Should().BeGreaterThan(afterAllocate);
+	}
 
-        // Act
-        _sut.AllocateMemory(bytes1, device!.Id);
-        _sut.AllocateMemory(bytes2, device.Id);
-        var total = _sut.GetTotalAllocatedMemory();
+	/// <summary>
+	/// Tests that GetTotalAllocatedMemory returns the accumulated sum of all allocations
+	/// </summary>
+	[Fact]
+	public void GetTotalAllocatedMemory_ReturnsAccumulatedAllocation()
+	{
+		// Arrange
+		var device = _sut.GetBestDevice();
+		var bytes1 = 50 * 1024 * 1024;
+		var bytes2 = 100 * 1024 * 1024;
 
-        // Assert
-        total.Should().Be(bytes1 + bytes2);
-    }
+		// Act
+		_sut.AllocateMemory(bytes1, device!.Id);
+		_sut.AllocateMemory(bytes2, device.Id);
+		var total = _sut.GetTotalAllocatedMemory();
 
-    [Fact]
-    public void ValidateDevice_ValidDeviceWithSufficientMemory_ReturnsTrue()
-    {
-        // Arrange
-        var device = _sut.GetBestDevice();
-        var requiredMemory = device!.GetAvailableMemory() / 2;
+		// Assert
+		total.Should().Be(bytes1 + bytes2);
+	}
 
-        // Act
-        var valid = _sut.ValidateDevice(device.Id, requiredMemory, 1);
+	/// <summary>
+	/// Tests that ValidateDevice returns true when the device has sufficient memory and compute units
+	/// </summary>
+	[Fact]
+	public void ValidateDevice_ValidDeviceWithSufficientMemory_ReturnsTrue()
+	{
+		// Arrange
+		var device = _sut.GetBestDevice();
+		var requiredMemory = device!.GetAvailableMemory() / 2;
 
-        // Assert
-        valid.Should().BeTrue();
-    }
+		// Act
+		var valid = _sut.ValidateDevice(device.Id, requiredMemory, 1);
 
-    [Fact]
-    public void ValidateDevice_InsufficientMemory_ReturnsFalse()
-    {
-        // Arrange
-        var device = _sut.GetBestDevice();
-        var tooMuchMemory = device!.GetAvailableMemory() * 2;
+		// Assert
+		valid.Should().BeTrue();
+	}
 
-        // Act
-        var valid = _sut.ValidateDevice(device.Id, tooMuchMemory, 1);
+	/// <summary>
+	/// Tests that ValidateDevice returns false when the device has insufficient memory
+	/// </summary>
+	[Fact]
+	public void ValidateDevice_InsufficientMemory_ReturnsFalse()
+	{
+		// Arrange
+		var device = _sut.GetBestDevice();
+		var tooMuchMemory = device!.GetAvailableMemory() * 2;
 
-        // Assert
-        valid.Should().BeFalse();
-    }
+		// Act
+		var valid = _sut.ValidateDevice(device.Id, tooMuchMemory, 1);
 
-    [Fact]
-    public void ValidateDevice_InsufficientComputeUnits_ReturnsFalse()
-    {
-        // Arrange
-        var device = _sut.GetBestDevice();
-        var excessiveComputeUnits = device!.MaxComputeUnits + 100;
+		// Assert
+		valid.Should().BeFalse();
+	}
 
-        // Act
-        var valid = _sut.ValidateDevice(device.Id, 1024 * 1024, excessiveComputeUnits);
+	/// <summary>
+	/// Tests that ValidateDevice returns false when the device has insufficient compute units
+	/// </summary>
+	[Fact]
+	public void ValidateDevice_InsufficientComputeUnits_ReturnsFalse()
+	{
+		// Arrange
+		var device = _sut.GetBestDevice();
+		var excessiveComputeUnits = device!.MaxComputeUnits + 100;
 
-        // Assert
-        valid.Should().BeFalse();
-    }
+		// Act
+		var valid = _sut.ValidateDevice(device.Id, 1024 * 1024, excessiveComputeUnits);
 
-    [Fact]
-    public void ValidateDevice_InvalidDeviceId_ReturnsFalse()
-    {
-        // Act
-        var valid = _sut.ValidateDevice(Guid.NewGuid(), 1024 * 1024, 1);
+		// Assert
+		valid.Should().BeFalse();
+	}
 
-        // Assert
-        valid.Should().BeFalse();
-    }
+	/// <summary>
+	/// Tests that ValidateDevice returns false when an invalid device ID is provided
+	/// </summary>
+	[Fact]
+	public void ValidateDevice_InvalidDeviceId_ReturnsFalse()
+	{
+		// Act
+		var valid = _sut.ValidateDevice(Guid.NewGuid(), 1024 * 1024, 1);
 
-    [Fact]
-    public void GetMemoryStatistics_ReturnsAllMetrics()
-    {
-        // Act
-        var stats = _sut.GetMemoryStatistics();
+		// Assert
+		valid.Should().BeFalse();
+	}
 
-        // Assert
-        stats.Should().ContainKey("TotalGpuMemory");
-        stats.Should().ContainKey("TotalAvailableMemory");
-        stats.Should().ContainKey("TotalAllocatedMemory");
-        stats.Should().ContainKey("MemoryUsagePercent");
-        stats.Should().ContainKey("DeviceCount");
-        stats.Should().ContainKey("AvailableDeviceCount");
-    }
+	/// <summary>
+	/// Tests that GetMemoryStatistics returns all expected memory metrics
+	/// </summary>
+	[Fact]
+	public void GetMemoryStatistics_ReturnsAllMetrics()
+	{
+		// Act
+		var stats = _sut.GetMemoryStatistics();
 
-    [Fact]
-    public void GetMemoryStatistics_AfterAllocation_ShowsCorrectUsage()
-    {
-        // Arrange
-        var device = _sut.GetBestDevice();
-        var allocateBytes = 100 * 1024 * 1024;
-        _sut.AllocateMemory(allocateBytes, device!.Id);
+		// Assert
+		stats.Should().ContainKey("TotalGpuMemory");
+		stats.Should().ContainKey("TotalAvailableMemory");
+		stats.Should().ContainKey("TotalAllocatedMemory");
+		stats.Should().ContainKey("MemoryUsagePercent");
+		stats.Should().ContainKey("DeviceCount");
+		stats.Should().ContainKey("AvailableDeviceCount");
+	}
 
-        // Act
-        var stats = _sut.GetMemoryStatistics();
+	/// <summary>
+	/// Tests that GetMemoryStatistics shows correct usage after memory allocation
+	/// </summary>
+	[Fact]
+	public void GetMemoryStatistics_AfterAllocation_ShowsCorrectUsage()
+	{
+		// Arrange
+		var device = _sut.GetBestDevice();
+		var allocateBytes = 100 * 1024 * 1024;
+		_sut.AllocateMemory(allocateBytes, device!.Id);
 
-        // Assert
-        ((long)stats["TotalAllocatedMemory"]).Should().BeGreaterThan(0);
-        ((double)stats["MemoryUsagePercent"]).Should().BeGreaterThan(0);
-    }
+		// Act
+		var stats = _sut.GetMemoryStatistics();
 
-    [Fact]
-    public void GetDeviceById_ValidId_ReturnsDevice()
-    {
-        // Arrange
-        var device = _sut.GetBestDevice();
+		// Assert
+		((long)stats["TotalAllocatedMemory"]).Should().BeGreaterThan(0);
+		((double)stats["MemoryUsagePercent"]).Should().BeGreaterThan(0);
+	}
 
-        // Act
-        var retrieved = _sut.GetDeviceById(device!.Id);
+	/// <summary>
+	/// Tests that GetDeviceById returns the correct device when a valid ID is provided
+	/// </summary>
+	[Fact]
+	public void GetDeviceById_ValidId_ReturnsDevice()
+	{
+		// Arrange
+		var device = _sut.GetBestDevice();
 
-        // Assert
-        retrieved.Should().NotBeNull();
-        retrieved!.Id.Should().Be(device.Id);
-    }
+		// Act
+		var retrieved = _sut.GetDeviceById(device!.Id);
 
-    [Fact]
-    public void GetDeviceById_InvalidId_ReturnsNull()
-    {
-        // Act
-        var retrieved = _sut.GetDeviceById(Guid.NewGuid());
+		// Assert
+		retrieved.Should().NotBeNull();
+		retrieved!.Id.Should().Be(device.Id);
+	}
 
-        // Assert
-        retrieved.Should().BeNull();
-    }
+	/// <summary>
+	/// Tests that GetDeviceById returns null when an invalid device ID is provided
+	/// </summary>
+	[Fact]
+	public void GetDeviceById_InvalidId_ReturnsNull()
+	{
+		// Act
+		var retrieved = _sut.GetDeviceById(Guid.NewGuid());
+
+		// Assert
+		retrieved.Should().BeNull();
+	}
 }
