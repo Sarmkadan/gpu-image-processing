@@ -165,13 +165,13 @@ namespace GpuImageProcessing.Utilities
             try
             {
                 if (typeof(T) == typeof(int))
-                    return (T)(object)int.Parse(value);
+                    return (T)(object)int.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
 
                 if (typeof(T) == typeof(bool))
                     return (T)(object)bool.Parse(value);
 
                 if (typeof(T) == typeof(double))
-                    return (T)(object)double.Parse(value);
+                    return (T)(object)double.Parse(value, System.Globalization.CultureInfo.InvariantCulture);
 
                 if (typeof(T) == typeof(string))
                     return (T)(object)value;
