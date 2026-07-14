@@ -14,7 +14,7 @@ namespace GpuImageProcessing.Tests.Domain;
 /// </summary>
 public static class FilterChainBuilderTestsJsonExtensions
 {
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
@@ -32,7 +32,7 @@ public static class FilterChainBuilderTestsJsonExtensions
         ArgumentNullException.ThrowIfNull(value);
 
         var options = indented
-            ? JsonOptions with { WriteIndented = true }
+            ? new JsonSerializerOptions(JsonOptions) { WriteIndented = true }
             : JsonOptions;
 
         return JsonSerializer.Serialize(value, options);
