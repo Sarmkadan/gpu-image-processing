@@ -34,7 +34,7 @@ public static class FilterChainTestsJsonExtensions
         ArgumentNullException.ThrowIfNull(value);
 
         var options = indented
-            ? s_jsonOptions with { WriteIndented = true }
+            ? new JsonSerializerOptions(s_jsonOptions) { WriteIndented = true }
             : s_jsonOptions;
 
         return JsonSerializer.Serialize(value, options);
