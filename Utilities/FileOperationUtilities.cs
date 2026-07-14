@@ -16,12 +16,19 @@ namespace GpuImageProcessing.Utilities
     /// Utilities for file operations including hashing, validation, and safe handling.
     /// Provides checksums, integrity checks, and atomic file operations.
     /// </summary>
-    public static class FileOperationUtilities
+    public class FileOperationUtilities
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="FileOperationUtilities"/> class.
+        /// </summary>
+        public FileOperationUtilities()
+        {
+        }
+
         /// <summary>
         /// Calculates SHA256 hash of a file
         /// </summary>
-        public static async Task<string> CalculateFileHashAsync(string filePath)
+        public async Task<string> CalculateFileHashAsync(string filePath)
         {
             if (!File.Exists(filePath))
                 throw new FileNotFoundException($"File not found: {filePath}");
@@ -37,7 +44,7 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Verifies file integrity by comparing hashes
         /// </summary>
-        public static async Task<bool> VerifyFileHashAsync(string filePath, string expectedHash)
+        public async Task<bool> VerifyFileHashAsync(string filePath, string expectedHash)
         {
             var actualHash = await CalculateFileHashAsync(filePath);
             return actualHash.Equals(expectedHash, StringComparison.OrdinalIgnoreCase);
@@ -46,7 +53,7 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Safely copies a file with verification
         /// </summary>
-        public static async Task<bool> SafeCopyFileAsync(
+        public async Task<bool> SafeCopyFileAsync(
             string sourceFile,
             string destinationFile,
             bool overwrite = true,
@@ -87,7 +94,7 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Gets file metadata in a structured format
         /// </summary>
-        public static FileMetadata GetFileMetadata(string filePath)
+        public FileMetadata GetFileMetadata(string filePath)
         {
             if (!File.Exists(filePath))
                 return null;
@@ -110,7 +117,7 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Safely deletes a file with optional secure wiping
         /// </summary>
-        public static async Task SafeDeleteFileAsync(string filePath, bool secureWipe = false)
+        public async Task SafeDeleteFileAsync(string filePath, bool secureWipe = false)
         {
             if (!File.Exists(filePath))
                 return;
@@ -126,7 +133,7 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Securely wipes file contents before deletion
         /// </summary>
-        private static async Task SecureWipeFileAsync(string filePath)
+        private async Task SecureWipeFileAsync(string filePath)
         {
             const int bufferSize = 4096;
             var buffer = new byte[bufferSize];
@@ -143,7 +150,7 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Creates a directory if it doesn't exist
         /// </summary>
-        public static DirectoryInfo EnsureDirectoryExists(string dirPath)
+        public DirectoryInfo EnsureDirectoryExists(string dirPath)
         {
             if (!Directory.Exists(dirPath))
                 Directory.CreateDirectory(dirPath);
@@ -154,7 +161,7 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Validates file path is safe (no path traversal attacks)
         /// </summary>
-        public static bool IsValidFilePath(string filePath, string baseDirectory)
+        public bool IsValidFilePath(string filePath, string baseDirectory)
         {
             try
             {
@@ -172,7 +179,7 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Gets a unique file name by appending numbers if file exists
         /// </summary>
-        public static string GetUniqueFileName(string filePath)
+        public string GetUniqueFileName(string filePath)
         {
             if (!File.Exists(filePath))
                 return filePath;
@@ -194,7 +201,7 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Reads file content asynchronously with encoding detection
         /// </summary>
-        public static async Task<string> ReadFileAsync(string filePath)
+        public async Task<string> ReadFileAsync(string filePath)
         {
             if (!File.Exists(filePath))
                 throw new FileNotFoundException($"File not found: {filePath}");
@@ -208,7 +215,7 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Writes content to file atomically
         /// </summary>
-        public static async Task WriteFileAtomicAsync(string filePath, string content)
+        public async Task WriteFileAtomicAsync(string filePath, string content)
         {
             var tempPath = filePath + ".tmp";
 
