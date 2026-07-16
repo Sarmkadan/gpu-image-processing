@@ -721,9 +721,43 @@ if (batch.Validate())
     BatchPipelineResult result = await pipeline.RunAsync(batch);
 
 
-## ComputeShaderPass
+## ComputeShaderPipelineOptions
 
-`ComputeShaderPass` represents a single dispatchable unit within a `ComputeShaderPipeline`. It encapsulates the OpenCL kernel source (or reference), input/output images, workgroup configuration, and execution parameters necessary for the pipeline to dispatch the compute workload on a GPU.
+The `ComputeShaderPipelineOptions` class provides runtime configuration for the compute shader pipeline and the automatic workgroup optimizer. It controls optimization strategies, workgroup dimensions, benchmarking behavior, profiling output, pipeline depth limits, memory allocation settings, and validation thresholds that govern how compute shader operations are executed and optimized across GPU devices.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Configuration;
+using GpuImageProcessing.Domain;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System;
+
+// Configure pipeline options inline
+var services = new ServiceCollection();
+
+services.AddComputeShaderPipeline(options =>
+{
+    options.DefaultStrategy = WorkgroupOptimizationStrategy.Balanced;
+    options.MaxWorkgroupDimension = 32;
+    options.BenchmarkGuidedOptimization = true;
+    options.EnableProfiling = true;
+    options.MaxPipelineDepth = 64;
+    options.DefaultLocalMemoryPerThreadBytes = 16;
+    options.OccupancyWarningThreshold = 0.3;
+});
+
+// Or bind from appsettings.json configuration
+// services.AddComputeShaderPipeline(configuration);
+
+// Build service provider and log settings for diagnostics
+var provider = services.BuildServiceProvider();
+provider.LogComputeShaderPipelineSettings();
+
+// Use the configured pipeline in your application
+var pipeline = provider.GetRequiredService<IComputeShaderPipeline>();
+```
 
 ### Usage Example
 
