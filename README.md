@@ -1799,6 +1799,55 @@ Console.WriteLine($"Validation: {(settings.Validate ? "Enabled" : "Disabled")}")
 Console.WriteLine($"Full configuration: {settings}");
 ```
 
+## BenchmarkSuiteConfiguration
+
+The `BenchmarkSuiteConfiguration` class configures which benchmark categories are active and how they are executed during performance testing. It allows fine-grained control over which benchmark suites to include (filter chains, batch processing, chain builders, utilities, etc.), accuracy levels, output directories, and hardware counter collection for comprehensive performance analysis.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Benchmarking;
+using System;
+
+// Create a custom benchmark configuration for development
+var devConfig = new BenchmarkSuiteConfiguration
+{
+    RunName = "Development-Benchmark-Run-2024",
+    IncludeFilterChainBenchmarks = true,
+    IncludeBatchProcessingBenchmarks = true,
+    IncludeFilterChainBuilderBenchmarks = true,
+    IncludeImageUtilitiesBenchmarks = false,
+    IncludeEnumerableExtensionsBenchmarks = false,
+    AccuracyLevel = BenchmarkAccuracyLevel.Quick,
+    OutputDirectory = @"./benchmarks/dev",
+    EnableHardwareCounters = false
+};
+
+// Validate the configuration before running benchmarks
+var validationErrors = devConfig.Validate();
+if (validationErrors.Count == 0)
+{
+    Console.WriteLine("Configuration is valid!");
+    Console.WriteLine($"Enabled categories: {string.Join(", ", devConfig.GetEnabledCategories())}");
+}
+else
+{
+    foreach (var error in validationErrors)
+    {
+        Console.WriteLine($"Validation error: {error}");
+    }
+}
+
+// Use convenience factory methods for common scenarios
+var ciConfig = BenchmarkSuiteConfiguration.ForCi("CI-Regression-Tests");
+Console.WriteLine($"CI config accuracy: {ciConfig.AccuracyLevel}");
+Console.WriteLine($"CI config categories: {string.Join(", ", ciConfig.GetEnabledCategories())}");
+
+var releaseConfig = BenchmarkSuiteConfiguration.ForRelease("Formal-Performance-Report");
+Console.WriteLine($"Release config accuracy: {releaseConfig.AccuracyLevel}");
+Console.WriteLine($"Release config hardware counters: {releaseConfig.EnableHardwareCounters}");
+```
+
 ## Image
 
 The `Image` class is a core domain model that encapsulates raw image pixel data along with its metadata, such as format, color space, dimensions, and processing status. It provides essential validation and size calculation methods, making it the primary structure for representing images throughout the processing pipeline.
