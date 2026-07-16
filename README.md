@@ -321,6 +321,84 @@ Console.WriteLine($"Memory footprint 4K: {memoryFootprint4K:N0} bytes");
 Console.WriteLine($"Best device: {bestDevice?.Name ?? "None found"}");
 ```
 
+## ValidationException
+
+The `ValidationException` is thrown when input validation fails during GPU image processing operations. It provides detailed information about the validation failure including the name of the validated entity and a dictionary of validation errors with field names as keys and error messages as values. This exception is particularly useful for batch processing pipelines where multiple images or entities need to be validated before processing begins.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Exceptions;
+using System;
+using System.Collections.Generic;
+
+// Example: Validating image metadata before processing
+try
+{
+    var imageMetadata = new Dictionary<string, object>
+    {
+        { "Width", 0 },
+        { "Height", -100 },
+        { "Format", "invalid_format" }
+    };
+
+    ValidateImageMetadata(imageMetadata);
+}
+catch (ValidationException ex) when (ex.ValidationErrors != null)
+{
+    Console.WriteLine($"Validation failed for entity: {ex.EntityName}");
+    Console.WriteLine("Validation errors:");
+    foreach (var error in ex.ValidationErrors)
+    {
+        Console.WriteLine($"  - {error.Key}: {error.Value}");
+    }
+    
+    // Re-throw or handle the exception appropriately
+    throw;
+}
+
+static void ValidateImageMetadata(Dictionary<string, object> metadata)
+{
+    var validationErrors = new Dictionary<string, string>();
+    
+    if (!metadata.TryGetValue("Width", out var widthObj) || 
+        (widthObj is int width && width <= 0))
+    {
+        validationErrors[nameof(width)] = "Width must be a positive integer";
+    }
+    
+    if (!metadata.TryGetValue("Height", out var heightObj) || 
+        (heightObj is int height && height <= 0))
+    {
+        validationErrors[nameof(height)] = "Height must be a positive integer";
+    }
+    
+    if (!metadata.TryGetValue("Format", out var formatObj) || 
+        formatObj is not string format || 
+        !IsValidImageFormat(format))
+    {
+        validationErrors[nameof(format)] = "Format must be a valid image format (JPEG, PNG, etc.)";
+    }
+    
+    if (validationErrors.Count > 0)
+    {
+        throw new ValidationException(
+            "Image metadata validation failed",
+            entityName: "ImageMetadata",
+            validationErrors: validationErrors,
+            errorCode: 400
+        );
+    }
+}
+
+static bool IsValidImageFormat(string format)
+{
+    return format.Equals("JPEG", StringComparison.OrdinalIgnoreCase) ||
+           format.Equals("PNG", StringComparison.OrdinalIgnoreCase) ||
+           format.Equals("WEBP", StringComparison.OrdinalIgnoreCase);
+}
+```
+
 ## FilterChainBenchmarks
 
 The `FilterChainBenchmarks` class provides performance benchmarks for core `FilterChain` operations that are critical hot paths during GPU filter pipeline setup and execution. It measures realistic in-process operations including step management, validation, querying, and cloning that are called repeatedly during batch processing workflows.
