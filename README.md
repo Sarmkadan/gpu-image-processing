@@ -481,6 +481,76 @@ Console.WriteLine($"\nCommand executed with exit code: {exitCode}");
 }
 ```
 
+## CommandHandler
+
+The `CommandHandler` class serves as the base class for all CLI commands in the GPU image processing application. It implements the command pattern with execution logic, argument parsing, validation, and dependency injection support. Command handlers provide descriptive information about their purpose through `GetDescription()` and `GetUsage()` methods, and execute operations via the `ExecuteAsync()` method. The class includes utility methods for accessing arguments (`GetArgument()`), checking flags (`HasFlag()`), and setting arguments from command-line input (`SetArguments()`).
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Cli;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+  static async Task Main()
+  {
+    // Setup dependency injection container
+    var serviceProvider = new ServiceCollection()
+      .AddSingleton<IServiceProvider>(sp => sp)
+      .BuildServiceProvider();
+
+    // Create a custom command handler by inheriting from CommandHandler
+    var commandHandler = new ProcessImageCommandHandler(serviceProvider, "process-image");
+
+    // Set command arguments (simulating: process-image --input /path/to/image.jpg --output /path/to/output.png --blur 5)
+    string[] args = new[] { "process-image", "--input", "/path/to/image.jpg", "--output", "/path/to/output.png", "--blur", "5" };
+    commandHandler.SetArguments(args);
+
+    // Check if a flag is set
+    bool hasBlurFlag = commandHandler.HasFlag("blur");
+    Console.WriteLine($"Has blur flag: {hasBlurFlag}");
+
+    // Get argument value with default fallback
+    string inputPath = commandHandler.GetArgument("input", "/default/input.jpg");
+    string outputPath = commandHandler.GetArgument("output", "/default/output.png");
+    int blurRadius = int.Parse(commandHandler.GetArgument("blur", "3"));
+
+    Console.WriteLine($"Processing image:");
+    Console.WriteLine($"  Input: {inputPath}");
+    Console.WriteLine($"  Output: {outputPath}");
+    Console.WriteLine($"  Blur radius: {blurRadius}");
+
+    // Get command description and usage
+    Console.WriteLine($"\nDescription: {commandHandler.GetDescription()}");
+    Console.WriteLine($"Usage: {commandHandler.GetUsage()}");
+
+    // Execute the command
+    int exitCode = await commandHandler.ExecuteAsync();
+    Console.WriteLine($"\nCommand executed with exit code: {exitCode}");
+  }
+}
+
+// Example custom command handler implementation
+public class ProcessImageCommandHandler : CommandHandler
+{
+  public ProcessImageCommandHandler(IServiceProvider serviceProvider, string commandName)
+    : base(serviceProvider, commandName) { }
+
+  public override string GetDescription() => "Process an image with GPU acceleration using specified filters";
+
+  public override string GetUsage() => "process-image --input <path> --output <path> [--blur <radius>] [--sharpen <amount>]";
+
+  public override async Task<int> ExecuteAsync()
+  {
+    // Implementation would process the image using the parsed arguments
+    PrintInfo($"Processing image from {GetArgument("input")} to {GetArgument("output")}");
+    return 0; // Success
+  }
+}
+```
+
 ## ImageUtilitiesBenchmarks
 
 The `ImageUtilitiesBenchmarks` class provides performance benchmarks for the `ImageUtilities` hot paths that are called per-image during the ingestion pipeline. These include file extension validation, MIME type resolution, image format detection, file size formatting, and proportional size calculations that are critical for image processing workflows.
