@@ -224,3 +224,56 @@ Console.WriteLine($"Progress: {progress:P0}");
 Console.WriteLine($"Success rate: {successRate:P0}");
 Console.WriteLine($"Remaining time: {remainingTime?.ToString() ?? "N/A"}");
 ```
+
+## GpuPerformanceBenchmarks
+
+The `GpuPerformanceBenchmarks` class provides performance benchmarks for GPU-accelerated image processing operations. It measures throughput and latency of critical GPU operations including single filter applications, multiple filter chains, batch processing throughput, memory allocation patterns, and device initialization overhead. These benchmarks help identify performance bottlenecks and optimize GPU utilization in image processing workflows.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Benchmarks;
+using GpuImageProcessing.Domain;
+using Microsoft.Extensions.DependencyInjection;
+
+// Create benchmark instance and configure image dimensions
+var benchmarks = new GpuPerformanceBenchmarks
+{
+    ImageWidth = 1920,  // 1080p
+    ImageHeight = 1080
+};
+
+// Setup test data and services (required before running benchmarks)
+benchmarks.Setup();
+
+// Benchmark single filter applications
+var gaussianBlurResult = await benchmarks.ApplyGaussianBlurFilter();
+var edgeDetectionResult = await benchmarks.ApplyEdgeDetectionFilter();
+var sharpenResult = await benchmarks.ApplySharpenFilter();
+var grayscaleResult = await benchmarks.ApplyGrayscaleFilter();
+var customConvolutionResult = await benchmarks.ApplyCustomConvolutionFilter();
+
+// Benchmark realistic filter chains
+var threeFilterChainResult = await benchmarks.ApplyThreeFilterChain();
+var fiveFilterChainResult = await benchmarks.ApplyFiveFilterChain();
+
+// Benchmark memory allocation patterns
+long pixelDataSize = benchmarks.CalculatePixelDataSize();
+long memoryFootprint1080p = benchmarks.MemoryFootprint1080p();
+long memoryFootprint4K = benchmarks.MemoryFootprint4K();
+
+// Benchmark throughput
+await benchmarks.ProcessTenImages();
+
+// Benchmark device capabilities
+var bestDevice = await benchmarks.GetBestDevice();
+
+// Benchmark service provider creation
+var serviceProvider = GpuPerformanceBenchmarks.CreateServiceProvider();
+
+Console.WriteLine($"Gaussian blur result: {gaussianBlurResult.Status}");
+Console.WriteLine($"Edge detection result: {edgeDetectionResult.Status}");
+Console.WriteLine($"Memory footprint 1080p: {memoryFootprint1080p:N0} bytes");
+Console.WriteLine($"Memory footprint 4K: {memoryFootprint4K:N0} bytes");
+Console.WriteLine($"Best device: {bestDevice?.Name ?? "None found"}");
+```
