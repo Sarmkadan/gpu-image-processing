@@ -62,8 +62,7 @@ eventAggregator.Publish(imageRegisteredEvent);
 
 ## EventPublisher
 
-`EventPublisher` provides a lightweight, in‑process publish‑subscribe mechanism for processing events.  
-It lets you register asynchronous or synchronous handlers for a named event type, publish events to all registered handlers, and manage subscriptions (unsubscribe, clear, query counts, and list event types).
+`EventPublisher` provides a lightweight, in‑process publish‑subscribe mechanism for processing events. It lets you register asynchronous or synchronous handlers for a named event type, publish events to all registered handlers, and manage subscriptions (unsubscribe, clear, query counts, and list event types).
 
 ### Usage Example
 
@@ -120,12 +119,9 @@ class Program
 }
 ```
 
-// existing content ...
-
 ## EventAggregator
 
 The `EventAggregator` is a centralized event bus that simplifies communication between components in a decoupled manner. It provides both synchronous and asynchronous event publishing capabilities, allowing you to subscribe to specific event types, track subscription statistics, and manage the lifecycle of subscriptions through disposable handles.
-
 
 ### Usage Example
 
@@ -147,7 +143,8 @@ class Program
 
         // Subscribe to ImageRegisteredEvent asynchronously
         using var asyncSubscription = await eventAggregator.SubscribeAsync<ImageRegisteredEvent>(
-            async ev => {
+            async ev => 
+            {
                 Console.WriteLine($"[Async] Processing image: {ev.ImageId}");
                 await Task.Delay(100); // Simulate async work
                 Console.WriteLine($"[Async] Completed processing: {ev.ImageId}");
@@ -181,4 +178,49 @@ class Program
         eventAggregator.Dispose();
     }
 }
+```
+
+## BatchProcessingBenchmarks
+
+The `BatchProcessingBenchmarks` class provides performance benchmarks for core batch processing operations used in the GPU image processing pipeline. It measures critical hot-paths such as batch creation, validation, progress tracking, success rate calculation, and priority queue construction that are called repeatedly during batch execution.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Benchmarks;
+using GpuImageProcessing.Domain;
+
+// Create benchmark instance
+var benchmarks = new BatchProcessingBenchmarks();
+
+// Configure the number of images to process
+benchmarks.ImageCount = 100;
+
+// Setup test data (required before running benchmarks)
+benchmarks.Setup();
+
+// Benchmark batch creation and population
+var populatedBatch = benchmarks.CreateAndPopulateBatch();
+
+// Benchmark batch validation
+bool isValid = benchmarks.ValidateBatch();
+
+// Benchmark progress tracking
+double progress = benchmarks.GetProgressPercentage();
+
+// Benchmark success rate calculation
+double successRate = benchmarks.GetSuccessRate();
+
+// Benchmark remaining time estimation
+TimeSpan? remainingTime = benchmarks.GetEstimatedRemainingTime();
+
+// Benchmark priority queue construction
+var priorityQueue = benchmarks.BuildPriorityQueue();
+
+// Benchmark image processing in the hot loop
+benchmarks.MarkImageProcessed_TenSuccesses();
+
+Console.WriteLine($"Progress: {progress:P0}");
+Console.WriteLine($"Success rate: {successRate:P0}");
+Console.WriteLine($"Remaining time: {remainingTime?.ToString() ?? "N/A"}");
 ```
