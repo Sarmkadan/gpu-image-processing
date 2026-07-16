@@ -908,6 +908,59 @@ if (chain.Validate())
 }
 ```
 
+## PerformanceMetrics
+
+The `PerformanceMetrics` class tracks performance metrics for GPU operations, including CPU and GPU utilization, memory usage, execution times, and throughput. It provides methods for recording operations, calculating success rates, checking memory warnings, and resetting metrics for new measurement periods. This class is essential for monitoring and optimizing GPU-accelerated image processing pipelines.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+using System.Collections.Generic;
+
+// Create performance metrics instance
+var metrics = new PerformanceMetrics
+{
+    CpuUsagePercent = 45.2,
+    MemoryUsedBytes = 8589934592, // 8 GB
+    GpuMemoryUsedBytes = 6442450944, // 6 GB
+    GpuUtilizationPercent = 87.5,
+    ImagePixelsProcessedPerSecond = 1920000000, // 1.92 billion pixels/s
+    ThroughputMegabytesPerSecond = 1250.75
+};
+
+// Record individual operation execution times
+metrics.RecordExecution(12.5); // 12.5ms
+metrics.RecordExecution(14.2); // 14.2ms
+metrics.RecordExecution(9.8);  // 9.8ms
+
+// Calculate derived metrics
+Console.WriteLine($"Average execution time: {metrics.AverageExecutionTimeMs:F2}ms");
+Console.WriteLine($"Max execution time: {metrics.MaxExecutionTimeMs:F2}ms");
+Console.WriteLine($"Min execution time: {metrics.MinExecutionTimeMs:F2}ms");
+Console.WriteLine($"Total operations: {metrics.TotalOperationsCount}");
+Console.WriteLine($"Success rate: {metrics.GetSuccessRate():F2}%");
+Console.WriteLine($"Memory usage percent: {metrics.GetMemoryUsagePercent():F2}%");
+
+// Check if memory warning is required
+if (metrics.IsMemoryWarningRequired())
+{
+    Console.WriteLine("Warning: GPU memory usage is above threshold!");
+}
+
+// Update metrics with additional operations
+metrics.FailedOperationsCount = 2;
+Console.WriteLine($"Updated success rate: {metrics.GetSuccessRate():F2}%");
+
+// Reset metrics for a new measurement period
+metrics.Reset();
+metrics.RecordExecution(15.3);
+
+// Display the complete metrics summary
+Console.WriteLine($"Performance summary: {metrics}");
+```
+
 ## FilterChain
 
 The `FilterChain` class represents a sequence of image processing filters that are applied in order to transform an image. It manages filter steps, execution order, parallel processing options, and caching behavior, making it the central component for defining image processing workflows. Filter chains can be validated, cloned, and configured with various options to optimize performance and resource usage.
