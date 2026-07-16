@@ -385,6 +385,53 @@ Console.WriteLine($"Success rate: {successRate:P0}");
 Console.WriteLine($"Remaining time: {remainingTime?.ToString() ?? "N/A"}");
 ```
 
+## InteractiveShell
+
+The `InteractiveShell` class provides a REPL-style interactive command shell for the GPU image processing CLI application. It supports command registration, execution, history tracking, and auto-completion suggestions, enabling users to interactively run commands and receive contextual feedback.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Cli;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create CLI parser and interactive shell
+        var parser = new CliParser();
+        var shell = new InteractiveShell(parser);
+        
+        // Register command handlers
+        shell.RegisterHandler("process", async cmd => 
+        {
+            Console.WriteLine($"Processing command with {cmd.Arguments.Count} arguments");
+            await Task.CompletedTask;
+        });
+        
+        shell.RegisterHandler("filter", async cmd => 
+        {
+            Console.WriteLine($"Applying filter: {cmd.Arguments[0]}");
+            await Task.CompletedTask;
+        });
+        
+        // Register commands for auto-completion
+        var completionProvider = new CompletionProvider(parser);
+        completionProvider.RegisterCommand("process");
+        completionProvider.RegisterCommand("filter");
+        completionProvider.RegisterCommand("exit");
+        completionProvider.RegisterCommand("help");
+        
+        // Start the interactive shell
+        Console.WriteLine("Starting GPU Image Processing Interactive Shell...");
+        Console.WriteLine("Type 'help' for available commands or 'exit' to quit");
+        await shell.RunAsync();
+    }
+}
+```
+
 ## ImageUtilitiesBenchmarks
 
 The `ImageUtilitiesBenchmarks` class provides performance benchmarks for the `ImageUtilities` hot paths that are called per-image during the ingestion pipeline. These include file extension validation, MIME type resolution, image format detection, file size formatting, and proportional size calculations that are critical for image processing workflows.
