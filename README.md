@@ -481,6 +481,87 @@ Console.WriteLine($"\nCommand executed with exit code: {exitCode}");
 }
 ```
 
+## CliParser
+
+The `CliParser` class provides robust command-line argument parsing with support for subcommands, options, flags, and positional arguments. It enables registering commands and global options, parsing command-line input, generating comprehensive help text, and validating required arguments. The parser supports both long-form (`--option`) and short-form (`-o`) options, required option validation, and automatic help text generation for both individual commands and the entire CLI application.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Cli;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create CLI parser instance
+        var parser = new CliParser();
+
+        // Register a global option available to all commands
+        parser.RegisterGlobalOption(
+            name: "verbose",
+            shortForm: "v",
+            description: "Enable verbose output",
+            requiresValue: false
+        );
+
+        // Register a global option that requires a value
+        parser.RegisterGlobalOption(
+            name: "output",
+            shortForm: "o",
+            description: "Output directory path",
+            requiresValue: true
+        );
+
+        // Register a command with its options
+        parser.RegisterCommand(
+            name: "process",
+            description: "Process an image with GPU acceleration",
+            builder: cmd => cmd
+                .AddOption(
+                    longForm: "input",
+                    shortForm: "i",
+                    description: "Input image file path",
+                    requiresValue: true,
+                    isRequired: true
+                )
+                .AddOption(
+                    longForm: "filter",
+                    shortForm: "f",
+                    description: "Filter to apply (blur, grayscale, sharpen)",
+                    requiresValue: true
+                )
+                .AddOption(
+                    longForm: "quality",
+                    shortForm: "q",
+                    description: "Quality level (0-100)",
+                    requiresValue: true
+                )
+        );
+
+        // Parse command-line arguments (simulating: process --input image.jpg --filter blur -q 90)
+        string[] args = new[] { "process", "--input", "image.jpg", "--filter", "blur", "-q", "90" };
+        var parsedCommand = parser.Parse(args);
+
+        Console.WriteLine($"Command: {parsedCommand.CommandName}");
+        Console.WriteLine($"Input file: {parsedCommand.GetOption("input")}");
+        Console.WriteLine($"Filter: {parsedCommand.GetOption("filter")}");
+        Console.WriteLine($"Quality: {parsedCommand.GetOption("quality")}");
+        Console.WriteLine($"Verbose: {parsedCommand.HasOption("verbose")}");
+
+        // Generate help text for a specific command
+        string helpText = parser.GenerateCommandHelp("process");
+        Console.WriteLine($"\nHelp for 'process' command:\n{helpText}");
+
+        // Generate full help text
+        string fullHelp = parser.GenerateHelpText();
+        Console.WriteLine($"\nFull CLI help:\n{fullHelp}");
+    }
+}
+```
+
 ## CommandHandler
 
 The `CommandHandler` class serves as the base class for all CLI commands in the GPU image processing application. It implements the command pattern with execution logic, argument parsing, validation, and dependency injection support. Command handlers provide descriptive information about their purpose through `GetDescription()` and `GetUsage()` methods, and execute operations via the `ExecuteAsync()` method. The class includes utility methods for accessing arguments (`GetArgument()`), checking flags (`HasFlag()`), and setting arguments from command-line input (`SetArguments()`).
