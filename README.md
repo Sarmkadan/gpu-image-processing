@@ -85,6 +85,86 @@
 | **Events** | Domain event handling | `EventAggregator.cs`, `DomainEvents.cs` |
 | **Middleware** | Request/response processing | `ProcessingPipeline.cs`, `ErrorHandlingMiddleware.cs` |
 
+### Architecture Walkthrough: the request lifecycle
+
+The layer diagram above shows *where* code lives; this section walks through
+*how* a single processing request flows through the system and how the four
+cross-cutting subsystems - **Middleware**, **Events**, **Monitoring** and
+**Formatters** - cooperate around the core filter execution.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as API / CLI
+    participant Pipe as ProcessingPipeline
+    participant MW as Middleware chain
+    participant Svc as ImageProcessingService
+    participant GPU as OpenCL / CPU fallback
+    participant Ev as EventPublisher / EventAggregator
+    participant Mon as HealthCheck & Metrics
+    participant Fmt as IResultFormatter
+
+    Client->>Pipe: submit request (MiddlewareContext)
+    Pipe->>MW: ExecuteAsync(context)
+    Note over MW: Logging -> RateLimiting -> Authorization -><br/>Compression -> ErrorHandling (each calls Next())
+    MW->>Svc: final handler invokes core processing
+    Svc->>Ev: publish ProcessingStartedEvent
+    Svc->>GPU: apply filter chain (GPU, or CpuImageProcessor when no device)
+    GPU-->>Svc: processed Image + timings
+    Svc->>Ev: publish ProcessingCompletedEvent / ProcessingFailedEvent
+    Ev-->>Mon: subscribers record metrics & feed health checks
+    Svc-->>MW: MiddlewareResult (payload + metrics)
+    MW-->>Pipe: unwound result (post-Next bookkeeping per middleware)
+    Pipe-->>Client: MiddlewareResult
+    Client->>Fmt: format result (CSV / JSON / XML / HTML / Markdown / Text)
+    Fmt-->>Client: serialized response
+```
+
+**Stage by stage:**
+
+1. **Entry (API / CLI).** A request arrives either through
+   `ImageProcessingController` or a `CommandHandler` (for example the
+   `batch-dir` subcommand). The inputs are validated (`RequestValidator`) and
+   wrapped in a `MiddlewareContext`.
+
+2. **Middleware pipeline.** `ProcessingPipeline.ExecuteAsync` composes the
+   registered `IProcessingMiddleware` instances into an onion. Each middleware
+   does its pre-work, calls `context.Next()`, then does its post-work as the
+   call unwinds - so `LoggingMiddleware` brackets the whole request,
+   `RateLimitingMiddleware` and `AuthorizationMiddleware` can short-circuit
+   early, `ErrorHandlingMiddleware` converts exceptions into a
+   `MiddlewareResult`, and `CompressionMiddleware` post-processes the payload.
+
+3. **Core execution.** The pipeline's final handler calls into the business
+   services (`ImageProcessingService`, `FilterService`, `BatchProcessingService`).
+   Work is dispatched to the GPU via OpenCL, or - when no OpenCL device is
+   present - to the pure-CPU `CpuImageProcessor` fallback, keeping behaviour
+   (and tests) deterministic on any machine.
+
+4. **Events.** Around the work, services publish domain events through
+   `EventPublisher` / `EventAggregator` (`ProcessingStartedEvent`,
+   `ProcessingCompletedEvent`, `ProcessingFailedEvent`). Publishing is
+   decoupled: subscribers react without the service knowing who is listening.
+
+5. **Monitoring.** Event subscribers and background workers feed
+   `HealthCheckService` (memory, response-time and component checks) and the
+   metrics aggregation worker. This is how throughput, latency and failure
+   rates become observable without touching the hot path.
+
+6. **Formatting.** Finally the result is rendered for the caller. A
+   `ResultFormatterFactory` picks an `IResultFormatter` implementation
+   (`CsvResultFormatter`, `HtmlResultFormatter`, `MarkdownResultFormatter`,
+   `TextResultFormatter`, `XmlResultFormatter`, or the JSON formatter) so the
+   same processing result can be emitted in whatever shape the client needs.
+
+**How the four subsystems tie together:** Middleware owns the *control flow*
+(what runs, in what order, and how failures are contained); Events provide the
+*decoupled notifications* that fan out from the core; Monitoring *consumes*
+those events plus periodic checks to expose health and metrics; and Formatters
+*present* the final result. None of them are on the critical dependency path of
+another - each can be extended (add a middleware, subscribe a new handler,
+register a health check, add a formatter) without modifying the others.
+
 ## System Requirements
 
 ### Minimum Requirements
