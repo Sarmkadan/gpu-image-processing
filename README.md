@@ -321,9 +321,10 @@ Console.WriteLine($"Memory footprint 4K: {memoryFootprint4K:N0} bytes");
 Console.WriteLine($"Best device: {bestDevice?.Name ?? "None found"}");
 ```
 
-## FilterChainBuilderBenchmarks
+## FilterChainBenchmarks
 
-The `FilterChainBuilderBenchmarks` class provides performance benchmarks for the `FilterChainBuilder` fluent API used throughout the GPU image processing pipeline. These benchmarks measure critical hot-paths including fluent chain construction, validation, cloning, and processing time estimation that are called repeatedly during batch execution and profile management.
+The `FilterChainBenchmarks` class provides performance benchmarks for core `FilterChain` operations that are critical hot paths during GPU filter pipeline setup and execution. It measures realistic in-process operations including step management, validation, querying, and cloning that are called repeatedly during batch processing workflows.
+
 
 ### Usage Example
 
@@ -332,33 +333,29 @@ using GpuImageProcessing.Benchmarks;
 using GpuImageProcessing.Domain;
 
 // Create benchmark instance
-var benchmarks = new FilterChainBuilderBenchmarks();
+var benchmarks = new FilterChainBenchmarks();
 
 // Setup test data (required before running benchmarks)
 benchmarks.Setup();
 
-// Benchmark quick 3-step filter chain creation
-var quickChain = benchmarks.Build_ThreeStep();
+// Benchmark building a 10-step chain from scratch
+var newChain = benchmarks.AddStep_TenFilters();
 
-// Benchmark full 10-step professional workflow creation
-var fullChain = benchmarks.Build_TenStep();
+// Benchmark retrieving enabled steps from a 10-step chain
+var enabledSteps = benchmarks.GetEnabledSteps_TenSteps();
 
-// Benchmark chain validation (called before every batch job dispatch)
-bool isValid = benchmarks.Validate_TenStep();
+// Benchmark full chain validation (called before every batch job dispatch)
+bool isValid = benchmarks.Validate_TenSteps();
 
-// Benchmark chain cloning (used when duplicating profiles)
-var clonedChain = benchmarks.Clone_TenStep();
+// Benchmark counting enabled filters without allocating a list
+int enabledCount = benchmarks.GetEnabledFilterCount();
 
-// Benchmark processing time estimation (called on every scheduler tick)
-double estimatedTime = benchmarks.EstimateTotalProcessingTime();
+// Benchmark cloning a 10-step chain (used when duplicating profiles)
+var clonedChain = benchmarks.Clone_TenStepChain();
 
-// Benchmark enabled steps retrieval
-var enabledSteps = benchmarks.GetEnabledSteps();
-
-Console.WriteLine($"Quick chain created: {quickChain.Name}");
-Console.WriteLine($"Full chain created: {fullChain.Name}");
-Console.WriteLine($"Chain is valid: {isValid}");
-Console.WriteLine($"Cloned chain has {clonedChain.GetEnabledSteps().Count} steps");
-Console.WriteLine($"Estimated processing time: {estimatedTime:F2} seconds");
+Console.WriteLine($"New chain created: {newChain.Name}");
 Console.WriteLine($"Enabled steps: {enabledSteps.Count}");
+Console.WriteLine($"Chain is valid: {isValid}");
+Console.WriteLine($"Enabled filter count: {enabledCount}");
+Console.WriteLine($"Cloned chain has {clonedChain.GetEnabledSteps().Count} steps");
 ```
