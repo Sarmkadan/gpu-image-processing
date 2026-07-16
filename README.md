@@ -1393,6 +1393,72 @@ else
 
 
 
+## RemoteImageService
+
+The `RemoteImageService` class provides a robust service for fetching images from remote URLs with support for authentication, retry logic, and bandwidth throttling. It handles downloading images from various sources, validates image integrity, and manages trusted sources with automatic authorization. This service is essential for integrating the GPU image processing pipeline with external image repositories and APIs.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Integration;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create remote image service with default settings (3 retries, 30s timeout)
+        var remoteImageService = new RemoteImageService(maxRetries: 3, timeoutSeconds: 30);
+
+        // Register a trusted source for automatic authorization
+        remoteImageService.RegisterTrustedSource(
+            url: "https://api.example.com/images/",
+            apiKey: "your-api-key-here"
+        );
+
+        // Download a single image
+        var imageUrl = "https://api.example.com/images/sample.jpg";
+        var result = await remoteImageService.DownloadImageAsync(imageUrl);
+
+        if (result.IsSuccess)
+        {
+            Console.WriteLine($"Successfully downloaded image from {result.Data.SourceUrl}");
+            Console.WriteLine($"Content type: {result.Data.ContentType}");
+            Console.WriteLine($"Size: {result.Data.SizeBytes:N0} bytes");
+            Console.WriteLine($"Downloaded at: {result.Data.DownloadedAt}");
+        }
+        else
+        {
+            Console.WriteLine($"Failed to download image: {result.Error}");
+        }
+
+        // Download multiple images concurrently with rate limiting
+        var imageUrls = new List<string>
+        {
+            "https://api.example.com/images/photo1.jpg",
+            "https://api.example.com/images/photo2.jpg",
+            "https://api.example.com/images/photo3.jpg"
+        };
+
+        var batchResults = await remoteImageService.DownloadImagesAsync(
+            imageUrls,
+            maxConcurrentDownloads: 5
+        );
+
+        Console.WriteLine($"Downloaded {batchResults.Count(r => r.IsSuccess)} out of {batchResults.Count} images");
+
+        // Validate downloaded image data
+        bool isValidImage = remoteImageService.ValidateImageData(
+            result.Data.ImageData,
+            result.Data.ContentType
+        );
+        Console.WriteLine($"Image validation: {(isValidImage ? "PASSED" : "FAILED")}");
+    }
+}
+```
+
 ## HttpImageClient
 
 The `HttpImageClient` class provides an HTTP client wrapper for downloading and uploading images from remote sources. It includes retry logic with exponential backoff, timeout handling, content validation, and comprehensive error reporting. This client is essential for integrating the GPU image processing pipeline with external image sources and destinations.
