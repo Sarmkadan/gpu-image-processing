@@ -225,6 +225,49 @@ Console.WriteLine($"Success rate: {successRate:P0}");
 Console.WriteLine($"Remaining time: {remainingTime?.ToString() ?? "N/A"}");
 ```
 
+## ImageUtilitiesBenchmarks
+
+The `ImageUtilitiesBenchmarks` class provides performance benchmarks for the `ImageUtilities` hot paths that are called per-image during the ingestion pipeline. These include file extension validation, MIME type resolution, image format detection, file size formatting, and proportional size calculations that are critical for image processing workflows.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Benchmarks;
+using GpuImageProcessing.Utilities;
+
+// Create benchmark instance
+var benchmarks = new ImageUtilitiesBenchmarks();
+
+// Setup test data (required before running benchmarks)
+// Note: BenchmarkDotNet will handle setup automatically
+
+// Benchmark image file extension validation
+bool isJpegSupported = benchmarks.IsSupportedImageFile_Jpeg();
+bool isWebPSupported = benchmarks.IsSupportedImageFile_WebP();
+bool isUnsupported = benchmarks.IsSupportedImageFile_Unsupported();
+
+// Benchmark file size formatting
+string kbSize = benchmarks.FormatFileSize_Kilobytes();
+string mbSize = benchmarks.FormatFileSize_Megabytes();
+string gbSize = benchmarks.FormatFileSize_Gigabytes();
+
+// Benchmark MIME type resolution
+string? jpegMime = benchmarks.GetMimeType_Jpeg();
+string? pngMime = benchmarks.GetMimeType_Png();
+string? tiffFormat = benchmarks.GetImageFormat_Tiff();
+
+// Benchmark proportional size calculations
+(int width, int height) = benchmarks.CalculateProportionalSize_2x();
+
+Console.WriteLine($"JPEG supported: {isJpegSupported}");
+Console.WriteLine($"WebP supported: {isWebPSupported}");
+Console.WriteLine($"Unsupported file detected: {isUnsupported}");
+Console.WriteLine($"MIME types - JPEG: {jpegMime}, PNG: {pngMime}");
+Console.WriteLine($"TIFF format detected: {tiffFormat}");
+Console.WriteLine($"Proportional size: {width}x{height}");
+Console.WriteLine($"File sizes - KB: {kbSize}, MB: {mbSize}, GB: {gbSize}");
+```
+
 ## GpuPerformanceBenchmarks
 
 The `GpuPerformanceBenchmarks` class provides performance benchmarks for GPU-accelerated image processing operations. It measures throughput and latency of critical GPU operations including single filter applications, multiple filter chains, batch processing throughput, memory allocation patterns, and device initialization overhead. These benchmarks help identify performance bottlenecks and optimize GPU utilization in image processing workflows.
