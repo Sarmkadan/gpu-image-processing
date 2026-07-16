@@ -573,12 +573,32 @@ catch (ProcessingException ex)
     // Run the pipeline
     BatchPipelineResult result = await pipeline.RunAsync(batch);
 
-    Console.WriteLine($"Succeeded: {result.SucceededCount}");
-    Console.WriteLine($"Failed: {result.FailedCount}");
-    Console.WriteLine($"Total Duration: {result.TotalDuration}");
 
-    foreach (var outcome in result.Outcomes)
-    {
-    Console.WriteLine($"Image {outcome.ImageId}: {outcome.Stage} (Attempts: {outcome.Attempts})");
-    }
-    ```
+## ComputeShaderPipeline
+
+The `ComputeShaderPipeline` class orchestrates compute shader execution on GPU devices, handling workgroup optimization, per-pass profiling, and GPU memory lifecycle management. It dispatches sequential compute shader passes based on their priority and automatically optimizes workgroup configurations to ensure efficient GPU utilization.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Pipeline;
+using GpuImageProcessing.Domain;
+using System;
+using System.Threading.Tasks;
+
+// Assuming dependencies are initialized (e.g., via dependency injection)
+var pipeline = new ComputeShaderPipeline(optimizer, gpuService, perfMonitor, options, logger);
+
+// Run the pipeline for a set of passes
+var result = await pipeline.ExecuteAsync(passes, deviceId);
+
+// Optimize workgroup configuration for a specific pass
+var workgroupConfig = await pipeline.OptimizeWorkgroupAsync(pass, deviceId);
+
+// Retrieve and reset pipeline performance statistics
+var stats = await pipeline.GetStatisticsAsync();
+await pipeline.ResetStatisticsAsync();
+
+Console.WriteLine($"Pipeline execution succeeded: {result.Succeeded}");
+Console.WriteLine($"Total passes executed: {stats.TotalPassesExecuted}");
+```
