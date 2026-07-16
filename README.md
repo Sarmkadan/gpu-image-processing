@@ -1333,6 +1333,75 @@ else
 
 
 
+## WebhookHandler
+
+The `WebhookHandler` class manages webhook subscriptions and event dispatching for external integrations. It allows registering and unregistering webhook endpoints, dispatching events to subscribers, and tracking subscription status including retry policies and failure counts. This component is essential for integrating the GPU image processing pipeline with external systems and services.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Integration;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create a webhook handler instance
+        var webhookHandler = new WebhookHandler("image-processing-events");
+
+        // Register a webhook endpoint for image processing events
+        string webhookUrl = "https://api.example.com/webhooks/image-processing";
+        bool registrationSuccess = webhookHandler.RegisterWebhook(
+            webhookUrl: webhookUrl,
+            eventType: "ImageProcessed",
+            isActive: true
+        );
+
+        Console.WriteLine($"Webhook registration {(registrationSuccess ? "succeeded" : "failed")}");
+
+        // Get all registered webhooks
+        var subscriptions = webhookHandler.GetWebhooks();
+        Console.WriteLine($"Total webhook subscriptions: {subscriptions.Count}");
+
+        foreach (var subscription in subscriptions)
+        {
+            Console.WriteLine($" - ID: {subscription.Id}, URL: {subscription.WebhookUrl}, " +
+                           $"Event: {subscription.EventType}, Active: {subscription.IsActive}");
+        }
+
+        // Dispatch an event to all registered webhooks
+        var imageProcessedEvent = new ImageProcessedEvent
+        {
+            ImageId = Guid.NewGuid(),
+            ProcessingTimeMs = 45.2,
+            OutputPath = "/output/processed_image.jpg",
+            Success = true
+        };
+
+        await webhookHandler.DispatchEventAsync("ImageProcessed", imageProcessedEvent);
+
+        // Unregister a webhook when it's no longer needed
+        bool unregistrationSuccess = webhookHandler.UnregisterWebhook(webhookUrl);
+        Console.WriteLine($"Webhook unregistration {(unregistrationSuccess ? "succeeded" : "failed")}");
+
+        // Configure retry policy for webhook delivery
+        webhookHandler.RetryPolicy.MaxRetries = 3;
+        webhookHandler.RetryPolicy.InitialDelayMs = 200;
+        webhookHandler.RetryPolicy.MaxDelayMs = 5000;
+        webhookHandler.RetryPolicy.BackoffMultiplier = 2.0;
+
+        Console.WriteLine($"Retry policy configured: MaxRetries={webhookHandler.RetryPolicy.MaxRetries}, " +
+                       $"InitialDelay={webhookHandler.RetryPolicy.InitialDelayMs}ms, " +
+                       $"MaxDelay={webhookHandler.RetryPolicy.MaxDelayMs}ms");
+
+        // Dispose the handler to clean up resources
+        webhookHandler.Dispose();
+    }
+}
+```
+
 ## FilterConfiguration
 
 `FilterConfiguration` defines the settings and parameters for a specific image processing filter, including its name, priority, and any custom kernel code or parameter settings. It provides robust validation and cloning capabilities to ensure filter configurations are correctly set up and can be safely reused or modified within processing pipelines.
