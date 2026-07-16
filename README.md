@@ -437,3 +437,49 @@ Console.WriteLine($"Chain is valid: {isValid}");
 Console.WriteLine($"Enabled filter count: {enabledCount}");
 Console.WriteLine($"Cloned chain has {clonedChain.GetEnabledSteps().Count} steps");
 ```
+
+## ConfigurationException
+
+The `ConfigurationException` is thrown when there is an issue with application configuration during GPU image processing operations. It provides detailed information about the configuration key and value that caused the exception, allowing for easier debugging of configuration-related issues in batch processing pipelines.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Exceptions;
+using System;
+
+// Example: Validating configuration before starting image processing
+try
+{
+  var maxBatchSize = GetConfigurationValue("MaxBatchSize");
+  if (maxBatchSize <= 0)
+  {
+    throw new ConfigurationException(
+      "MaxBatchSize must be a positive integer",
+      "MaxBatchSize",
+      maxBatchSize.ToString()
+    );
+  }
+}
+catch (ConfigurationException ex)
+{
+  Console.WriteLine($"Configuration error occurred: {ex.Message}");
+  Console.WriteLine($"Configuration key: {ex.ConfigurationKey}");
+  Console.WriteLine($"Configuration value: {ex.ConfigurationValue}");
+  Console.WriteLine($"Exception details: {ex}");
+
+  // Log the error and use a default value or exit gracefully
+  Logger.LogError(ex, "Invalid configuration detected");
+  Environment.Exit(1);
+}
+
+static int GetConfigurationValue(string key)
+{
+  // Simulate getting configuration value from app settings
+  return key switch
+  {
+    "MaxBatchSize" => -1, // Invalid configuration
+    _ => 10
+  };
+}
+```
