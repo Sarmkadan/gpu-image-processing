@@ -1005,6 +1005,138 @@ Console.WriteLine($"Image still exists after delete: {imageAfterDelete != null}"
 }
 ```
 
+## ProcessingResultRepository
+
+The `ProcessingResultRepository` class provides data access operations for `ProcessingResult` entities, implementing a repository pattern for managing processing results in memory. It offers comprehensive CRUD operations along with specialized query methods for filtering results by image ID, processing status, success/failure state, time ranges, and performance metrics. This repository is particularly useful for tracking and analyzing image processing operations throughout the GPU pipeline.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Repository;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Program
+{
+static async Task Main()
+{
+// Create repository instance
+var repository = new ProcessingResultRepository();
+
+// Create and add processing results for different images
+var result1 = new ProcessingResult
+{
+ImageId = Guid.NewGuid(),
+OutputPath = "/output/processed_image1.png",
+Status = ProcessingStatus.Processed,
+IsSuccessful = true,
+ProcessingTimeMilliseconds = 45.2,
+CompletedAt = DateTime.UtcNow.AddMinutes(-10)
+};
+result1.AddFilterApplied("GaussianBlur", FilterType.Blur, 12.5);
+result1.AddFilterApplied("Sharpen", FilterType.Enhancement, 8.3);
+
+var result2 = new ProcessingResult
+{
+ImageId = Guid.NewGuid(),
+OutputPath = "/output/processed_image2.jpg",
+Status = ProcessingStatus.Processed,
+IsSuccessful = true,
+ProcessingTimeMilliseconds = 32.8,
+CompletedAt = DateTime.UtcNow.AddMinutes(-5)
+};
+result2.AddFilterApplied("Grayscale", FilterType.ColorTransform, 5.1);
+
+var result3 = new ProcessingResult
+{
+ImageId = Guid.NewGuid(),
+OutputPath = "/output/failed_image.png",
+Status = ProcessingStatus.Failed,
+IsSuccessful = false,
+ErrorMessage = "GPU memory allocation failed",
+ProcessingTimeMilliseconds = 2.1,
+CompletedAt = DateTime.UtcNow.AddMinutes(-2)
+};
+
+// Add results to repository
+await repository.CreateAsync(result1);
+await repository.CreateAsync(result2);
+await repository.CreateAsync(result3);
+
+Console.WriteLine("Created 3 processing results");
+
+// Get all results
+var allResults = await repository.GetAllAsync();
+Console.WriteLine($"Total results: {allResults.Count()}");
+
+// Get result by ID
+var retrievedResult = await repository.GetByIdAsync(result1.Id);
+if (retrievedResult != null)
+{
+Console.WriteLine($"Retrieved result for image ID: {retrievedResult.ImageId}");
+}
+
+// Get results by image ID
+var resultsForImage = await repository.GetByImageIdAsync(result1.ImageId);
+Console.WriteLine($"Results for image {result1.ImageId}: {resultsForImage.Count()}");
+
+// Get successful results
+var successfulResults = await repository.GetSuccessfulResultsAsync();
+Console.WriteLine($"Successful results: {successfulResults.Count()}");
+
+// Get failed results
+var failedResults = await repository.GetFailedResultsAsync();
+Console.WriteLine($"Failed results: {failedResults.Count()}");
+
+// Get results by status
+var processedResults = await repository.GetByStatusAsync(ProcessingStatus.Processed);
+Console.WriteLine($"Processed results: {processedResults.Count()}");
+
+// Get results completed between specific dates
+var recentResults = await repository.GetCompletedBetweenAsync(
+DateTime.UtcNow.AddHours(-1),
+DateTime.UtcNow
+);
+Console.WriteLine($"Results completed in last hour: {recentResults.Count()}");
+
+// Get slowest results (top 10)
+var slowestResults = await repository.GetSlowestResultsAsync(10);
+Console.WriteLine($"Slowest results count: {slowestResults.Count()}");
+
+// Get average processing time for successful operations
+var avgProcessingTime = await repository.GetAverageProcessingTimeAsync();
+Console.WriteLine($"Average processing time: {avgProcessingTime:F2}ms");
+
+// Update a result
+retrievedResult.Status = ProcessingStatus.Processed;
+var updatedResult = await repository.UpdateAsync(retrievedResult);
+Console.WriteLine($"Updated result status: {updatedResult.Status}");
+
+// Check if result exists
+var exists = await repository.ExistsAsync(result1.Id);
+Console.WriteLine($"Result exists: {exists}");
+
+// Count results
+var resultCount = await repository.CountAsync();
+Console.WriteLine($"Total result count: {resultCount}");
+
+// Get paged results
+var page1 = await repository.GetPagedAsync(1, 2);
+Console.WriteLine($"Page 1 has {page1.Count()} results");
+
+// Delete a result
+var deleteSuccess = await repository.DeleteAsync(result1.Id);
+Console.WriteLine($"Result deleted: {deleteSuccess}");
+
+// Verify deletion
+var resultAfterDelete = await repository.GetByIdAsync(result1.Id);
+Console.WriteLine($"Result still exists after delete: {resultAfterDelete != null}");
+}
+}
+```
+
 ## ProcessingResult
 
 The `ProcessingResult` class encapsulates the outcome of an image processing operation, providing detailed status tracking, performance metrics, and information about applied filters. It supports automatic state management through completion and failure methods, allowing for consistent error handling and diagnostic reporting across processing pipelines.
