@@ -599,6 +599,42 @@ var workgroupConfig = await pipeline.OptimizeWorkgroupAsync(pass, deviceId);
 var stats = await pipeline.GetStatisticsAsync();
 await pipeline.ResetStatisticsAsync();
 
-Console.WriteLine($"Pipeline execution succeeded: {result.Succeeded}");
-Console.WriteLine($"Total passes executed: {stats.TotalPassesExecuted}");
+
+
+## ProcessingResult
+
+The `ProcessingResult` class encapsulates the outcome of an image processing operation, providing detailed status tracking, performance metrics, and information about applied filters. It supports automatic state management through completion and failure methods, allowing for consistent error handling and diagnostic reporting across processing pipelines.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+
+// Initialize a new result object for an image
+var result = new ProcessingResult
+{
+    ImageId = Guid.NewGuid(),
+    OutputPath = "/output/processed_image.png"
+};
+
+// Apply a filter and record its execution metrics
+// Assuming FilterType enum is available in GpuImageProcessing.Domain
+result.AddFilterApplied("GaussianBlur", FilterType.Blur, 15.5);
+
+// Complete the processing operation
+result.Complete(result.OutputPath);
+
+// Verify the result
+if (result.IsSuccessful)
+{
+    Console.WriteLine($"Image processed successfully in {result.ProcessingTimeMilliseconds}ms.");
+    Console.WriteLine($"Total filter execution time: {result.GetTotalFilterExecutionTime()}ms");
+}
+else
+{
+    // If an error occurred, mark the result as failed
+    result.Fail("Shader execution timeout.", 500);
+    Console.WriteLine($"Processing failed: {result.ErrorMessage}");
+}
 ```
