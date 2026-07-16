@@ -1379,6 +1379,85 @@ var clonedChain = chain.Clone();
 clonedChain.Name = "Photo Enhancement Chain - High Quality";
 ```
 
+
+## GpuManagementService
+
+The `GpuManagementService` class provides centralized management of GPU devices and resources within the GPU image processing pipeline. It handles device discovery, memory allocation, validation, and performance monitoring, ensuring efficient utilization of available GPU resources. The service automatically falls back to CPU-based processing when no GPU devices are available, maintaining system operability across different hardware configurations.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Services;
+using GpuImageProcessing.Domain;
+using Microsoft.Extensions.Logging;
+using System;
+
+// Initialize the service with logging (typically via dependency injection)
+using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+ILogger<GpuManagementService> logger = loggerFactory.CreateLogger<GpuManagementService>();
+
+var gpuService = new GpuManagementService(logger);
+
+// Check if fallback mode is active (no GPU devices available)
+if (gpuService.UseFallback)
+{
+    Console.WriteLine("Running in CPU fallback mode - no GPU devices detected.");
+}
+
+// Get all available GPU devices
+var availableDevices = gpuService.GetAvailableDevices();
+Console.WriteLine($"Found {availableDevices.Count()} available GPU device(s):");
+foreach (var device in availableDevices)
+{
+    Console.WriteLine($" - {device.Name} ({device.Vendor}) - {device.GlobalMemoryBytes / (1024 * 1024 * 1024)} GB");
+}
+
+// Get the best performing device for processing
+var bestDevice = gpuService.GetBestDevice();
+if (bestDevice != null)
+{
+    Console.WriteLine($"Selected best device: {bestDevice.Name}");
+    
+    // Allocate memory for image processing (e.g., 100MB for a batch of images)
+    long requiredMemory = 100 * 1024 * 1024; // 100 MB
+    bool allocationSuccess = gpuService.AllocateMemory(requiredMemory, bestDevice.Id);
+    
+    if (allocationSuccess)
+    {
+        Console.WriteLine($"Successfully allocated {requiredMemory / (1024 * 1024)} MB on {bestDevice.Name}");
+        
+        // Process images...
+        
+        // Deallocate memory when done
+        gpuService.DeallocateMemory(requiredMemory, bestDevice.Id);
+        Console.WriteLine("Memory deallocated.");
+    }
+}
+
+// Get device with most memory available
+var memoryRichDevice = gpuService.GetDeviceWithMostMemory();
+if (memoryRichDevice != null)
+{
+    Console.WriteLine($"Device with most memory: {memoryRichDevice.Name} - {memoryRichDevice.GetAvailableMemory() / (1024 * 1024 * 1024)} GB available");
+}
+
+// Validate device capabilities before intensive operations
+var deviceId = bestDevice?.Id ?? Guid.Empty;
+bool isValid = gpuService.ValidateDevice(deviceId, requiredMemory: 50 * 1024 * 1024); // 50 MB minimum
+Console.WriteLine($"Device validation for intensive processing: {(isValid ? "PASSED" : "FAILED")}");
+
+// Get comprehensive memory statistics
+var memoryStats = gpuService.GetMemoryStatistics();
+Console.WriteLine("Memory Statistics:");
+foreach (var stat in memoryStats)
+{
+    Console.WriteLine($"  {stat.Key}: {stat.Value}");
+}
+
+// Get total allocated memory across all devices
+long totalAllocated = gpuService.GetTotalAllocatedMemory();
+Console.WriteLine($"Total GPU memory allocated: {totalAllocated / (1024 * 1024)} MB");
+```
 ## Image
 
 The `Image` class is a core domain model that encapsulates raw image pixel data along with its metadata, such as format, color space, dimensions, and processing status. It provides essential validation and size calculation methods, making it the primary structure for representing images throughout the processing pipeline.
@@ -1414,5 +1493,6 @@ if (image.Validate())
     Console.WriteLine($"Status: {image.Status}"); // Assuming ProcessingStatus enum exists
 }
 ```
+
 
 ```
