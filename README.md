@@ -1,5 +1,41 @@
 // existing content ...
 
+## EnumerableExtensionsBenchmarks
+
+The `EnumerableExtensionsBenchmarks` class provides performance benchmarks for common `IEnumerable<T>` operations used throughout the GPU batch processing pipeline. These include shuffling, batching, deduplication, and dictionary conversion methods that are critical for organizing and processing image batches efficiently.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Benchmarks;
+using GpuImageProcessing.Utilities;
+
+// Create benchmark instance
+var benchmarks = new EnumerableExtensionsBenchmarks();
+
+// Setup test data (required before running benchmarks)
+benchmarks.Setup();
+
+// Benchmark shuffling operations
+var shuffled32 = benchmarks.Shuffle_32Items();
+var shuffled1024 = benchmarks.Shuffle_1024Items();
+
+// Benchmark batching operations
+int batch32Count = benchmarks.Batch_1000By32();
+int batch8Count = benchmarks.Batch_1000By8();
+
+// Benchmark deduplication
+int distinctCount = benchmarks.DistinctBy_1000Strings();
+
+// Benchmark dictionary conversion
+var dictionary = benchmarks.SafeToDictionary_1000Items();
+
+Console.WriteLine($"Batch 32 count: {batch32Count}");
+Console.WriteLine($"Batch 8 count: {batch8Count}");
+Console.WriteLine($"Distinct count: {distinctCount}");
+Console.WriteLine($"Dictionary count: {dictionary.Count}");
+```
+
 ## ImageRegisteredEvent
 
 The `ImageRegisteredEvent` is a domain event that is published when an image is registered for processing. It contains metadata about the image, including its ID, path, width, height, and description. This event can be used to trigger subsequent processing steps or to update external systems.
