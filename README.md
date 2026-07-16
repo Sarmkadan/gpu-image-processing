@@ -510,3 +510,32 @@ static int GetConfigurationValue(string key)
   };
 }
 ```
+
+## ProcessingException
+
+The `ProcessingException` is thrown when an image processing operation fails during the execution of a filter chain. It encapsulates diagnostic information about the failed operation, including the path of the image being processed, the name of the filter that was being applied, and the attempt number, which facilitates better error handling and logging in batch processing workflows.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core;
+using System;
+
+try
+{
+    // Simulate a processing failure
+    throw new ProcessingException(
+        "Failed to apply GaussianBlur filter.",
+        imagePath: "/images/input.jpg",
+        filterName: "GaussianBlur",
+        attemptNumber: 1
+    );
+}
+catch (ProcessingException ex)
+{
+    Console.WriteLine($"Exception Message: {ex.Message}");
+    Console.WriteLine($"Image Path: {ex.ImagePath ?? "N/A"}");
+    Console.WriteLine($"Filter Name: {ex.FilterName ?? "N/A"}");
+    Console.WriteLine($"Attempt Number: {ex.AttemptNumber?.ToString() ?? "N/A"}");
+}
+```
