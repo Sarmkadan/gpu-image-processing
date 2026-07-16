@@ -733,6 +733,66 @@ var clonedConfig = config.Clone();
 clonedConfig.Name = "CustomBlur_Copy";
 ```
 
+## FilterChain
+
+The `FilterChain` class represents a sequence of image processing filters that are applied in order to transform an image. It manages filter steps, execution order, parallel processing options, and caching behavior, making it the central component for defining image processing workflows. Filter chains can be validated, cloned, and configured with various options to optimize performance and resource usage.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+using System.Collections.Generic;
+
+// Create a new filter chain
+var chain = new FilterChain
+{
+    Name = "Photo Enhancement Chain",
+    Description = "A chain for enhancing digital photographs",
+    ExecutionOrder = 1,
+    AllowParallelExecution = true,
+    MaxParallelSteps = 4,
+    CacheIntermediateResults = true,
+    ChainOptions = new Dictionary<string, object>
+    {
+        { "QualityThreshold", 0.95 },
+        { "MaxMemoryUsage", 2L * 1024 * 1024 * 1024 }
+    }
+};
+
+// Add filter steps to the chain
+chain.AddStep(Guid.NewGuid()); // Add first filter
+chain.AddStep(Guid.NewGuid()); // Add second filter
+chain.AddStep(Guid.NewGuid()); // Add third filter
+
+// Reorder steps if needed
+chain.ReorderSteps(new List<Guid> {
+    chain.Steps[2].FilterId,
+    chain.Steps[0].FilterId,
+    chain.Steps[1].FilterId
+});
+
+// Disable a specific step
+var stepToDisable = chain.Steps.First(s => s.Order == 1);
+stepToDisable.IsEnabled = false;
+
+// Get enabled steps for processing
+var enabledSteps = chain.GetEnabledSteps();
+Console.WriteLine($"Chain '{chain.Name}' has {enabledSteps.Count} enabled steps.");
+
+// Validate the chain before processing
+if (chain.Validate())
+{
+    Console.WriteLine($"Filter chain '{chain.Name}' is valid and ready for execution.");
+    double estimatedTime = chain.EstimateTotalProcessingTime();
+    Console.WriteLine($"Estimated processing time: {estimatedTime}ms");
+}
+
+// Clone the chain for reuse with different parameters
+var clonedChain = chain.Clone();
+clonedChain.Name = "Photo Enhancement Chain - High Quality";
+```
+
 ## Image
 
 The `Image` class is a core domain model that encapsulates raw image pixel data along with its metadata, such as format, color space, dimensions, and processing status. It provides essential validation and size calculation methods, making it the primary structure for representing images throughout the processing pipeline.
