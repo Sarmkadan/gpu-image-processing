@@ -627,6 +627,66 @@ catch (ProcessingException ex)
     }
     ```
 
+## ImageBatch
+
+The `ImageBatch` class represents a collection of images to be processed together as a single unit. It tracks processing status, manages image and filter collections, and provides progress tracking and performance metrics. Batches can be validated before processing and support adding/removing images and filters dynamically.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+using System.Collections.Generic;
+
+// Create a new image batch
+var batch = new ImageBatch
+{
+    Name = "SummerPhotos-2024",
+    Description = "Batch processing summer vacation photos with enhancement filters",
+    OutputDirectory = "/output/summer-2024-enchanced"
+};
+
+// Add images to the batch
+batch.AddImage(Guid.NewGuid()); // First image
+batch.AddImage(Guid.NewGuid()); // Second image
+batch.AddImage(Guid.NewGuid()); // Third image
+
+// Add filters to apply to all images in the batch
+batch.AddFilter(Guid.NewGuid()); // Enhancement filter
+batch.AddFilter(Guid.NewGuid()); // Color correction filter
+
+// Set custom batch options
+batch.BatchOptions["QualityThreshold"] = 0.95;
+batch.BatchOptions["MaxMemoryUsage"] = 2L * 1024 * 1024 * 1024; // 2GB
+
+// Validate the batch before processing
+if (batch.Validate())
+{
+    Console.WriteLine($"Batch {batch.Name} is valid and ready for processing.");
+    Console.WriteLine($"Total images: {batch.TotalImages}");
+    Console.WriteLine($"Total filters: {batch.FilterIds.Count}");
+    
+    // Start processing
+    batch.Start();
+    
+    // Simulate processing progress
+    batch.MarkImageProcessed(success: true);
+    batch.MarkImageProcessed(success: true);
+    batch.MarkImageProcessed(success: false); // One failed
+    
+    // Check progress
+    double progress = batch.GetProgressPercentage();
+    double successRate = batch.GetSuccessRate();
+    
+    Console.WriteLine($"Progress: {progress:P0}");
+    Console.WriteLine($"Success rate: {successRate:P0}");
+    
+    // Complete processing
+    batch.Complete();
+    Console.WriteLine($"Processing completed at: {batch.CompletedAt}");
+}
+```
+
     ## BatchProcessingPipeline
 
     The `BatchProcessingPipeline` provides a robust, stage-aware mechanism for executing batch image processing jobs with integrated retry policies and progress reporting. It orchestrates image ingestion through pre-processing, GPU filtering, and post-processing stages, offering fine-grained control over concurrency and fault tolerance.
