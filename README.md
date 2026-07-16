@@ -1,3 +1,17 @@
+# GPU Image Processing
+
+GPU-accelerated image processing in C# using OpenCL (Silk.NET) - filters, transforms,
+batch operations, with a byte-exact CPU fallback that keeps everything usable on
+machines without a GPU.
+
+## Architecture
+
+The solution is split into a reusable library core (`src/`) and a console application
+shell (root folders: CLI, API facade, middleware, workers). How the projects fit
+together, the data flow, key design decisions and extension points are documented in
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+The sections below are per-type reference notes with usage examples.
 
 ## GpuException
 
