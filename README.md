@@ -1553,6 +1553,138 @@ if (chain.Validate())
 }
 ```
 
+## BenchmarkSuiteConfigurationTests
+
+The `BenchmarkSuiteConfigurationTests` class contains unit tests for the `BenchmarkSuiteConfiguration` class, which validates benchmark suite configurations including run names, categories, and accuracy levels.
+
+These tests ensure that benchmark configurations are properly validated and that presets for different environments (CI vs Release) produce the expected results.
+
+Example usage:
+
+```csharp
+using GpuImageProcessing.Benchmarks;
+using GpuImageProcessing.Tests.Benchmarking;
+using System;
+
+public class BenchmarkSuiteConfigurationTests
+{
+    public void Validate_ValidDefaultConfig_ReturnsNoErrors()
+    {
+        // Arrange
+        var config = BenchmarkSuiteConfiguration.Default;
+        
+        // Act
+        var errors = config.Validate();
+        
+        // Assert
+        Assert.Empty(errors);
+    }
+
+    public void Validate_BlankRunName_ReturnsNameError()
+    {
+        // Arrange
+        var config = BenchmarkSuiteConfiguration.Default with
+        {
+            RunName = string.Empty
+        };
+        
+        // Act
+        var errors = config.Validate();
+        
+        // Assert
+        Assert.Contains(errors, e => e.Contains("RunName"));
+    }
+
+    public void Validate_AllCategoriesDisabled_ReturnsAtLeastOneError()
+    {
+        // Arrange
+        var config = BenchmarkSuiteConfiguration.Default with
+        {
+            Categories = new[] { false, false, false, false, false }
+        };
+        
+        // Act
+        var errors = config.Validate();
+        
+        // Assert
+        Assert.Contains(errors, e => e.Contains("at least one category"));
+    }
+
+    public void GetEnabledCategories_DefaultConfig_ContainsFourCategories()
+    {
+        // Arrange
+        var config = BenchmarkSuiteConfiguration.Default;
+        
+        // Act
+        var enabledCategories = config.GetEnabledCategories();
+        
+        // Assert
+        Assert.Equal(4, enabledCategories.Count);
+    }
+
+    public void GetEnabledCategories_AllEnabled_ContainsFiveCategories()
+    {
+        // Arrange
+        var config = BenchmarkSuiteConfiguration.Default with
+        {
+            Categories = new[] { true, true, true, true, true }
+        };
+        
+        // Act
+        var enabledCategories = config.GetEnabledCategories();
+        
+        // Assert
+        Assert.Equal(5, enabledCategories.Count);
+    }
+
+    public void ForCi_Preset_HasQuickAccuracyAndThreeCategories()
+    {
+        // Arrange & Act
+        var ciConfig = BenchmarkSuiteConfiguration.ForCi;
+        var enabledCategories = ciConfig.GetEnabledCategories();
+        
+        // Assert
+        Assert.Equal("Quick", ciConfig.AccuracyLevel);
+        Assert.Equal(3, enabledCategories.Count);
+    }
+
+    public void ForRelease_Preset_HasThoroughAccuracyAndAllCategories()
+    {
+        // Arrange & Act
+        var releaseConfig = BenchmarkSuiteConfiguration.ForRelease;
+        var enabledCategories = releaseConfig.GetEnabledCategories();
+        
+        // Assert
+        Assert.Equal("Thorough", releaseConfig.AccuracyLevel);
+        Assert.Equal(5, enabledCategories.Count);
+    }
+
+    public void ForRelease_Preset_IsValid()
+    {
+        // Arrange
+        var config = BenchmarkSuiteConfiguration.ForRelease;
+        
+        // Act
+        var errors = config.Validate();
+        
+        // Assert
+        Assert.Empty(errors);
+    }
+
+    public void ForCi_Preset_IsValid()
+    {
+        // Arrange
+        var config = BenchmarkSuiteConfiguration.ForCi;
+        
+        // Act
+        var errors = config.Validate();
+        
+        // Assert
+        Assert.Empty(errors);
+    }
+}
+```
+
 ## PerformanceMetrics
 
 The `PerformanceMetrics` class tracks performance metrics for GPU operations, including CPU and GPU utilization, memory usage, execution times, and throughput. It provides methods for recording operations, calculating success rates, checking memory warnings, and resetting metrics for new measurement periods. This class is essential for monitoring and optimizing GPU-accelerated image processing pipelines.
