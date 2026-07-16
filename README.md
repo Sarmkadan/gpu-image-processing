@@ -814,6 +814,66 @@ class Program
 }
 ```
 
+## DatabaseConnectionPool
+
+The `DatabaseConnectionPool` class manages a pool of database connections for efficient database operations within the GPU image processing pipeline. It provides connection lifecycle management, automatic connection creation and cleanup, and comprehensive statistics tracking. The pool maintains a minimum number of connections ready for use and scales up to a maximum limit based on demand, with automatic timeout handling for connection acquisition requests.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Integration;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create a connection pool with default settings (min 5, max 20 connections, 30s timeout)
+        var pool = new DatabaseConnectionPool(
+            "Server=localhost;Database=gpu_images;User Id=app_user;Password=secure_password;Port=5432"
+        );
+
+        // Initialize the pool - creates minimum connections
+        await pool.InitializeAsync();
+        Console.WriteLine("Database connection pool initialized successfully.");
+
+        // Acquire a connection from the pool
+        var connection = await pool.AcquireConnectionAsync();
+        Console.WriteLine($"Acquired connection: {connection.Id}");
+        Console.WriteLine($"Connection state: {connection.State}");
+        Console.WriteLine($"Total connections created: {pool.GetStatistics().TotalConnections}");
+
+        // Use the connection (simulated - in real usage this would execute database operations)
+        // connection.ExecuteQuery(...);
+
+        // Release the connection back to the pool when done
+        await pool.ReleaseConnectionAsync(connection);
+        Console.WriteLine("Connection released back to pool.");
+
+        // Get pool statistics
+        var stats = pool.GetStatistics();
+        Console.WriteLine($"Pool Statistics:");
+        Console.WriteLine($"  Available: {stats.AvailableCount}");
+        Console.WriteLine($"  In Use: {stats.InUseCount}");
+        Console.WriteLine($"  Idle: {stats.IdleCount}");
+        Console.WriteLine($"  Total: {stats.TotalConnections}");
+        Console.WriteLine($"  Total Requests: {stats.TotalRequests}");
+        Console.WriteLine($"  Min Pool Size: {stats.MinPoolSize}");
+        Console.WriteLine($"  Max Pool Size: {stats.MaxPoolSize}");
+
+        // Close a connection (removes from pool)
+        await pool.CloseConnectionAsync(connection);
+        Console.WriteLine("Connection closed and removed from pool.");
+
+        // Clean up idle connections older than 5 minutes
+        await pool.CleanupIdleConnectionsAsync(TimeSpan.FromMinutes(5));
+        Console.WriteLine("Idle connections cleanup completed.");
+    }
+}
+```
+
+
 ## BatchProcessingPipeline
 
     The `BatchProcessingPipeline` provides a robust, stage-aware mechanism for executing batch image processing jobs with integrated retry policies and progress reporting. It orchestrates image ingestion through pre-processing, GPU filtering, and post-processing stages, offering fine-grained control over concurrency and fault tolerance.
