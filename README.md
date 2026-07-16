@@ -26,6 +26,50 @@ catch (GpuException ex)
 }
 ```
 
+## SimdCapabilities
+
+The `SimdCapabilities` class provides a runtime-detected snapshot of the CPU's SIMD instruction set capabilities. It exposes boolean flags for each supported SIMD level (SSE2, SSE4.1, AVX, AVX2, AVX-512F), the highest available level via `BestAvailableLevel`, and the native vector register width in bytes via `VectorWidthBytes`. Use `Detect()` to probe the current CPU and cache the result per-process; the returned instance is immutable and thread-safe.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+
+// Detect available SIMD capabilities on the current CPU
+var capabilities = SimdCapabilities.Detect();
+
+Console.WriteLine($"SIMD Detection Results:");
+Console.WriteLine($"  SSE2 support: {capabilities.SupportsSSE2}");
+Console.WriteLine($"  SSE4.1 support: {capabilities.SupportsSse41}");
+Console.WriteLine($"  AVX support: {capabilities.SupportsAvx}");
+Console.WriteLine($"  AVX2 support: {capabilities.SupportsAvx2}");
+Console.WriteLine($"  AVX-512F support: {capabilities.SupportsAvx512F}");
+Console.WriteLine($"  Best available level: {capabilities.BestAvailableLevel}");
+Console.WriteLine($"  Vector width: {capabilities.VectorWidthBytes} bytes");
+Console.WriteLine($"  Any SIMD available: {capabilities.IsAnySimdAvailable}");
+
+// Choose code paths based on detected capabilities
+if (capabilities.SupportsAvx2)
+{
+    Console.WriteLine("Using AVX2-accelerated processing path");
+    // Initialize AVX2-specific processing pipeline
+}
+else if (capabilities.SupportsSse41)
+{
+    Console.WriteLine("Using SSE4.1-accelerated processing path");
+    // Initialize SSE4.1-specific processing pipeline
+}
+else
+{
+    Console.WriteLine("Using scalar processing path (no SIMD acceleration)");
+    // Initialize fallback scalar processing pipeline
+}
+
+// Display human-readable summary
+Console.WriteLine($"Full capabilities: {capabilities}");
+```
+
 
 ## EnumerableExtensionsBenchmarks
 
