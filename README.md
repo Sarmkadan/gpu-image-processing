@@ -320,3 +320,45 @@ Console.WriteLine($"Memory footprint 1080p: {memoryFootprint1080p:N0} bytes");
 Console.WriteLine($"Memory footprint 4K: {memoryFootprint4K:N0} bytes");
 Console.WriteLine($"Best device: {bestDevice?.Name ?? "None found"}");
 ```
+
+## FilterChainBuilderBenchmarks
+
+The `FilterChainBuilderBenchmarks` class provides performance benchmarks for the `FilterChainBuilder` fluent API used throughout the GPU image processing pipeline. These benchmarks measure critical hot-paths including fluent chain construction, validation, cloning, and processing time estimation that are called repeatedly during batch execution and profile management.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Benchmarks;
+using GpuImageProcessing.Domain;
+
+// Create benchmark instance
+var benchmarks = new FilterChainBuilderBenchmarks();
+
+// Setup test data (required before running benchmarks)
+benchmarks.Setup();
+
+// Benchmark quick 3-step filter chain creation
+var quickChain = benchmarks.Build_ThreeStep();
+
+// Benchmark full 10-step professional workflow creation
+var fullChain = benchmarks.Build_TenStep();
+
+// Benchmark chain validation (called before every batch job dispatch)
+bool isValid = benchmarks.Validate_TenStep();
+
+// Benchmark chain cloning (used when duplicating profiles)
+var clonedChain = benchmarks.Clone_TenStep();
+
+// Benchmark processing time estimation (called on every scheduler tick)
+double estimatedTime = benchmarks.EstimateTotalProcessingTime();
+
+// Benchmark enabled steps retrieval
+var enabledSteps = benchmarks.GetEnabledSteps();
+
+Console.WriteLine($"Quick chain created: {quickChain.Name}");
+Console.WriteLine($"Full chain created: {fullChain.Name}");
+Console.WriteLine($"Chain is valid: {isValid}");
+Console.WriteLine($"Cloned chain has {clonedChain.GetEnabledSteps().Count} steps");
+Console.WriteLine($"Estimated processing time: {estimatedTime:F2} seconds");
+Console.WriteLine($"Enabled steps: {enabledSteps.Count}");
+```
