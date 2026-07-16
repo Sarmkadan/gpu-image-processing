@@ -537,5 +537,48 @@ catch (ProcessingException ex)
     Console.WriteLine($"Image Path: {ex.ImagePath ?? "N/A"}");
     Console.WriteLine($"Filter Name: {ex.FilterName ?? "N/A"}");
     Console.WriteLine($"Attempt Number: {ex.AttemptNumber?.ToString() ?? "N/A"}");
-}
-```
+    }
+    ```
+
+    ## BatchProcessingPipeline
+
+    The `BatchProcessingPipeline` provides a robust, stage-aware mechanism for executing batch image processing jobs with integrated retry policies and progress reporting. It orchestrates image ingestion through pre-processing, GPU filtering, and post-processing stages, offering fine-grained control over concurrency and fault tolerance.
+
+    ### Usage Example
+
+    ```csharp
+    using GpuImageProcessing.Pipeline;
+    using GpuImageProcessing.Services;
+    using GpuImageProcessing.Domain;
+    using Microsoft.Extensions.Logging;
+
+    // Assuming services are initialized (e.g., via dependency injection)
+    var options = new BatchPipelineOptions
+    {
+    MaxConcurrency = 8,
+    MaxRetries = 3,
+    RetryBaseDelayMs = 200
+    };
+    var pipeline = new BatchProcessingPipeline(processingService, perfMonitor, options, logger);
+
+    // Prepare the batch
+    var batch = new ImageBatch
+    {
+    Name = "Batch-001",
+    OutputDirectory = "./output"
+    };
+    batch.AddImage(Guid.NewGuid());
+    batch.AddFilter(Guid.NewGuid());
+
+    // Run the pipeline
+    BatchPipelineResult result = await pipeline.RunAsync(batch);
+
+    Console.WriteLine($"Succeeded: {result.SucceededCount}");
+    Console.WriteLine($"Failed: {result.FailedCount}");
+    Console.WriteLine($"Total Duration: {result.TotalDuration}");
+
+    foreach (var outcome in result.Outcomes)
+    {
+    Console.WriteLine($"Image {outcome.ImageId}: {outcome.Stage} (Attempts: {outcome.Attempts})");
+    }
+    ```
