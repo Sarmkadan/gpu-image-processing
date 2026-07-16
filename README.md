@@ -761,6 +761,51 @@ if (device.IsAvailable && device.GlobalMemoryBytes > 8 * 1024 * 1024 * 1024)
 
 The `ValidationException` is thrown when input validation fails during GPU image processing operations. It provides detailed information about the validation failure including the name of the validated entity and a dictionary of validation errors with field names as keys and error messages as values. This exception is particularly useful for batch processing pipelines where multiple images or entities need to be validated before processing begins.
 
+## ImageProcessingException
+
+The `ImageProcessingException` serves as the base exception for all image processing-related errors in the GPU image processing pipeline. It provides standardized error handling with properties for tracking error codes, numeric error codes, and timestamps. This exception is designed to be extended by more specific image processing exceptions while maintaining consistent error reporting across the system.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Exceptions;
+using System;
+
+try
+{
+    // Simulate an image processing error
+    throw new ImageProcessingException(
+        "Failed to process image due to GPU memory constraints",
+        "GPU_MEMORY_LIMIT_EXCEEDED",
+        new OutOfMemoryException("GPU memory allocation failed")
+    );
+}
+catch (ImageProcessingException ex)
+{
+    Console.WriteLine($"Exception Message: {ex.Message}");
+    Console.WriteLine($"Error Code: {ex.ErrorCode ?? "N/A"}");
+    Console.WriteLine($"Numeric Error Code: {ex.ErrorCode_Numeric?.ToString() ?? "N/A"}");
+    Console.WriteLine($"Occurred At: {ex.OccurredAt:O}");
+    Console.WriteLine($"Full Exception Details:\n{ex}");
+
+    // Re-throw or handle the exception appropriately
+    throw;
+}
+
+// Example with custom error code
+var processingException = new ImageProcessingException(
+    "Image processing pipeline failed",
+    "PROCESSING_PIPELINE_ERROR"
+);
+
+// Example with numeric error code
+var numericException = new ImageProcessingException(
+    "Invalid image dimensions detected",
+    "INVALID_DIMENSIONS"
+);
+numericException.ErrorCode_Numeric = 4001;
+```
+
 ### Usage Example
 
 ```csharp
