@@ -1209,6 +1209,102 @@ var clonedConfig = config.Clone();
 clonedConfig.Name = "CustomBlur_Copy";
 ```
 
+## FilterService
+
+The `FilterService` class provides centralized management and application of image filters within the GPU image processing pipeline. It offers comprehensive CRUD operations for filter configurations, including creating, retrieving, updating, and deleting filters, as well as specialized methods for applying filters to images and managing active filter presets. The service integrates with the `FilterConfigurationRepository` to persist filter configurations and uses specialized handlers for different filter types to ensure proper processing.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Services;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Setup logging (typically via dependency injection in real applications)
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        ILogger<FilterService> logger = loggerFactory.CreateLogger<FilterService>();
+
+        // Initialize the filter service with repository and logger
+        var repository = new FilterConfigurationRepository();
+        var filterService = new FilterService(repository, logger);
+
+        // Create a new grayscale filter configuration
+        var grayscaleFilter = new FilterConfiguration
+        {
+            Name = "PhotoGrayscale",
+            FilterType = FilterType.Grayscale,
+            Description = "Convert photos to grayscale for artistic effect",
+            IsActive = true,
+            Priority = 1
+        };
+        grayscaleFilter.SetParameter("Intensity", 1.0f);
+        grayscaleFilter.ParameterTypes["Intensity"] = "System.Single";
+
+        // Create the filter in the repository
+        var createdFilter = await filterService.CreateFilterAsync(grayscaleFilter);
+        Console.WriteLine($"Created filter: {createdFilter.Name} with ID: {createdFilter.Id}");
+
+        // Create a blur filter configuration
+        var blurFilter = new FilterConfiguration
+        {
+            Name = "SoftBlur",
+            FilterType = FilterType.Blur,
+            Description = "Soft blur for portrait smoothing",
+            IsActive = true,
+            Priority = 2
+        };
+        blurFilter.SetParameter("Radius", 5);
+        blurFilter.ParameterTypes["Radius"] = "System.Int32";
+
+        await filterService.CreateFilterAsync(blurFilter);
+
+        // Get all active filters sorted by priority
+        var activeFilters = await filterService.GetActiveFiltersAsync();
+        Console.WriteLine($"Active filters count: {activeFilters.Count()}");
+
+        // Get filters by type
+        var blurFilters = await filterService.GetFiltersByTypeAsync(FilterType.Blur);
+        Console.WriteLine($"Blur filters count: {blurFilters.Count()}");
+
+        // Update a filter configuration
+        createdFilter.Description = "Updated: Convert photos to grayscale for artistic effect";
+        var updatedFilter = await filterService.UpdateFilterAsync(createdFilter);
+        Console.WriteLine($"Updated filter: {updatedFilter.Description}");
+
+        // Apply a filter to an image (simulated - would process actual image data in real usage)
+        var image = new Image(1920, 1080, 3)
+        {
+            Id = Guid.NewGuid(),
+            FileName = "sample.jpg",
+            FilePath = "/images/sample.jpg",
+            Format = ImageFormat.Jpeg,
+            ColorSpace = ColorSpace.Rgb,
+            BitsPerPixel = 24
+        };
+
+        await filterService.ApplyFilterAsync(image, createdFilter.Id);
+        Console.WriteLine($"Applied filter {createdFilter.Name} to image {image.Id}");
+
+        // Get a specific filter by ID
+        var retrievedFilter = await filterService.GetFilterAsync(createdFilter.Id);
+        if (retrievedFilter != null)
+        {
+            Console.WriteLine($"Retrieved filter: {retrievedFilter.Name}");
+        }
+
+        // Delete a filter
+        var deleteSuccess = await filterService.DeleteFilterAsync(createdFilter.Id);
+        Console.WriteLine($"Filter deleted: {deleteSuccess}");
+    }
+}
+```
+
 ## FilterChainBuilder
 
 The `FilterChainBuilder` class provides a fluent interface for constructing and configuring `FilterChain` instances. It allows you to build filter chains programmatically with a clean, readable API, supporting all filter types and configuration options available in the domain. The builder pattern simplifies chain creation and ensures proper validation before the chain is used in processing pipelines.
