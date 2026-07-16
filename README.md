@@ -348,6 +348,35 @@ Console.WriteLine($"Memory footprint 4K: {memoryFootprint4K:N0} bytes");
 Console.WriteLine($"Best device: {bestDevice?.Name ?? "None found"}");
 ```
 
+## GpuDevice
+
+The `GpuDevice` class represents a physical GPU available for processing tasks, encapsulating hardware specifications and operational capabilities. It provides detailed metrics such as memory capacity, compute unit counts, and supported precision types, allowing the application to intelligently select devices based on workload requirements.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+
+// Initialize a new GPU device representation
+var device = new GpuDevice
+{
+    Id = Guid.NewGuid(),
+    Name = "NVIDIA GeForce RTX 4090",
+    DeviceType = GpuDeviceType.Discrete,
+    GlobalMemoryBytes = 24L * 1024 * 1024 * 1024, // 24 GB
+    IsAvailable = true
+};
+
+// Check if the device meets workload requirements
+if (device.IsAvailable && device.GlobalMemoryBytes > 8 * 1024 * 1024 * 1024)
+{
+    Console.WriteLine($"Selected GPU: {device.Name}");
+    Console.WriteLine($"Vendor: {device.Vendor}");
+    Console.WriteLine($"Max Compute Units: {device.MaxComputeUnits}");
+}
+```
+
 ## ValidationException
 
 The `ValidationException` is thrown when input validation fails during GPU image processing operations. It provides detailed information about the validation failure including the name of the validated entity and a dictionary of validation errors with field names as keys and error messages as values. This exception is particularly useful for batch processing pipelines where multiple images or entities need to be validated before processing begins.
