@@ -1671,6 +1671,97 @@ long totalAllocated = gpuService.GetTotalAllocatedMemory();
 Console.WriteLine($"Total GPU memory allocated: {totalAllocated / (1024 * 1024)} MB");
 ```
 
+## GpuManagementServiceTests
+
+The `GpuManagementServiceTests` class provides comprehensive unit tests for the `GpuManagementService` class, validating GPU device management functionality including device discovery, memory allocation, validation, and performance monitoring. These tests ensure the service correctly handles device operations, memory management, error conditions, and edge cases across different hardware configurations.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Services;
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Tests.Services;
+using Microsoft.Extensions.Logging;
+using System;
+
+// Initialize the service with logging (typically via dependency injection)
+using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+ILogger<GpuManagementService> logger = loggerFactory.CreateLogger<GpuManagementService>();
+
+// Create the service instance
+var gpuService = new GpuManagementService(logger);
+
+// Get available devices - should always return at least one device
+var availableDevices = gpuService.GetAvailableDevices();
+Console.WriteLine($"Available devices: {availableDevices.Count}");
+
+// Get the best performing device for processing
+var bestDevice = gpuService.GetBestDevice();
+if (bestDevice != null)
+{
+    Console.WriteLine($"Best device: {bestDevice.Name}");
+    
+    // Test memory allocation with valid parameters
+    long requiredMemory = 100 * 1024 * 1024; // 100 MB
+    bool allocationSuccess = gpuService.AllocateMemory(requiredMemory, bestDevice.Id);
+    Console.WriteLine($"Memory allocation {(allocationSuccess ? "succeeded" : "failed")} for {requiredMemory / (1024 * 1024)} MB");
+    
+    // Test device validation
+    bool isValid = gpuService.ValidateDevice(bestDevice.Id, requiredMemory, 1);
+    Console.WriteLine($"Device validation: {(isValid ? "PASSED" : "FAILED")}");
+    
+    // Test memory statistics
+    var memoryStats = gpuService.GetMemoryStatistics();
+    Console.WriteLine($"Total allocated memory: {memoryStats["TotalAllocatedMemory"]} bytes");
+    Console.WriteLine($"Memory usage: {memoryStats["MemoryUsagePercent"]}%");
+    
+    // Test deallocation
+    gpuService.DeallocateMemory(requiredMemory, bestDevice.Id);
+    Console.WriteLine("Memory deallocated successfully.");
+}
+
+// Test constructor validation
+try
+{
+    var invalidService = new GpuManagementService(null!);
+    Console.WriteLine("ERROR: Constructor should throw ArgumentNullException");
+}
+catch (ArgumentNullException)
+{
+    Console.WriteLine("Constructor validation: PASSED (throws ArgumentNullException for null logger)");
+}
+
+// Get device with most memory
+var memoryRichDevice = gpuService.GetDeviceWithMostMemory();
+if (memoryRichDevice != null)
+{
+    Console.WriteLine($"Device with most memory: {memoryRichDevice.Name}");
+}
+
+// Test edge cases
+if (bestDevice != null)
+{
+    // Test zero bytes allocation (should return false)
+    bool zeroBytesResult = gpuService.AllocateMemory(0, bestDevice.Id);
+    Console.WriteLine($"Zero bytes allocation: {(zeroBytesResult == false ? "PASSED" : "FAILED")}");
+    
+    // Test negative bytes allocation (should return false)
+    bool negativeBytesResult = gpuService.AllocateMemory(-100, bestDevice.Id);
+    Console.WriteLine($"Negative bytes allocation: {(negativeBytesResult == false ? "PASSED" : "FAILED")}");
+    
+    // Test invalid device ID (should throw GpuException)
+    try
+    {
+        gpuService.AllocateMemory(1024, Guid.NewGuid());
+        Console.WriteLine("Invalid device test: FAILED (should throw exception)");
+    }
+    catch (GpuException)
+    {
+        Console.WriteLine("Invalid device test: PASSED (throws GpuException)");
+    }
+}
+```
+
 ## PerformanceMonitoringService
 
 The `PerformanceMonitoringService` class provides centralized monitoring and tracking of performance metrics for GPU-accelerated image processing operations. It records execution times, system resource usage (CPU, memory, GPU), throughput metrics, and maintains a history of performance snapshots. This service is essential for performance analysis, optimization, and real-time monitoring of image processing pipelines.
