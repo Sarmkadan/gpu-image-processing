@@ -603,6 +603,37 @@ catch (ProcessingException ex)
     BatchPipelineResult result = await pipeline.RunAsync(batch);
 
 
+## ComputeShaderPass
+
+`ComputeShaderPass` represents a single dispatchable unit within a `ComputeShaderPipeline`. It encapsulates the OpenCL kernel source (or reference), input/output images, workgroup configuration, and execution parameters necessary for the pipeline to dispatch the compute workload on a GPU.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+using System.Collections.Generic;
+
+// Assuming sourceImage and targetImage are initialized Image instances
+var pass = new ComputeShaderPass(
+    "ApplyGrayscale",
+    "__kernel void ApplyGrayscale(...)",
+    ShaderPassType.ColorTransform,
+    priority: 1
+);
+
+// Configure pass inputs and parameters
+pass.InputImages.Add(sourceImage);
+pass.OutputImage = targetImage;
+pass.Parameters["Intensity"] = 0.5f;
+
+// Check readiness before dispatch
+if (pass.IsReady())
+{
+    Console.WriteLine($"Pass '{pass.KernelName}' (ID: {pass.Id}) is ready for execution.");
+}
+```
+
 ## ComputeShaderPipeline
 
 The `ComputeShaderPipeline` class orchestrates compute shader execution on GPU devices, handling workgroup optimization, per-pass profiling, and GPU memory lifecycle management. It dispatches sequential compute shader passes based on their priority and automatically optimizes workgroup configurations to ensure efficient GPU utilization.
