@@ -1,4 +1,31 @@
-// existing content ...
+
+## GpuException
+
+The `GpuException` is thrown when a GPU operation fails or when the requested GPU device is unavailable. It provides comprehensive diagnostic information, including the name of the affected device, a specific error code, and the timestamp when the failure occurred, making it easier to troubleshoot GPU-related issues in the processing pipeline.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core;
+using System;
+
+try
+{
+    // Simulate a GPU failure
+    throw new GpuException("Failed to initialize GPU device.", "NVIDIA GeForce RTX 4090", 500);
+}
+catch (GpuException ex)
+{
+    Console.WriteLine($"Exception Message: {ex.Message}");
+    Console.WriteLine($"Device: {ex.DeviceName ?? "Unknown"}");
+    Console.WriteLine($"Error Code: {ex.ErrorCode?.ToString() ?? "N/A"}");
+    Console.WriteLine($"Occurred At: {ex.OccurredAt}");
+
+    // Using the overridden ToString() for detailed logging
+    Console.WriteLine($"Full Exception Details:\n{ex}");
+}
+```
+
 
 ## EnumerableExtensionsBenchmarks
 
