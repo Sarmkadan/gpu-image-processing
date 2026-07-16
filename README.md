@@ -2283,7 +2283,74 @@ class Program
 }
 ```
 
-## BenchmarkSuiteConfiguration
+
+## BatchProcessingPipelineTests
+
+The `BatchProcessingPipelineTests` class provides comprehensive unit tests for the `BatchProcessingPipeline` class, validating batch image processing pipeline functionality. It tests error handling scenarios (null batches, invalid batches), success scenarios (all images succeed, all images fail, partial failures), progress reporting, retry logic, constructor validation, and output directory creation. Each test uses mock dependencies to isolate the pipeline behavior and verify correct behavior under various conditions.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Tests.Pipeline;
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Pipeline;
+using GpuImageProcessing.Services;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create the test class instance
+        var tests = new BatchProcessingPipelineTests();
+
+        // Test 1: Verify null batch throws ArgumentNullException
+        await tests.RunAsync_NullBatch_ThrowsArgumentNullException();
+        Console.WriteLine("Test 1 passed: Null batch throws ArgumentNullException");
+
+        // Test 2: Verify invalid batch throws ProcessingException
+        await tests.RunAsync_InvalidBatch_ThrowsProcessingException();
+        Console.WriteLine("Test 2 passed: Invalid batch throws ProcessingException");
+
+        // Test 3: Verify all images succeed returns full success result
+        await tests.RunAsync_AllImagesSucceed_ReturnsFullSuccessResult();
+        Console.WriteLine("Test 3 passed: All images succeed returns success result");
+
+        // Test 4: Verify all images fail returns full failure result
+        await tests.RunAsync_AllImagesFail_ReturnsFullFailureResult();
+        Console.WriteLine("Test 4 passed: All images fail returns failure result");
+
+        // Test 5: Verify partial failure returns correct counts
+        await tests.RunAsync_PartialFailure_ReturnsCorrectCounts();
+        Console.WriteLine("Test 5 passed: Partial failure returns correct counts");
+
+        // Test 6: Verify progress events are raised for each image
+        await tests.RunAsync_RaisesProgressChangedForEachImage();
+        Console.WriteLine("Test 6 passed: Progress events raised for each image");
+
+        // Test 7: Verify output directory is created
+        await tests.RunAsync_CreatesOutputDirectory();
+        Console.WriteLine("Test 7 passed: Output directory is created");
+
+        // Test 8: Verify completed batch has correct status
+        await tests.RunAsync_CompletedBatchHasCorrectStatus();
+        Console.WriteLine("Test 8 passed: Completed batch has correct status");
+
+        // Test 9: Verify retry logic up to MaxRetries
+        await tests.RunAsync_RetriesFailedImageUpToMaxRetries();
+        Console.WriteLine("Test 9 passed: Retry logic works correctly");
+
+        // Test 10: Verify constructor throws with null processing service
+        tests.Constructor_NullProcessingService_ThrowsArgumentNullException();
+        Console.WriteLine("Test 10 passed: Constructor validates processing service");
+
+        // Test 11: Verify constructor throws with null options
+        tests.Constructor_NullOptions_ThrowsArgumentNullException();
+        Console.WriteLine("Test 11 passed: Constructor validates options");
+    }
+}
+```
 
 ### Usage Example
 
