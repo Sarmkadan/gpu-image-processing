@@ -891,6 +891,120 @@ class Program
 }
 ```
 
+## ImageRepository
+
+The `ImageRepository` class provides data access operations for `Image` entities, implementing a repository pattern for managing images in memory. It offers comprehensive CRUD operations along with specialized query methods for filtering images by status, format, size, date ranges, and other criteria. This repository is particularly useful for managing the collection of images being processed in the GPU image processing pipeline.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Repository;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Program
+{
+static async Task Main()
+{
+// Create repository instance
+var repository = new ImageRepository();
+
+// Create and add an image
+var image = new Image(1920, 1080, 3)
+{
+FileName = "sample_image.jpg",
+FilePath = "/data/sample_image.jpg",
+Format = ImageFormat.Jpeg,
+ColorSpace = ColorSpace.Rgb,
+BitsPerPixel = 24,
+Status = ProcessingStatus.Pending
+};
+
+var createdImage = await repository.CreateAsync(image);
+Console.WriteLine($"Created image: {createdImage.FileName} with ID: {createdImage.Id}");
+
+// Create and add another image
+var image2 = new Image(3840, 2160, 3)
+{
+FileName = "high_res_image.png",
+FilePath = "/data/high_res_image.png",
+Format = ImageFormat.Png,
+ColorSpace = ColorSpace.Rgb,
+BitsPerPixel = 24,
+Status = ProcessingStatus.Pending
+};
+
+await repository.CreateAsync(image2);
+
+// Get all images
+var allImages = await repository.GetAllAsync();
+Console.WriteLine($"Total images: {allImages.Count()}");
+
+// Get image by ID
+var retrievedImage = await repository.GetByIdAsync(createdImage.Id);
+if (retrievedImage != null)
+{
+Console.WriteLine($"Retrieved image: {retrievedImage.FileName}");
+}
+
+// Get images by status
+var pendingImages = await repository.GetByStatusAsync(ProcessingStatus.Pending);
+Console.WriteLine($"Pending images count: {pendingImages.Count()}");
+
+var failedImages = await repository.GetFailedImagesAsync();
+Console.WriteLine($"Failed images count: {failedImages.Count()}");
+
+// Get images by format
+var jpegImages = await repository.GetByFormatAsync(ImageFormat.Jpeg);
+Console.WriteLine($"JPEG images count: {jpegImages.Count()}");
+
+var pngImages = await repository.GetByFormatAsync(ImageFormat.Png);
+Console.WriteLine($"PNG images count: {pngImages.Count()}");
+
+// Get images within size range
+var smallImages = await repository.GetBySizeRangeAsync(0, 1920, 0, 1080);
+Console.WriteLine($"Small images count: {smallImages.Count()}");
+
+var largeImages = await repository.GetBySizeRangeAsync(1921, 9999, 1081, 9999);
+Console.WriteLine($"Large images count: {largeImages.Count()}");
+
+// Get images by date range
+var recentImages = await repository.GetByDateRangeAsync(
+DateTime.UtcNow.AddDays(-7),
+DateTime.UtcNow
+);
+Console.WriteLine($"Recent images count: {recentImages.Count()}");
+
+// Update an image
+retrievedImage.Status = ProcessingStatus.Processed;
+var updatedImage = await repository.UpdateAsync(retrievedImage);
+Console.WriteLine($"Updated image status: {updatedImage.Status}");
+
+// Check if image exists
+var exists = await repository.ExistsAsync(createdImage.Id);
+Console.WriteLine($"Image exists: {exists}");
+
+// Count images
+var imageCount = await repository.CountAsync();
+Console.WriteLine($"Total image count: {imageCount}");
+
+// Get paged results
+var page1 = await repository.GetPagedAsync(1, 10);
+Console.WriteLine($"Page 1 has {page1.Count()} images");
+
+// Delete an image
+var deleteSuccess = await repository.DeleteAsync(createdImage.Id);
+Console.WriteLine($"Image deleted: {deleteSuccess}");
+
+// Verify deletion
+var imageAfterDelete = await repository.GetByIdAsync(createdImage.Id);
+Console.WriteLine($"Image still exists after delete: {imageAfterDelete != null}");
+}
+}
+```
+
 ## ProcessingResult
 
 The `ProcessingResult` class encapsulates the outcome of an image processing operation, providing detailed status tracking, performance metrics, and information about applied filters. It supports automatic state management through completion and failure methods, allowing for consistent error handling and diagnostic reporting across processing pipelines.
