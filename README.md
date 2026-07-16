@@ -720,6 +720,51 @@ if (mostRecent != null)
 | `GetOldestActiveWebhook()` | Returns the oldest active webhook subscription |
 | `GetMostRecentWebhook()` | Returns the most recently created webhook subscription |
 
+## ProcessingEvent
+
+The `ProcessingEvent` class is the base class for all domain events in the GPU image processing system. It provides common event metadata including a unique event identifier, timestamp, operation tracking, and extensible metadata dictionary. All processing events inherit from this base class and include an `EventType` property that identifies the specific event type.
+
+The event system enables decoupled communication between components, allowing services to publish events without knowing who is listening. This pattern is used throughout the system for tracking job progress, monitoring performance, handling errors, and managing device status changes.
+
+### Usage Example
+
+```csharp
+using System;
+using System.Collections.Generic;
+using GpuImageProcessing.Events;
+
+// Create a job started event
+var jobStartedEvent = new JobStartedEvent
+{
+    JobId = Guid.NewGuid().ToString(),
+    JobName = "BatchProcessingJob",
+    TotalImages = 100,
+    FilterIds = new List<string> { "filter-1", "filter-2" },
+    TransformIds = new List<string> { "transform-1" }
+};
+
+// Add custom metadata
+jobStartedEvent.Metadata["Priority"] = "High";
+jobStartedEvent.Metadata["BatchSize"] = 100;
+
+Console.WriteLine($"Event Type: {jobStartedEvent.EventType}");
+Console.WriteLine($"Event ID: {jobStartedEvent.EventId}");
+Console.WriteLine($"Timestamp: {jobStartedEvent.Timestamp}");
+Console.WriteLine($"Job: {jobStartedEvent.JobName} ({jobStartedEvent.JobId})");
+Console.WriteLine($"Total Images: {jobStartedEvent.TotalImages}");
+
+// Subscribe to events (using EventAggregator)
+var eventAggregator = serviceProvider.GetRequiredService<EventAggregator>();
+eventAggregator.Subscribe<JobStartedEvent>(@event =>
+{
+    Console.WriteLine($"Job started: {@event.JobName} with { @event.TotalImages} images");
+});
+
+// Events are automatically published during processing operations
+var batchService = serviceProvider.GetRequiredService<BatchProcessingService>();
+var job = await batchService.CreateJobAsync("MyJob", imageIds, filterIds, transformIds, profileId);
+```
+
 ## API Reference
 
 ### ImageProcessingService
