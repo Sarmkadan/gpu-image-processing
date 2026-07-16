@@ -779,6 +779,118 @@ await pipeline.ResetStatisticsAsync();
 
 
 
+## FilterConfigurationRepository
+
+The `FilterConfigurationRepository` class provides data access operations for `FilterConfiguration` entities, implementing a repository pattern for managing filter configurations in memory. It offers comprehensive CRUD operations along with specialized query methods for filtering configurations by various criteria such as type, name, parameters, and kernel availability. This repository is particularly useful for managing filter presets and configurations used throughout the GPU image processing pipeline.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Repository;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create repository instance
+        var repository = new FilterConfigurationRepository();
+
+        // Create and add a filter configuration
+        var blurFilter = new FilterConfiguration
+        {
+            Name = "GaussianBlur",
+            FilterType = FilterType.Blur,
+            Description = "Gaussian blur filter for image smoothing",
+            IsActive = true,
+            Priority = 1,
+            KernelCode = "__kernel void GaussianBlur(__global float4* input, __global float4* output, int radius)"
+        };
+        blurFilter.SetParameter("Radius", 5);
+        blurFilter.ParameterTypes["Radius"] = "System.Int32";
+
+        var createdFilter = await repository.CreateAsync(blurFilter);
+        Console.WriteLine($"Created filter: {createdFilter.Name} with ID: {createdFilter.Id}");
+
+        // Create and add another filter configuration
+        var grayscaleFilter = new FilterConfiguration
+        {
+            Name = "Grayscale",
+            FilterType = FilterType.ColorTransform,
+            Description = "Convert image to grayscale",
+            IsActive = true,
+            Priority = 2
+        };
+        grayscaleFilter.SetParameter("Intensity", 1.0f);
+        grayscaleFilter.ParameterTypes["Intensity"] = "System.Single";
+
+        await repository.CreateAsync(grayscaleFilter);
+
+        // Get all filters
+        var allFilters = await repository.GetAllAsync();
+        Console.WriteLine($"Total filters: {allFilters.Count()}");
+
+        // Get filter by ID
+        var retrievedFilter = await repository.GetByIdAsync(createdFilter.Id);
+        if (retrievedFilter != null)
+        {
+            Console.WriteLine($"Retrieved filter: {retrievedFilter.Name}");
+        }
+
+        // Get filters by type
+        var blurFilters = await repository.GetByTypeAsync(FilterType.Blur);
+        Console.WriteLine($"Blur filters count: {blurFilters.Count()}");
+
+        // Get active filters sorted by priority
+        var activeFilters = await repository.GetActiveFiltersAsync();
+        Console.WriteLine($"Active filters count: {activeFilters.Count()}");
+
+        // Get filter by name
+        var grayscaleByName = await repository.GetByNameAsync("Grayscale");
+        if (grayscaleByName != null)
+        {
+            Console.WriteLine($"Found filter by name: {grayscaleByName.Name}");
+        }
+
+        // Get filters with specific parameter
+        var filtersWithIntensity = await repository.GetByParameterAsync("Intensity");
+        Console.WriteLine($"Filters with Intensity parameter: {filtersWithIntensity.Count()}");
+
+        // Get filters with kernel code
+        var filtersWithKernel = await repository.GetFiltersWithKernelAsync();
+        Console.WriteLine($"Filters with kernel code: {filtersWithKernel.Count()}");
+
+        // Update a filter
+        createdFilter.Description = "Updated: Gaussian blur filter for image smoothing";
+        var updatedFilter = await repository.UpdateAsync(createdFilter);
+        Console.WriteLine($"Updated filter: {updatedFilter.Description}");
+
+        // Check if filter exists
+        var exists = await repository.ExistsAsync(createdFilter.Id);
+        Console.WriteLine($"Filter exists: {exists}");
+
+        // Count filters
+        var filterCount = await repository.CountAsync();
+        Console.WriteLine($"Total filter count: {filterCount}");
+
+        // Get paged results
+        var page1 = await repository.GetPagedAsync(1, 1);
+        Console.WriteLine($"Page 1 has {page1.Count()} filters");
+
+        // Delete a filter
+        var deleteSuccess = await repository.DeleteAsync(createdFilter.Id);
+        Console.WriteLine($"Filter deleted: {deleteSuccess}");
+
+        // Verify deletion
+        var filterAfterDelete = await repository.GetByIdAsync(createdFilter.Id);
+        Console.WriteLine($"Filter still exists after delete: {filterAfterDelete != null}");
+    }
+}
+```
+
 ## ProcessingResult
 
 The `ProcessingResult` class encapsulates the outcome of an image processing operation, providing detailed status tracking, performance metrics, and information about applied filters. It supports automatic state management through completion and failure methods, allowing for consistent error handling and diagnostic reporting across processing pipelines.
