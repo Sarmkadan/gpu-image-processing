@@ -762,7 +762,59 @@ if (batch.Validate())
 }
 ```
 
-    ## BatchProcessingPipeline
+    ## MetricsPublisher
+
+The `MetricsPublisher` class provides a centralized mechanism for publishing performance metrics to external monitoring systems. It supports multiple formats including JSON, Prometheus, and InfluxDB, allowing metrics to be sent to various observability platforms. The publisher buffers metrics in memory and automatically flushes them to registered endpoints, ensuring minimal impact on application performance while maintaining reliable metrics delivery.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Integration;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create a metrics publisher with default buffer size (100 metrics)
+        var publisher = new MetricsPublisher();
+        
+        // Register endpoints for different monitoring systems
+        publisher.RegisterEndpoint(
+            url: "https://prometheus.example.com/api/v1/write",
+            format: MetricsFormat.Prometheus,
+            apiKey: "prometheus-secret-key"
+        );
+        
+        publisher.RegisterEndpoint(
+            url: "https://influxdb.example.com/api/v2/write",
+            format: MetricsFormat.InfluxDb,
+            apiKey: "influxdb-secret-token"
+        );
+        
+        // Record basic metrics
+        publisher.RecordMetric("gpu_processing_time_ms", 45.2, 
+            new Dictionary<string, string> { { "gpu_type", "NVIDIA RTX 4090" } });
+        
+        publisher.RecordMetric("batch_size", 150, 
+            new Dictionary<string, string> { { "batch_name", "summer_photos_2024" } });
+        
+        // Record timing metrics
+        publisher.RecordTiming("image_filtering", TimeSpan.FromMilliseconds(125.7), 
+            new Dictionary<string, string> { { "filter_type", "gaussian_blur" } });
+        
+        // Manually flush metrics (automatically happens when buffer is full)
+        await publisher.FlushAsync();
+        
+        // Dispose to ensure all metrics are flushed
+        await publisher.DisposeAsync();
+    }
+}
+```
+
+## BatchProcessingPipeline
 
     The `BatchProcessingPipeline` provides a robust, stage-aware mechanism for executing batch image processing jobs with integrated retry policies and progress reporting. It orchestrates image ingestion through pre-processing, GPU filtering, and post-processing stages, offering fine-grained control over concurrency and fault tolerance.
 
@@ -3138,6 +3190,58 @@ class Program
 }
 ```
 
+
+## MetricsPublisher
+
+The `MetricsPublisher` class provides a centralized mechanism for publishing performance metrics to external monitoring systems. It supports multiple formats including JSON, Prometheus, and InfluxDB, allowing metrics to be sent to various observability platforms. The publisher buffers metrics in memory and automatically flushes them to registered endpoints, ensuring minimal impact on application performance while maintaining reliable metrics delivery.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Integration;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create a metrics publisher with default buffer size (100 metrics)
+        var publisher = new MetricsPublisher();
+        
+        // Register endpoints for different monitoring systems
+        publisher.RegisterEndpoint(
+            url: "https://prometheus.example.com/api/v1/write",
+            format: MetricsFormat.Prometheus,
+            apiKey: "prometheus-secret-key"
+        );
+        
+        publisher.RegisterEndpoint(
+            url: "https://influxdb.example.com/api/v2/write",
+            format: MetricsFormat.InfluxDb,
+            apiKey: "influxdb-secret-token"
+        );
+        
+        // Record basic metrics
+        publisher.RecordMetric("gpu_processing_time_ms", 45.2, 
+            new Dictionary<string, string> { { "gpu_type", "NVIDIA RTX 4090" } });
+        
+        publisher.RecordMetric("batch_size", 150, 
+            new Dictionary<string, string> { { "batch_name", "summer_photos_2024" } });
+        
+        // Record timing metrics
+        publisher.RecordTiming("image_filtering", TimeSpan.FromMilliseconds(125.7), 
+            new Dictionary<string, string> { { "filter_type", "gaussian_blur" } });
+        
+        // Manually flush metrics (automatically happens when buffer is full)
+        await publisher.FlushAsync();
+        
+        // Dispose to ensure all metrics are flushed
+        await publisher.DisposeAsync();
+    }
+}
+```
 
 ## BatchProcessingPipelineTests
 
