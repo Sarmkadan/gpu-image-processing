@@ -2031,6 +2031,64 @@ class Program
 }
 ```
 
+## ImageDomainTests
+
+The `ImageDomainTests` class provides comprehensive unit tests for the `Image` domain type and related batch operations. It validates image validation logic, pixel data calculations, status tracking, progress calculation, and processing result metrics to ensure the core domain types behave correctly under various scenarios.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Tests.Domain;
+using GpuImageProcessing.Domain;
+using System;
+
+// Create a test instance using the same helper method from the test class
+var image = new Image
+{
+    FilePath = "/images/sample.png",
+    FileName = "sample.png",
+    Format = ImageFormat.Png,
+    Width = 1920,
+    Height = 1080,
+    BitsPerPixel = 24,
+    FileSizeBytes = 1024 * 1024
+};
+
+// Validate the image (should return true for valid images)
+bool isValid = image.Validate();
+Console.WriteLine($"Image validation result: {isValid}");
+
+// Calculate required pixel data size
+long pixelDataSize = image.CalculatePixelDataSize();
+Console.WriteLine($"Pixel data size: {pixelDataSize:N0} bytes");
+
+// Mark image as processing and then completed
+image.MarkAsProcessing();
+image.MarkAsCompleted("/output/processed_sample.png");
+Console.WriteLine($"Image status: {image.Status}");
+Console.WriteLine($"Output path: {image.ProcessedOutputPath}");
+
+// Create a batch and track progress
+var batch = new ImageBatch { TotalImages = 100 };
+batch.MarkImageProcessed(success: true);  // 1 processed
+batch.MarkImageProcessed(success: true);  // 2 processed
+batch.MarkImageProcessed(success: false); // 1 failed
+
+// Get progress percentage
+double progress = batch.GetProgressPercentage();
+Console.WriteLine($"Batch progress: {progress:P0}");
+
+// Create a processing result with multiple filters
+var result = new ProcessingResult { ImageId = Guid.NewGuid() };
+result.AddFilterApplied("GaussianBlur", FilterType.Blur, 15.5);
+result.AddFilterApplied("Sharpen", FilterType.Sharpen, 8.0);
+result.AddFilterApplied("Grayscale", FilterType.Grayscale, 3.5);
+
+// Get total filter execution time
+double totalFilterTime = result.GetTotalFilterExecutionTime();
+Console.WriteLine($"Total filter execution time: {totalFilterTime}ms");
+```
+
 ## CoreImageProcessingServiceTests
 
 The `CoreImageProcessingServiceTests` class provides unit tests for the `ImageProcessingService` class, validating core image processing operations including image registration, retrieval, and processing capability checks. These tests ensure that the service correctly handles valid and invalid inputs, maintains proper state management, and integrates correctly with the repository layer.
