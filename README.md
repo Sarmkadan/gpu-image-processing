@@ -1746,6 +1746,70 @@ long totalAllocated = gpuService.GetTotalAllocatedMemory();
 Console.WriteLine($"Total GPU memory allocated: {totalAllocated / (1024 * 1024)} MB");
 ```
 
+## FilterServiceTests
+
+The `FilterServiceTests` class provides comprehensive unit tests for the `FilterService` class, focusing on filter application, creation, retrieval, and error handling. These tests validate the service's ability to properly apply filters to images, handle invalid configurations, manage active/inactive filters, and correctly filter configurations by type. The test suite ensures robust error handling and proper state management when working with image filters.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Services;
+using GpuImageProcessing.Domain;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Setup logging (typically via dependency injection in real applications)
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        ILogger<FilterService> logger = loggerFactory.CreateLogger<FilterService>();
+
+        // Initialize the filter service with repository and logger
+        var repository = new FilterConfigurationRepository();
+        var filterService = new FilterService(repository, logger);
+
+        // Create a grayscale filter configuration
+        var grayscaleFilter = new FilterConfiguration
+        {
+            Name = "PhotoGrayscale",
+            FilterType = FilterType.Grayscale,
+            Description = "Convert photos to grayscale for artistic effect",
+            IsActive = true,
+            Priority = 1
+        };
+        grayscaleFilter.SetParameter("Intensity", 1.0f);
+        grayscaleFilter.ParameterTypes["Intensity"] = "System.Single";
+
+        // Create the filter
+        var createdFilter = await filterService.CreateFilterAsync(grayscaleFilter);
+        Console.WriteLine($"Created filter: {createdFilter.Name} with ID: {createdFilter.Id}");
+
+        // Create a test image
+        var image = new Image(1920, 1080, 3)
+        {
+            Id = Guid.NewGuid(),
+            FileName = "sample.jpg",
+            FilePath = @"/images/sample.jpg",
+            Format = ImageFormat.Jpeg,
+            ColorSpace = ColorSpace.Rgb,
+            BitsPerPixel = 24
+        };
+
+        // Apply the filter to the image
+        var result = await filterService.ApplyFilterAsync(image, createdFilter.Id);
+        Console.WriteLine($"Applied filter {createdFilter.Name} to image {image.Id}");
+        Console.WriteLine($"Image color space after filter: {result.ColorSpace}");
+
+        // Get filters by type
+        var blurFilters = await filterService.GetFiltersByTypeAsync(FilterType.Grayscale);
+        Console.WriteLine($"Found {blurFilters.Count} grayscale filter(s)");
+    }
+}
+```
+
 ## GpuManagementServiceTests
 
 The `GpuManagementServiceTests` class provides comprehensive unit tests for the `GpuManagementService` class, validating GPU device management functionality including device discovery, memory allocation, validation, and performance monitoring. These tests ensure the service correctly handles device operations, memory management, error conditions, and edge cases across different hardware configurations.
