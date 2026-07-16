@@ -2106,6 +2106,62 @@ class Program
 }
 ```
 
+## FilterChainBuilderTests
+
+The `FilterChainBuilderTests` class provides comprehensive unit tests for the `FilterChainBuilder` class, validating its fluent API for constructing filter chains. These tests cover validation scenarios (blank names, missing steps), basic functionality (single and multiple steps), configuration options (descriptions, parallel execution, caching), parameter validation for various filter types (blur radius, sharpen strength, rotation angles, scaling factors, color correction brightness, custom filter IDs), performance estimation, fluent chaining behavior, and CI preset configurations.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+
+// Create a simple filter chain with a single grayscale step
+var singleStepChain = FilterChainBuilder
+    .Create("Grayscale Chain")
+    .AddGrayscale()
+    .Build();
+
+Console.WriteLine($"Created chain: {singleStepChain.Name}");
+Console.WriteLine($"Steps count: {singleStepChain.Steps.Count}");
+
+// Create a complex filter chain with multiple steps and configuration
+var complexChain = FilterChainBuilder
+    .Create("Photo Enhancement Chain")
+    .WithDescription("A comprehensive chain for enhancing digital photographs")
+    .WithExecutionOrder(1)
+    .AllowParallelExecution(maxParallelSteps: 4)
+    .CacheIntermediates()
+    .AddGrayscale()
+    .AddBlur(radius: 2.5f)
+    .AddSharpen(strength: 0.8f)
+    .AddEdgeDetection()
+    .AddColorCorrection(brightness: 1.1f, contrast: 1.05f)
+    .AddThreshold(thresholdValue: 0.7f)
+    .AddRotation(angleDegrees: 90)
+    .AddScaling(scaleX: 1.5f, scaleY: 1.5f)
+    .Build();
+
+Console.WriteLine($"Complex chain: {complexChain.Name}");
+Console.WriteLine($"Description: {complexChain.Description}");
+Console.WriteLine($"Execution order: {complexChain.ExecutionOrder}");
+Console.WriteLine($"Parallel execution: {complexChain.AllowParallelExecution}");
+Console.WriteLine($"Max parallel steps: {complexChain.MaxParallelSteps}");
+Console.WriteLine($"Cache intermediates: {complexChain.CacheIntermediateResults}");
+Console.WriteLine($"Total steps: {complexChain.Steps.Count}");
+Console.WriteLine($"Estimated processing time: {complexChain.EstimateTotalProcessingTime()}ms");
+
+// Add a custom filter step
+var customFilterId = Guid.NewGuid();
+var customChain = FilterChainBuilder
+    .Create("Custom Processing Chain")
+    .AddCustomFilter(customFilterId, estimatedExecutionMs: 30.0)
+    .Build();
+
+Console.WriteLine($"Custom chain steps: {customChain.Steps.Count}");
+Console.WriteLine($"Custom filter ID: {customChain.Steps[0].FilterId}");
+```
+
 ## BenchmarkSuiteConfiguration
 
 The `BenchmarkSuiteConfiguration` class configures which benchmark categories are active and how they are executed during performance testing. It allows fine-grained control over which benchmark suites to include (filter chains, batch processing, chain builders, utilities, etc.), accuracy levels, output directories, and hardware counter collection for comprehensive performance analysis.
