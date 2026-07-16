@@ -265,6 +265,81 @@ class Program
 }
 ```
 
+## BatchProcessingServiceTests
+
+The `BatchProcessingServiceTests` class provides comprehensive unit tests for the `BatchProcessingService` class, validating batch image processing functionality including batch creation, processing, status tracking, cancellation, and progress reporting. These tests ensure proper error handling, edge cases, and correct behavior across different scenarios including null inputs, invalid batches, partial failures, and cancellation requests.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Services;
+using GpuImageProcessing.Domain;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
+
+// Initialize required services (typically via dependency injection in real applications)
+using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+ILogger<BatchProcessingService> logger = loggerFactory.CreateLogger<BatchProcessingService>();
+
+var processingService = new ImageProcessingService(...);
+var imageRepository = new ImageRepository();
+var batchService = new BatchProcessingService(processingService, imageRepository, logger);
+
+// Create a batch with multiple images and filters
+var imageIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+var filterIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
+
+var batch = await batchService.CreateBatchAsync(
+    imageIds,
+    filterIds,
+    "SummerPhotos-2024",
+    @"./output/summer-2024-enhanced"
+);
+
+Console.WriteLine($"Created batch '{batch.Name}' with {batch.TotalImages} images");
+
+// Process the batch asynchronously
+var processingTask = batchService.ProcessBatchAsync(batch);
+
+// Monitor progress
+while (!processingTask.IsCompleted)
+{
+    var progress = batchService.GetBatchProgress(batch.Id);
+    Console.WriteLine($"Progress: {progress["ProgressPercent"]:P0} - " +
+        $"Processed: {progress["ProcessedImages"]}/{progress["TotalImages"]}");
+
+    await Task.Delay(1000);
+}
+
+// Get final result
+var completedBatch = await processingTask;
+Console.WriteLine($"Batch completed: {completedBatch.ProcessedImages} processed, " +
+    $"{completedBatch.FailedImages} failed");
+
+// Check active batches
+int activeCount = batchService.GetActiveBatchCount();
+Console.WriteLine($"Active batches: {activeCount}");
+
+// Get all active batches
+var activeBatches = batchService.GetActiveBatches();
+foreach (var activeBatch in activeBatches)
+{
+    Console.WriteLine($" - Batch {activeBatch.Id}: {activeBatch.Name}");
+}
+
+// Cancel a batch if needed
+bool cancelled = batchService.CancelBatch(batch.Id);
+Console.WriteLine($"Batch cancellation {(cancelled ? "succeeded" : "failed")}");
+
+// Get batch status
+var batchStatus = batchService.GetBatchStatus(batch.Id);
+if (batchStatus != null)
+{
+    Console.WriteLine($"Batch status: {batchStatus.Status}");
+}
+```
+
 ## BatchProcessingBenchmarks
 
 The `BatchProcessingBenchmarks` class provides performance benchmarks for core batch processing operations used in the GPU image processing pipeline. It measures critical hot-paths such as batch creation, validation, progress tracking, success rate calculation, and priority queue construction that are called repeatedly during batch execution.
