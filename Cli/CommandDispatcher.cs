@@ -38,6 +38,7 @@ namespace GpuImageProcessing.Cli
             RegisterCommand("device", typeof(DeviceCommand));
             RegisterCommand("filter", typeof(FilterCommand));
             RegisterCommand("batch", typeof(BatchCommand));
+            RegisterCommand("batch-dir", typeof(BatchDirectoryCommand));
             RegisterCommand("help", typeof(HelpCommand));
             RegisterCommand("version", typeof(VersionCommand));
         }
