@@ -8,6 +8,7 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using GpuImageProcessing.Batch;
 using GpuImageProcessing.Fallback;
 using GpuImageProcessing.Repository;
 using GpuImageProcessing.Services;
@@ -44,6 +45,12 @@ public static class DependencyInjectionExtensions
         services.AddSingleton<ImageProcessingService>();
         services.AddSingleton<BatchProcessingService>();
         services.AddSingleton<CpuImageProcessor>();
+
+        // Expose the CPU processor through the backend seam so consumers depend on
+        // IImageProcessor, not a concrete backend. A GPU-backed implementation can
+        // replace this single registration without touching anything else.
+        services.AddSingleton<IImageProcessor>(sp => sp.GetRequiredService<CpuImageProcessor>());
+        services.AddSingleton<DirectoryBatchProcessor>();
 
         // Register pipeline
         services.AddSingleton(new BatchPipelineOptions());
