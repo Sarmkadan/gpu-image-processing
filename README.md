@@ -1871,6 +1871,82 @@ class Program
 }
 ```
 
+## ImageProcessingExtensions
+
+The `ImageProcessingExtensions` class provides a comprehensive set of extension methods for common image processing operations including color space conversion, format detection, resolution validation, memory calculation, and performance estimation. These methods extend both `ImageFormat` and `Image` types, offering utility functions that are essential for image processing workflows and batch operations.
+
+### Key Features
+- Color space determination from image format
+- File extension and format conversion utilities
+- Resolution validation against application limits
+- Memory requirement calculations for processing
+- Performance estimation for filter operations
+- Aspect ratio analysis and description
+- Filter applicability checking
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Utilities;
+using System;
+
+// Example 1: Get color space for a specific image format
+var jpegColorSpace = ImageFormat.Jpeg.GetColorSpaceForFormat();
+Console.WriteLine($"JPEG color space: {jpegColorSpace}");
+
+var pngColorSpace = ImageFormat.Png.GetColorSpaceForFormat();
+Console.WriteLine($"PNG color space: {pngColorSpace}");
+
+// Example 2: Get file extension from format
+var jpegExtension = ImageFormat.Jpeg.GetFileExtension();
+Console.WriteLine($"JPEG extension: {jpegExtension}");
+
+var pngExtension = ImageFormat.Png.GetFileExtension();
+Console.WriteLine($"PNG extension: {pngExtension}");
+
+// Example 3: Parse format from file extension
+var formatFromExtension = ".jpg".GetFormatFromExtension();
+Console.WriteLine($"Format from '.jpg': {formatFromExtension}");
+
+// Example 4: Create and validate an image
+var image = new Image(1920, 1080, 3)
+{
+    Format = ImageFormat.Jpeg,
+    ColorSpace = ColorSpace.Rgb
+};
+
+// Check if resolution is valid
+bool isValid = image.IsResolutionValid();
+Console.WriteLine($"Resolution valid: {isValid}");
+
+// Get aspect ratio description
+string aspectRatio = image.GetAspectRatioDescription();
+Console.WriteLine($"Aspect ratio: {aspectRatio}");
+
+// Calculate memory requirements for processing
+long memoryRequired = image.GetMemoryRequirement();
+Console.WriteLine($"Memory required: {memoryRequired:N0} bytes");
+
+// Estimate processing time for a specific filter
+var filterConfig = new FilterConfiguration
+{
+    FilterType = FilterType.GaussianBlur,
+    Name = "Gaussian Blur"
+};
+
+double processingTime = image.EstimateProcessingTime(filterConfig);
+Console.WriteLine($"Estimated processing time: {processingTime:F2}ms");
+
+// Check if a filter can be applied
+bool canApplyBlur = image.CanApplyFilter(FilterType.Blur);
+Console.WriteLine($"Can apply blur filter: {canApplyBlur}");
+
+// Calculate total bytes for image data
+long totalBytes = image.CalculateTotalBytes();
+Console.WriteLine($"Total image data size: {totalBytes:N0} bytes");
+```
+
 ## BenchmarkSuiteConfiguration
 
 The `BenchmarkSuiteConfiguration` class configures which benchmark categories are active and how they are executed during performance testing. It allows fine-grained control over which benchmark suites to include (filter chains, batch processing, chain builders, utilities, etc.), accuracy levels, output directories, and hardware counter collection for comprehensive performance analysis.
