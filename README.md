@@ -1209,6 +1209,88 @@ var clonedConfig = config.Clone();
 clonedConfig.Name = "CustomBlur_Copy";
 ```
 
+## BatchProcessingService
+
+The `BatchProcessingService` class manages batch image processing operations, enabling efficient processing of multiple images with configurable filters. It handles batch creation, status tracking, progress monitoring, and concurrent execution management. The service maintains a registry of active batches and provides methods for batch lifecycle management, including cancellation and progress reporting.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Services;
+using GpuImageProcessing.Domain;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Setup logging (typically via dependency injection in real applications)
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        ILogger<BatchProcessingService> logger = loggerFactory.CreateLogger<BatchProcessingService>();
+
+        // Initialize required services (in real usage these would be injected)
+        var processingService = new ImageProcessingService(...);
+        var imageRepository = new ImageRepository();
+        var batchService = new BatchProcessingService(processingService, imageRepository, logger);
+
+        // Create a batch with multiple images and filters
+        var imageIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid(), Guid.NewGuid() };
+        var filterIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() };
+        
+        var batch = await batchService.CreateBatchAsync(
+            imageIds,
+            filterIds,
+            "SummerPhotos-2024",
+            @"./output/summer-2024-enhanced"
+        );
+
+        Console.WriteLine($"Created batch '{batch.Name}' with {batch.TotalImages} images");
+
+        // Process the batch asynchronously
+        var processingTask = batchService.ProcessBatchAsync(batch);
+
+        // Monitor progress
+        while (!processingTask.IsCompleted)
+        {
+            var progress = batchService.GetBatchProgress(batch.Id);
+            Console.WriteLine($"Progress: {progress["ProgressPercent"]:P0} - " +
+                           $"Processed: {progress["ProcessedImages"]}/{progress["TotalImages"]}");
+            
+            await Task.Delay(1000);
+        }
+
+        // Get final result
+        var completedBatch = await processingTask;
+        Console.WriteLine($"Batch completed: {completedBatch.ProcessedImages} processed, " +
+                       $"{completedBatch.FailedImages} failed");
+
+        // Check active batches
+        int activeCount = batchService.GetActiveBatchCount();
+        Console.WriteLine($"Active batches: {activeCount}");
+
+        // Get all active batches
+        var activeBatches = batchService.GetActiveBatches();
+        foreach (var activeBatch in activeBatches)
+        {
+            Console.WriteLine($" - Batch {activeBatch.Id}: {activeBatch.Name}");
+        }
+
+        // Cancel a batch if needed
+        bool cancelled = batchService.CancelBatch(batch.Id);
+        Console.WriteLine($"Batch cancellation {(cancelled ? "succeeded" : "failed")}");
+
+        // Get batch status
+        var batchStatus = batchService.GetBatchStatus(batch.Id);
+        if (batchStatus != null)
+        {
+            Console.WriteLine($"Batch status: {batchStatus.Status}");
+        }
+    }
+}
+```
+
 ## FilterService
 
 The `FilterService` class provides centralized management and application of image filters within the GPU image processing pipeline. It offers comprehensive CRUD operations for filter configurations, including creating, retrieving, updating, and deleting filters, as well as specialized methods for applying filters to images and managing active filter presets. The service integrates with the `FilterConfigurationRepository` to persist filter configurations and uses specialized handlers for different filter types to ensure proper processing.
