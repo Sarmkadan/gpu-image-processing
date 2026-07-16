@@ -85,3 +85,64 @@ class Program
 ```
 
 // existing content ...
+
+## EventAggregator
+
+The `EventAggregator` is a centralized event bus that simplifies communication between components in a decoupled manner. It provides both synchronous and asynchronous event publishing capabilities, allowing you to subscribe to specific event types, track subscription statistics, and manage the lifecycle of subscriptions through disposable handles.
+
+
+### Usage Example
+
+```csharp
+using System;
+using System.Threading.Tasks;
+using GpuImageProcessing.Events;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create an event aggregator instance
+        var eventAggregator = new EventAggregator();
+
+        // Subscribe to ImageRegisteredEvent synchronously
+        using var syncSubscription = eventAggregator.Subscribe<ImageRegisteredEvent>(
+            ev => Console.WriteLine($"[Sync] Image registered: {ev.ImageId}"));
+
+        // Subscribe to ImageRegisteredEvent asynchronously
+        using var asyncSubscription = await eventAggregator.SubscribeAsync<ImageRegisteredEvent>(
+            async ev => {
+                Console.WriteLine($"[Async] Processing image: {ev.ImageId}");
+                await Task.Delay(100); // Simulate async work
+                Console.WriteLine($"[Async] Completed processing: {ev.ImageId}");
+            }
+        );
+
+        // Create and publish an event
+        var imageEvent = new ImageRegisteredEvent
+        {
+            ImageId = Guid.NewGuid(),
+            ImagePath = "/images/sample.jpg",
+            Width = 1920,
+            Height = 1080,
+            Description = "Sample image for processing"
+        };
+
+        // Publish synchronously - all synchronous subscribers will be invoked immediately
+        eventAggregator.Publish(imageEvent);
+
+        // Publish asynchronously - all subscribers (sync and async) will be invoked
+        await eventAggregator.PublishAsync(imageEvent);
+
+        // Get subscription statistics
+        var stats = eventAggregator.GetStats();
+        Console.WriteLine($"Total event types: {stats.TotalEventTypes}");
+        Console.WriteLine($"Total subscriptions: {stats.TotalSubscriptions}");
+        Console.WriteLine($"Event types: {string.Join(", ", stats.EventTypes)}");
+
+        // Dispose the aggregator to clean up all subscriptions
+        // Note: Disposing the aggregator also disposes all subscription handles
+        eventAggregator.Dispose();
+    }
+}
+```
