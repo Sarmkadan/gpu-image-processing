@@ -2106,6 +2106,69 @@ class Program
 }
 ```
 
+## FilterChainTests
+
+The `FilterChainTests` class provides comprehensive unit tests for the `FilterChain` class, validating core filter chain operations including step management, reordering, validation, querying, cloning, and configuration handling. These tests ensure that filter chains can be safely constructed, modified, and validated for use in GPU image processing pipelines.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+using System.Collections.Generic;
+
+// Create a filter chain for image processing
+var chain = new FilterChain
+{
+    Name = "Photo Enhancement Pipeline",
+    Description = "Standard enhancement pipeline for digital photographs",
+    ExecutionOrder = 1,
+    AllowParallelExecution = true,
+    MaxParallelSteps = 4,
+    CacheIntermediateResults = true
+};
+
+// Add filter steps to the chain
+var blurFilterId = Guid.NewGuid();
+var grayscaleFilterId = Guid.NewGuid();
+var sharpenFilterId = Guid.NewGuid();
+
+chain.AddStep(blurFilterId);
+chain.AddStep(grayscaleFilterId);
+chain.AddStep(sharpenFilterId);
+
+Console.WriteLine($"Created chain '{chain.Name}' with {chain.Steps.Count} steps");
+
+// Remove a step if needed
+bool removed = chain.RemoveStep(grayscaleFilterId);
+Console.WriteLine($"Removed grayscale step: {removed}");
+
+// Reorder remaining steps
+chain.ReorderSteps(new List<Guid> { sharpenFilterId, blurFilterId });
+
+// Get only enabled steps
+var enabledSteps = chain.GetEnabledSteps();
+Console.WriteLine($"Chain has {enabledSteps.Count} enabled steps");
+
+// Clone the chain for reuse with different parameters
+var clonedChain = chain.Clone();
+clonedChain.Name = "Photo Enhancement Pipeline - High Quality";
+Console.WriteLine($"Cloned chain: {clonedChain.Name}");
+
+// Validate filter configurations
+var filterConfig = new FilterConfiguration
+{
+    Name = "Blur",
+    FilterType = FilterType.Blur,
+    MaxThreadsPerBlock = 256
+};
+filterConfig.SetParameter("radius", 5.0f);
+filterConfig.ParameterTypes["radius"] = "System.Single";
+
+bool isValid = filterConfig.Validate();
+Console.WriteLine($"Filter configuration valid: {isValid}");
+```
+
 ## FilterChainBuilderTests
 
 The `FilterChainBuilderTests` class provides comprehensive unit tests for the `FilterChainBuilder` class, validating its fluent API for constructing filter chains. These tests cover validation scenarios (blank names, missing steps), basic functionality (single and multiple steps), configuration options (descriptions, parallel execution, caching), parameter validation for various filter types (blur radius, sharpen strength, rotation angles, scaling factors, color correction brightness, custom filter IDs), performance estimation, fluent chaining behavior, and CI preset configurations.
