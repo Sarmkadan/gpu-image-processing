@@ -2089,6 +2089,112 @@ double totalFilterTime = result.GetTotalFilterExecutionTime();
 Console.WriteLine($"Total filter execution time: {totalFilterTime}ms");
 ```
 
+## PerformanceMonitoringServiceTests
+
+The `PerformanceMonitoringServiceTests` class provides comprehensive unit tests for the `PerformanceMonitoringService` that validate performance monitoring functionality. These tests cover constructor validation, metric recording, system metric updates, throughput tracking, snapshot and reset operations, metrics history management, and performance reporting to ensure the performance monitoring service behaves correctly under various scenarios.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Tests.Services;
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Services;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
+
+class Program
+{
+    static void Main()
+    {
+        // Setup mock logger (typically via dependency injection in real applications)
+        var loggerMock = new Mock<ILogger<PerformanceMonitoringService>>();
+        
+        // Create the service under test
+        var performanceMonitoringService = new PerformanceMonitoringService(loggerMock.Object);
+        
+        // Test 1: Constructor validation - should throw when null logger provided
+        try
+        {
+            var invalidService = new PerformanceMonitoringService(null!);
+            Console.WriteLine("ERROR: Constructor should throw ArgumentNullException for null logger");
+        }
+        catch (ArgumentNullException)
+        {
+            Console.WriteLine("✓ Constructor correctly throws ArgumentNullException for null logger");
+        }
+        
+        // Test 2: Record successful operation metrics
+        performanceMonitoringService.RecordOperation(100, success: true);
+        var metrics = performanceMonitoringService.GetCurrentMetrics();
+        Console.WriteLine($"✓ Recorded successful operation: Total={metrics.TotalOperationsCount}, Failed={metrics.FailedOperationsCount}, AvgTime={metrics.AverageExecutionTimeMs:F2}ms");
+        
+        // Test 3: Record failed operation metrics
+        performanceMonitoringService.RecordOperation(50, success: false);
+        metrics = performanceMonitoringService.GetCurrentMetrics();
+        Console.WriteLine($"✓ Recorded failed operation: Total={metrics.TotalOperationsCount}, Failed={metrics.FailedOperationsCount}");
+        
+        // Test 4: Update system metrics (CPU, memory, GPU)
+        performanceMonitoringService.UpdateSystemMetrics(
+            cpuPercent: 75.5,
+            memoryBytes: 2_000_000_000,
+            gpuMemoryBytes: 1_000_000_000,
+            gpuUtilization: 85.0
+        );
+        metrics = performanceMonitoringService.GetCurrentMetrics();
+        Console.WriteLine($"✓ Updated system metrics: CPU={metrics.CpuUsagePercent:F1}%, Memory={metrics.MemoryUsedBytes:N0} bytes, GPU={metrics.GpuUtilizationPercent:F1}%");
+        
+        // Test 5: Update throughput metrics
+        performanceMonitoringService.UpdateThroughput(
+            pixelsPerSecond: 1_000_000,
+            megabytesPerSecond: 500.5
+        );
+        metrics = performanceMonitoringService.GetCurrentMetrics();
+        Console.WriteLine($"✓ Updated throughput: {metrics.ImagePixelsProcessedPerSecond:N0} pixels/s, {metrics.ThroughputMegabytesPerSecond:F1} MB/s");
+        
+        // Test 6: Snapshot and reset metrics
+        var snapshot = performanceMonitoringService.SnapshotAndReset();
+        Console.WriteLine($"✓ Snapshot created: TotalOperations={snapshot.TotalOperationsCount}, Failed={snapshot.FailedOperationsCount}");
+        
+        var resetMetrics = performanceMonitoringService.GetCurrentMetrics();
+        Console.WriteLine($"✓ Metrics reset: TotalOperations={resetMetrics.TotalOperationsCount}, Failed={resetMetrics.FailedOperationsCount}");
+        
+        // Test 7: Get metrics history
+        performanceMonitoringService.RecordOperation(100, true);
+        performanceMonitoringService.SnapshotAndReset();
+        performanceMonitoringService.RecordOperation(200, true);
+        var history = performanceMonitoringService.GetMetricsHistory();
+        Console.WriteLine($"✓ Metrics history retrieved: {history.Count} snapshots");
+        
+        // Test 8: Get average metrics over time window
+        var averages = performanceMonitoringService.GetAverageMetrics(lastMinutes: 60);
+        Console.WriteLine($"✓ Average metrics calculated: {(averages.Count > 0 ? averages.Count + " metrics" : "no metrics")}");
+        
+        // Test 9: Generate performance report
+        performanceMonitoringService.RecordOperation(100, true);
+        performanceMonitoringService.RecordOperation(150, false);
+        performanceMonitoringService.UpdateSystemMetrics(75, 2_000_000_000, 1_000_000_000, 85.0);
+        performanceMonitoringService.UpdateThroughput(1_000_000, 500);
+        
+        string report = performanceMonitoringService.GetPerformanceReport();
+        Console.WriteLine("✓ Performance report generated:");
+        Console.WriteLine(report);
+        
+        // Test 10: Concurrent operations safety
+        var concurrentTasks = new List<Task>();
+        for (int i = 0; i < 100; i++)
+        {
+            concurrentTasks.Add(Task.Run(() => 
+                performanceMonitoringService.RecordOperation(10 + Random.Shared.Next(100), Random.Shared.Next(2) == 0)
+            ));
+        }
+        Task.WaitAll(concurrentTasks.ToArray());
+        metrics = performanceMonitoringService.GetCurrentMetrics();
+        Console.WriteLine($"✓ Concurrent operations handled safely: {metrics.TotalOperationsCount} operations recorded");
+    }
+}
+```
+
 ## CoreImageProcessingServiceTests
 
 The `CoreImageProcessingServiceTests` class provides unit tests for the `ImageProcessingService` class, validating core image processing operations including image registration, retrieval, and processing capability checks. These tests ensure that the service correctly handles valid and invalid inputs, maintains proper state management, and integrates correctly with the repository layer.
