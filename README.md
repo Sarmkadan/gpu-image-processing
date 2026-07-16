@@ -1748,6 +1748,57 @@ class Program
     }
 }
 ```
+## AppSettings
+
+The `AppSettings` class provides centralized configuration management for the GPU image processing application. It exposes application metadata, performance tuning parameters, directory paths, and feature flags that control GPU acceleration, batch processing behavior, caching strategies, and monitoring capabilities throughout the image processing pipeline.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Configuration;
+using System;
+using System.Collections.Generic;
+
+// Create application settings instance
+var settings = new AppSettings
+{
+    ApplicationName = "GPU Image Processing Pipeline",
+    ApplicationVersion = "1.0.0",
+    EnableGpuAcceleration = true,
+    MaxConcurrentOperations = 8,
+    OperationTimeoutMs = 30000,
+    OutputDirectory = @"./output",
+    CacheDirectory = @"./cache",
+    EnableMetricsCollection = true,
+    MetricsCollectionIntervalMs = 5000,
+    EnablePerformanceLogging = true,
+    MaxBatchSize = 16,
+    MaxMemoryPerImage = 256L * 1024 * 1024, // 256 MB
+    MaxTotalGpuMemory = 4L * 1024 * 1024 * 1024, // 4 GB
+    EnableCaching = true,
+    CacheExpirMinutes = 60,
+    SupportedImageFormats = new List<string> { "JPEG", "PNG", "WEBP", "BMP", "TIFF" },
+    Validate = true
+};
+
+// Display application configuration
+Console.WriteLine($"Application: {settings.ApplicationName} v{settings.ApplicationVersion}");
+Console.WriteLine($"GPU Acceleration: {(settings.EnableGpuAcceleration ? "Enabled" : "Disabled")}");
+Console.WriteLine($"Max Concurrent Operations: {settings.MaxConcurrentOperations}");
+Console.WriteLine($"Output Directory: {settings.OutputDirectory}");
+Console.WriteLine($"Cache Directory: {settings.CacheDirectory}");
+Console.WriteLine($"Metrics Collection: {(settings.EnableMetricsCollection ? "Enabled" : "Disabled")}");
+Console.WriteLine($"Performance Logging: {(settings.EnablePerformanceLogging ? "Enabled" : "Disabled")}");
+Console.WriteLine($"Max Batch Size: {settings.MaxBatchSize}");
+Console.WriteLine($"Max Memory Per Image: {settings.MaxMemoryPerImage / (1024 * 1024)} MB");
+Console.WriteLine($"Max Total GPU Memory: {settings.MaxTotalGpuMemory / (1024 * 1024 * 1024)} GB");
+Console.WriteLine($"Caching: {(settings.EnableCaching ? "Enabled" : "Disabled")}");
+Console.WriteLine($"Cache Expiration: {settings.CacheExpirMinutes} minutes");
+Console.WriteLine($"Supported Formats: {string.Join(", ", settings.SupportedImageFormats)}");
+Console.WriteLine($"Validation: {(settings.Validate ? "Enabled" : "Disabled")}");
+Console.WriteLine($"Full configuration: {settings}");
+```
+
 ## Image
 
 The `Image` class is a core domain model that encapsulates raw image pixel data along with its metadata, such as format, color space, dimensions, and processing status. It provides essential validation and size calculation methods, making it the primary structure for representing images throughout the processing pipeline.
