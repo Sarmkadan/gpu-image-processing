@@ -695,6 +695,7 @@ else
 {
 
 
+
 ## FilterConfiguration
 
 `FilterConfiguration` defines the settings and parameters for a specific image processing filter, including its name, priority, and any custom kernel code or parameter settings. It provides robust validation and cloning capabilities to ensure filter configurations are correctly set up and can be safely reused or modified within processing pipelines.
@@ -731,4 +732,41 @@ if (config.Validate())
 var clonedConfig = config.Clone();
 clonedConfig.Name = "CustomBlur_Copy";
 ```
+
+## Image
+
+The `Image` class is a core domain model that encapsulates raw image pixel data along with its metadata, such as format, color space, dimensions, and processing status. It provides essential validation and size calculation methods, making it the primary structure for representing images throughout the processing pipeline.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+using System.Collections.Generic;
+
+// Create a new image instance with specified dimensions
+var image = new Image(1920, 1080, 3) 
+{
+    Id = Guid.NewGuid(),
+    FileName = "input_image.png",
+    FilePath = "/data/input_image.png",
+    Format = ImageFormat.Png, // Assuming ImageFormat enum exists
+    ColorSpace = ColorSpace.Rgb, // Assuming ColorSpace enum exists
+    BitsPerPixel = 24,
+    CreatedAt = DateTime.UtcNow
+};
+
+// Add custom metadata
+image.Metadata["CameraModel"] = "Generic-Camera-X";
+
+// Validate the image configuration
+if (image.Validate())
+{
+    long requiredBytes = image.CalculatePixelDataSize();
+    Console.WriteLine($"Image '{image.FileName}' validated.");
+    Console.WriteLine($"Required buffer size: {requiredBytes} bytes.");
+    Console.WriteLine($"Status: {image.Status}"); // Assuming ProcessingStatus enum exists
+}
+```
+
 ```
