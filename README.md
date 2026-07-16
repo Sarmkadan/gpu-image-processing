@@ -1799,6 +1799,78 @@ Console.WriteLine($"Validation: {(settings.Validate ? "Enabled" : "Disabled")}")
 Console.WriteLine($"Full configuration: {settings}");
 ```
 
+## CpuImageProcessor
+
+The `CpuImageProcessor` class provides CPU-based image processing functionality as a fallback when no OpenCL-capable GPU devices are available. It implements essential image operations including resizing, grayscale conversion, blurring, and various filter applications using raw pixel manipulation to ensure the library remains functional across different hardware configurations.
+
+This processor is automatically used when GPU acceleration is unavailable, providing identical functionality to the GPU-accelerated processors but with CPU-based implementations of the filter algorithms.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Fallback;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Setup logging (typically via dependency injection in real applications)
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        ILogger<CpuImageProcessor> logger = loggerFactory.CreateLogger<CpuImageProcessor>();
+
+        // Create CPU image processor instance
+        var cpuProcessor = new CpuImageProcessor(logger);
+
+        // Create a sample image (1920x1080 RGB)
+        var image = new Image(1920, 1080, 3)
+        {
+            Id = Guid.NewGuid(),
+            FileName = "sample.jpg",
+            FilePath = @"/images/sample.jpg",
+            Format = ImageFormat.Jpeg,
+            ColorSpace = ColorSpace.Rgb,
+            BitsPerPixel = 24
+        };
+
+        // Initialize pixel data (simulated - in real usage this would contain actual image data)
+        image.PixelData = new byte[image.Width * image.Height * 3];
+        new Random().NextBytes(image.PixelData);
+
+        // Check if the processor can handle the requested filter
+        bool canProcessGrayscale = cpuProcessor.CanProcess(FilterType.Grayscale);
+        Console.WriteLine($"Can process grayscale: {canProcessGrayscale}");
+
+        // Apply grayscale filter
+        var grayscaleImage = cpuProcessor.ToGrayscale(image.Clone());
+        Console.WriteLine($"Image converted to grayscale: {grayscaleImage.Width}x{grayscaleImage.Height}");
+
+        // Apply blur filter with radius 3
+        var blurredImage = cpuProcessor.Blur(image.Clone(), radius: 3);
+        Console.WriteLine($"Image blurred with radius 3: {blurredImage.Width}x{blurredImage.Height}");
+
+        // Resize image to 1280x720
+        var resizedImage = cpuProcessor.Resize(image.Clone(), 1280, 720);
+        Console.WriteLine($"Image resized to: {resizedImage.Width}x{resizedImage.Height}");
+
+        // Apply a filter configuration asynchronously
+        var filterConfig = new FilterConfiguration
+        {
+            Name = "Edge Detection",
+            FilterType = FilterType.EdgeDetection,
+            IsActive = true,
+            Priority = 1
+        };
+
+        await cpuProcessor.ApplyFilterAsync(image.Clone(), filterConfig);
+        Console.WriteLine("Edge detection filter applied successfully");
+    }
+}
+```
+
 ## BenchmarkSuiteConfiguration
 
 The `BenchmarkSuiteConfiguration` class configures which benchmark categories are active and how they are executed during performance testing. It allows fine-grained control over which benchmark suites to include (filter chains, batch processing, chain builders, utilities, etc.), accuracy levels, output directories, and hardware counter collection for comprehensive performance analysis.
