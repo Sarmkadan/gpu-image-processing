@@ -1333,6 +1333,54 @@ else
 
 
 
+## HttpImageClient
+
+The `HttpImageClient` class provides an HTTP client wrapper for downloading and uploading images from remote sources. It includes retry logic with exponential backoff, timeout handling, content validation, and comprehensive error reporting. This client is essential for integrating the GPU image processing pipeline with external image sources and destinations.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Integration;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Setup logging (typically via dependency injection in real applications)
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        ILogger<HttpImageClient> logger = loggerFactory.CreateLogger<HttpImageClient>();
+
+        // Create HTTP image client with default settings (3 retries, 30s timeout)
+        using var httpClient = new HttpImageClient(logger);
+
+        // Download an image from a URL
+        string imageUrl = "https://example.com/images/sample.jpg";
+        string outputPath = "/data/images/downloaded/sample.jpg";
+        
+        bool downloadSuccess = await httpClient.DownloadImageAsync(imageUrl, outputPath);
+        Console.WriteLine($"Download {(downloadSuccess ? "succeeded" : "failed")}");
+
+        // Verify an image URL is accessible before processing
+        bool isAccessible = await httpClient.VerifyImageUrlAsync(imageUrl);
+        Console.WriteLine($"URL accessible: {isAccessible}");
+
+        // Upload a processed image to a remote endpoint
+        string processedImagePath = "/output/processed/sample-enhanced.jpg";
+        string uploadUrl = "https://api.example.com/upload/image";
+        
+        bool uploadSuccess = await httpClient.UploadImageAsync(processedImagePath, uploadUrl);
+        Console.WriteLine($"Upload {(uploadSuccess ? "succeeded" : "failed")}");
+
+        // Access client properties for debugging
+        Console.WriteLine($"Last URL: {httpClient.Url}");
+        Console.WriteLine($"Last HTTP Status: {httpClient.HttpStatusCode}");
+    }
+}
+```
+
 ## WebhookHandler
 
 The `WebhookHandler` class manages webhook subscriptions and event dispatching for external integrations. It allows registering and unregistering webhook endpoints, dispatching events to subscribers, and tracking subscription status including retry policies and failure counts. This component is essential for integrating the GPU image processing pipeline with external systems and services.
