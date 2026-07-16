@@ -1636,6 +1636,84 @@ foreach (var stat in memoryStats)
 long totalAllocated = gpuService.GetTotalAllocatedMemory();
 Console.WriteLine($"Total GPU memory allocated: {totalAllocated / (1024 * 1024)} MB");
 ```
+
+## PerformanceMonitoringService
+
+The `PerformanceMonitoringService` class provides centralized monitoring and tracking of performance metrics for GPU-accelerated image processing operations. It records execution times, system resource usage (CPU, memory, GPU), throughput metrics, and maintains a history of performance snapshots. This service is essential for performance analysis, optimization, and real-time monitoring of image processing pipelines.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Services;
+using GpuImageProcessing.Domain;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Setup logging (typically via dependency injection in real applications)
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        ILogger<PerformanceMonitoringService> logger = loggerFactory.CreateLogger<PerformanceMonitoringService>();
+
+        // Initialize the performance monitoring service
+        var performanceMonitor = new PerformanceMonitoringService(logger);
+
+        // Record individual operation execution times
+        performanceMonitor.RecordOperation(12.5); // 12.5ms - successful operation
+        performanceMonitor.RecordOperation(8.3);  // 8.3ms - successful operation
+        performanceMonitor.RecordOperation(15.7, success: true); // Explicit success
+        performanceMonitor.RecordOperation(2.1, success: false); // Failed operation
+
+        // Update system metrics (CPU, memory, GPU utilization)
+        performanceMonitor.UpdateSystemMetrics(
+            cpuPercent: 45.2,
+            memoryBytes: 8589934592, // 8 GB
+            gpuMemoryBytes: 6442450944, // 6 GB
+            gpuUtilization: 87.5
+        );
+
+        // Update throughput metrics (pixels per second and MB/s)
+        performanceMonitor.UpdateThroughput(
+            pixelsPerSecond: 1920000000, // 1.92 billion pixels/s
+            megabytesPerSecond: 1250.75
+        );
+
+        // Get current performance metrics
+        var currentMetrics = performanceMonitor.GetCurrentMetrics();
+        Console.WriteLine($"Current CPU Usage: {currentMetrics.CpuUsagePercent:F2}%");
+        Console.WriteLine($"Current GPU Utilization: {currentMetrics.GpuUtilizationPercent:F2}%");
+        Console.WriteLine($"Average Execution Time: {currentMetrics.AverageExecutionTimeMs:F2}ms");
+        Console.WriteLine($"Throughput: {currentMetrics.ThroughputMegabytesPerSecond:F2} MB/s");
+        Console.WriteLine($"Success Rate: {currentMetrics.GetSuccessRate():F2}%");
+
+        // Snapshot current metrics and start new measurement period
+        var snapshot = performanceMonitor.SnapshotAndReset();
+        Console.WriteLine($"\nSnapshot recorded at: {snapshot.RecordedAt:O}");
+        Console.WriteLine($"Total operations: {snapshot.TotalOperationsCount}");
+        Console.WriteLine($"Failed operations: {snapshot.FailedOperationsCount}");
+
+        // Get historical metrics (last 10 snapshots)
+        var recentHistory = performanceMonitor.GetMetricsHistory(limit: 10);
+        Console.WriteLine($"\nRetrieved {recentHistory.Count()} historical metrics");
+
+        // Get average metrics over the last 60 minutes
+        var averageMetrics = performanceMonitor.GetAverageMetrics(lastMinutes: 60);
+        Console.WriteLine("\nAverage Metrics (last 60 minutes):");
+        foreach (var metric in averageMetrics)
+        {
+            Console.WriteLine($" - {metric.Key}: {metric.Value:F2}");
+        }
+
+        // Generate comprehensive performance report
+        string report = performanceMonitor.GetPerformanceReport();
+        Console.WriteLine("\nPerformance Report:");
+        Console.WriteLine(report);
+    }
+}
+```
 ## Image
 
 The `Image` class is a core domain model that encapsulates raw image pixel data along with its metadata, such as format, color space, dimensions, and processing status. It provides essential validation and size calculation methods, making it the primary structure for representing images throughout the processing pipeline.
