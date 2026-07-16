@@ -1947,6 +1947,90 @@ long totalBytes = image.CalculateTotalBytes();
 Console.WriteLine($"Total image data size: {totalBytes:N0} bytes");
 ```
 
+## ConcurrencyAndConfigurationTests
+
+The `ConcurrencyAndConfigurationTests` class provides comprehensive integration tests for validating concurrent image processing operations and configuration handling in the GPU image processing pipeline. It tests thread safety, performance under load, proper device selection, filter configuration validation, memory management, and error handling across multiple concurrent operations.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Tests.Integration;
+using GpuImageProcessing.Domain;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create an instance of the concurrency and configuration tests
+        var concurrencyTests = new ConcurrencyAndConfigurationTests();
+
+        // Test 1: Concurrent image processing with multiple threads
+        await concurrencyTests.ConcurrentImageProcessing_MultipleThreads_CompletesSuccessfully();
+        Console.WriteLine("Concurrent processing test passed!");
+
+        // Test 2: Performance metrics under concurrent load
+        var metrics = await concurrencyTests.PerformanceMetrics_UnderConcurrentLoad_CalculatedCorrectly();
+        Console.WriteLine($"Performance metrics: {metrics.TotalOperationsCount} operations, " +
+                         $"Success rate: {metrics.GetSuccessRate():F2}%");
+
+        // Test 3: Image dimensions with various configurations
+        await concurrencyTests.ImageDimensions_VariousConfigurations_AllProcessCorrectly();
+        Console.WriteLine("Image dimensions test passed!");
+
+        // Test 4: Complex filter chain execution order
+        await concurrencyTests.FilterChain_ComplexPipeline_ExecutesInOrder();
+        Console.WriteLine("Filter chain execution test passed!");
+
+        // Test 5: Large-scale image batch processing
+        var largeBatch = new ImageBatch { Name = "LargeScaleBatch" };
+        for (int i = 0; i < 100; i++)
+        {
+            largeBatch.AddImage(Guid.NewGuid());
+        }
+        await concurrencyTests.ImageBatch_LargeScale_HandlesMultipleImages(largeBatch);
+        Console.WriteLine("Large-scale batch test passed!");
+
+        // Test 6: GPU memory stress test
+        await concurrencyTests.GpuMemory_StressTest_AllocateAndDeallocateMultipleTimes();
+        Console.WriteLine("GPU memory stress test passed!");
+
+        // Test 7: Multiple device selection and best device selection
+        var bestDevice = await concurrencyTests.GpuDeviceSelection_MultipleDevices_SelectsBestOne();
+        Console.WriteLine($"Best device selected: {bestDevice?.Name ?? "None found"}");
+
+        // Test 8: Filter configuration validation and rejection
+        await concurrencyTests.FilterConfiguration_InactiveFilter_RejectedDuringApplication();
+        Console.WriteLine("Filter configuration validation test passed!");
+
+        // Test 9: Result tracking for multiple operations
+        var resultTracking = await concurrencyTests.ResultTracking_MultipleOperations_AllRecorded();
+        Console.WriteLine($"Result tracking: {resultTracking.TotalOperationsCount} operations tracked");
+
+        // Test 10: Image validation with boundary values
+        await concurrencyTests.ImageValidation_BoundaryValues_AcceptedCorrectly();
+        Console.WriteLine("Image validation test passed!");
+
+        // Test 11: Batch progress calculation edge cases
+        var progressCalculation = await concurrencyTests.ImageBatch_ProgressCalculation_HandlesEdgeCases();
+        Console.WriteLine($"Progress calculation: {progressCalculation:P0}");
+
+        // Test 12: Multiple filters of same type creation
+        await concurrencyTests.FilterService_MultipleFiltersOfSameType_AllCreatedSuccessfully();
+        Console.WriteLine("Multiple filters creation test passed!");
+
+        // Test 13: Performance monitoring snapshot and reset
+        var monitoringResult = await concurrencyTests.PerformanceMonitoring_SnapshotAndReset_ManagesHistoryCorrectly();
+        Console.WriteLine("Performance monitoring test passed!");
+
+        // Test 14: Filter chain step reordering maintains integrity
+        await concurrencyTests.FilterChain_ReorderSteps_MaintainsIntegrity();
+        Console.WriteLine("Filter chain reordering test passed!");
+    }
+}
+```
+
 ## BenchmarkSuiteConfiguration
 
 The `BenchmarkSuiteConfiguration` class configures which benchmark categories are active and how they are executed during performance testing. It allows fine-grained control over which benchmark suites to include (filter chains, batch processing, chain builders, utilities, etc.), accuracy levels, output directories, and hardware counter collection for comprehensive performance analysis.
