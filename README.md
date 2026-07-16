@@ -662,8 +662,42 @@ if (result.IsSuccessful)
 }
 else
 {
-    // If an error occurred, mark the result as failed
-    result.Fail("Shader execution timeout.", 500);
-    Console.WriteLine($"Processing failed: {result.ErrorMessage}");
+
+
+## FilterConfiguration
+
+`FilterConfiguration` defines the settings and parameters for a specific image processing filter, including its name, priority, and any custom kernel code or parameter settings. It provides robust validation and cloning capabilities to ensure filter configurations are correctly set up and can be safely reused or modified within processing pipelines.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+using System.Collections.Generic;
+
+// Initialize a new filter configuration
+var config = new FilterConfiguration
+{
+    Id = Guid.NewGuid(),
+    Name = "CustomBlur",
+    FilterType = (FilterType)0, // Replace with appropriate enum value
+    Description = "Custom Blur Filter",
+    IsActive = true,
+    Priority = 1
+};
+
+// Set parameters and their types
+config.SetParameter("BlurRadius", 5);
+config.ParameterTypes["BlurRadius"] = "System.Int32";
+
+// Validate the configuration before use
+if (config.Validate())
+{
+    Console.WriteLine($"Filter '{config.Name}' is valid and ready for processing.");
 }
+
+// Clone the configuration for modification
+var clonedConfig = config.Clone();
+clonedConfig.Name = "CustomBlur_Copy";
+```
 ```
