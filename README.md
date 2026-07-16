@@ -2031,6 +2031,81 @@ class Program
 }
 ```
 
+## CoreImageProcessingServiceTests
+
+The `CoreImageProcessingServiceTests` class provides unit tests for the `ImageProcessingService` class, validating core image processing operations including image registration, retrieval, and processing capability checks. These tests ensure that the service correctly handles valid and invalid inputs, maintains proper state management, and integrates correctly with the repository layer.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Services;
+using GpuImageProcessing.Core.Models;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize required services (in real usage these would be injected via DI)
+        var imageRepository = new ImageRepository();
+        var filterRepository = new GenericRepository<Filter>();
+        var transformRepository = new GenericRepository<Transform>();
+        var profileRepository = new GenericRepository<ProcessingProfile>();
+        var deviceService = new DeviceService();
+        var computeShaderPipeline = new ComputeShaderPipeline(...);
+        var logger = new Mock<ILogger<ImageProcessingService>>().Object;
+        var filterService = new FilterService(filterRepository, logger);
+        var transformService = new TransformService(transformRepository, logger);
+        
+        var processingService = new ImageProcessingService(
+            imageRepository,
+            filterRepository,
+            transformRepository,
+            profileRepository,
+            deviceService,
+            computeShaderPipeline,
+            logger,
+            filterService,
+            transformService
+        );
+
+        // Test 1: Register a valid image
+        var validImage = await processingService.RegisterImageAsync("test_image.jpg", "Test Image");
+        Console.WriteLine($"Registered image: {validImage.Name} with ID: {validImage.Id}");
+
+        // Test 2: Attempt to register an image with empty path (should throw)
+        try
+        {
+            await processingService.RegisterImageAsync("", "Invalid Image");
+            Console.WriteLine("ERROR: Should have thrown exception for empty path");
+        }
+        catch (ArgumentException)
+        {
+            Console.WriteLine("Correctly threw ArgumentException for empty path");
+        }
+
+        // Test 3: Retrieve an existing image
+        var retrievedImage = await processingService.GetImageAsync(validImage.Id);
+        if (retrievedImage != null)
+        {
+            Console.WriteLine($"Retrieved image: {retrievedImage.Name}");
+        }
+
+        // Test 4: Attempt to retrieve non-existing image (should return null)
+        var nonExistingImage = await processingService.GetImageAsync(Guid.NewGuid());
+        if (nonExistingImage == null)
+        {
+            Console.WriteLine("Correctly returned null for non-existing image ID");
+        }
+
+        // Test 5: Check processing capability with no device selected
+        var canProcess = await processingService.CanProcessAsync(new List<Guid>(), Guid.NewGuid());
+        Console.WriteLine($"Can process without device: {canProcess}");
+    }
+}
+```
+
 ## BenchmarkSuiteConfiguration
 
 The `BenchmarkSuiteConfiguration` class configures which benchmark categories are active and how they are executed during performance testing. It allows fine-grained control over which benchmark suites to include (filter chains, batch processing, chain builders, utilities, etc.), accuracy levels, output directories, and hardware counter collection for comprehensive performance analysis.
