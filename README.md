@@ -432,6 +432,55 @@ class Program
 }
 ```
 
+## CommandDispatcher
+
+The `CommandDispatcher` class routes CLI commands to appropriate handlers, managing command registration, discovery, and execution. It supports dynamic command registration at runtime, provides introspection capabilities to list available commands, and handles command instantiation with dependency injection through an `IServiceProvider`. The dispatcher validates command types and provides error handling for command execution failures.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Cli;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+static async Task Main()
+{
+// Setup dependency injection container (simplified for example)
+var serviceProvider = new ServiceCollection()
+    .AddSingleton<IServiceProvider>(sp => sp)
+    .BuildServiceProvider();
+
+// Create command dispatcher
+var dispatcher = new CommandDispatcher(serviceProvider);
+
+// Register custom command
+// dispatcher.RegisterCommand("custom", typeof(CustomCommandHandler));
+
+// List available commands
+Console.WriteLine("Available commands:");
+foreach (var command in dispatcher.GetAvailableCommands())
+{
+    Console.WriteLine($" - {command}");
+}
+
+// Get command description
+var description = dispatcher.GetCommandDescription("help");
+if (description != null)
+{
+    Console.WriteLine($"\nHelp command description: {description}");
+}
+
+// Dispatch a command (simulating command line: "help --detailed")
+string[] args = new[] { "help", "--detailed" };
+int exitCode = await dispatcher.DispatchAsync(args);
+
+Console.WriteLine($"\nCommand executed with exit code: {exitCode}");
+}
+}
+```
+
 ## ImageUtilitiesBenchmarks
 
 The `ImageUtilitiesBenchmarks` class provides performance benchmarks for the `ImageUtilities` hot paths that are called per-image during the ingestion pipeline. These include file extension validation, MIME type resolution, image format detection, file size formatting, and proportional size calculations that are critical for image processing workflows.
