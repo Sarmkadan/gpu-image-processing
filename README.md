@@ -1996,6 +1996,181 @@ Console.WriteLine($"Release config accuracy: {releaseConfig.AccuracyLevel}");
 Console.WriteLine($"Release config hardware counters: {releaseConfig.EnableHardwareCounters}");
 ```
 
+## EndToEndProcessingTests
+
+The `EndToEndProcessingTests` class provides comprehensive integration tests for the complete GPU image processing pipeline. It validates end-to-end workflows including filter creation, application to images, batch processing, configuration validation, performance monitoring, GPU memory management, and error handling across the entire processing chain.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Tests.Integration;
+using GpuImageProcessing.Domain;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create an instance of the end-to-end processing tests
+        var e2eTests = new EndToEndProcessingTests();
+
+        // Test 1: Complete workflow - create filter, apply to image, verify results
+        var filterConfig = new FilterConfiguration
+        {
+            Name = "TestGaussianBlur",
+            FilterType = FilterType.Blur,
+            IsActive = true,
+            Priority = 1
+        };
+        filterConfig.SetParameter("Radius", 5);
+
+        var testImage = new Image(1920, 1080, 3)
+        {
+            FileName = "test_image.jpg",
+            Format = ImageFormat.Jpeg
+        };
+
+        // Run complete workflow test
+        await e2eTests.CompleteWorkflow_CreateFilterApplyToImage_RecordsSuccessfully(filterConfig, testImage);
+        Console.WriteLine("Complete workflow test passed!");
+
+        // Test 2: Batch processing with multiple images processed concurrently
+        var batchImages = new List<Image> {
+            new Image(1920, 1080, 3) { FileName = "image1.jpg" },
+            new Image(2560, 1440, 3) { FileName = "image2.jpg" },
+            new Image(1280, 720, 3) { FileName = "image3.jpg" }
+        };
+
+        await e2eTests.BatchProcessing_MultipleImages_ProcessedConcurrently(batchImages, filterConfig);
+        Console.WriteLine("Batch processing test passed!");
+
+        // Test 3: Filter configuration validation before processing
+        bool isValid = await e2eTests.FilterConfiguration_ValidationWorks_BeforeProcessing(filterConfig);
+        Console.WriteLine($"Filter validation test: {(isValid ? "PASSED" : "FAILED")}");
+
+        // Test 4: Image validation with invalid dimensions
+        var invalidImage = new Image(0, 0, 3); // Invalid dimensions
+        try
+        {
+            await e2eTests.ImageValidation_InvalidDimensionsRejected_BeforeProcessing(invalidImage);
+            Console.WriteLine("Image validation correctly rejected invalid dimensions");
+        }
+        catch (ValidationException)
+        {
+            Console.WriteLine("Image validation correctly rejected invalid dimensions");
+        }
+
+        // Test 5: Performance monitoring records metrics for all operations
+        var metrics = await e2eTests.PerformanceMonitoring_RecordsMetricsForAllOperations(batchImages, filterConfig);
+        Console.WriteLine($"Performance metrics recorded: {metrics.TotalOperationsCount} operations");
+
+        // Test 6: Multiple filters applied sequentially in order
+        var filterChain = new FilterChain
+        {
+            Name = "MultiFilterChain"
+        };
+        filterChain.AddStep(Guid.NewGuid()); // Add first filter
+        filterChain.AddStep(Guid.NewGuid()); // Add second filter
+
+        await e2eTests.MultipleFilters_AppliedSequentially_InOrder(filterChain, testImage);
+        Console.WriteLine("Multiple filters test passed!");
+
+        // Test 7: GPU memory management - allocate and deallocate are balanced
+        var memoryStats = await e2eTests.GpuMemoryManagement_AllocateAndDeallocate_AreBalanced();
+        Console.WriteLine($"Memory balanced: Allocated={memoryStats.AllocatedMB}MB, Deallocated={memoryStats.DeallocatedMB}MB");
+
+        // Test 8: Processing statistics calculated correctly after operations
+        var stats = await e2eTests.ProcessingStatistics_CalculatedCorrectly_AfterOperations(batchImages, filterConfig);
+        Console.WriteLine($"Processing statistics: Success={stats.SuccessCount}, Failed={stats.FailedCount}");
+
+        // Test 9: Filter chain build and execute produces expected output
+        var chainResult = await e2eTests.FilterChain_BuildAndExecute_ProducesExpectedOutput(filterChain, testImage);
+        Console.WriteLine($"Filter chain result: {chainResult.Status}");
+
+        // Test 10: Image batch with various statuses tracks progress correctly
+        var mixedBatch = new ImageBatch
+        {
+            Name = "MixedStatusBatch"
+        };
+        mixedBatch.AddImage(Guid.NewGuid());
+        mixedBatch.AddImage(Guid.NewGuid());
+
+        await e2eTests.ImageBatch_WithVariousStatuses_TracksProgressCorrectly(mixedBatch);
+        Console.WriteLine("Batch progress tracking test passed!");
+
+        // Test 11: Cancel batch processing stops active operations
+        var cancellableBatch = new ImageBatch { Name = "CancellableBatch" };
+        bool cancellationResult = await e2eTests.CancelBatchProcessing_StopsActiveOperations(cancellableBatch);
+        Console.WriteLine($"Batch cancellation: {(cancellationResult ? "SUCCESSFUL" : "FAILED")}");
+
+        // Test 12: Error handling for invalid filter application records failure
+        var errorImage = new Image(1920, 1080, 3);
+        await e2eTests.ErrorHandling_InvalidFilterApplication_RecordsFailure(filterConfig, errorImage);
+        Console.WriteLine("Error handling test passed!");
+
+        // Test 13: Device management selects best GPU for processing
+        var bestDevice = await e2eTests.DeviceManagement_SelectsBestGpu_ForProcessing();
+        Console.WriteLine($"Best device selected: {bestDevice?.Name ?? "None found"}");
+
+        // Test 14: Result persistence saves processing results
+        var resultPath = await e2eTests.ResultPersistence_SavesProcessingResults(testImage, filterConfig);
+        Console.WriteLine($"Result saved to: {resultPath}");
+
+        // Test 15: Configuration validation ensures consistency across services
+        var configValidation = await e2eTests.ConfigurationValidation_EnsuresConsistency_AcrossServices();
+        Console.WriteLine($"Configuration validation: {(configValidation ? "PASSED" : "FAILED")}");
+    }
+}
+```
+
+## BenchmarkSuiteConfiguration
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Benchmarking;
+using System;
+
+// Create a custom benchmark configuration for development
+var devConfig = new BenchmarkSuiteConfiguration
+{
+    RunName = "Development-Benchmark-Run-2024",
+    IncludeFilterChainBenchmarks = true,
+    IncludeBatchProcessingBenchmarks = true,
+    IncludeFilterChainBuilderBenchmarks = true,
+    IncludeImageUtilitiesBenchmarks = false,
+    IncludeEnumerableExtensionsBenchmarks = false,
+    AccuracyLevel = BenchmarkAccuracyLevel.Quick,
+    OutputDirectory = @"./benchmarks/dev",
+    EnableHardwareCounters = false
+};
+
+// Validate the configuration before running benchmarks
+var validationErrors = devConfig.Validate();
+if (validationErrors.Count == 0)
+{
+    Console.WriteLine("Configuration is valid!");
+    Console.WriteLine($"Enabled categories: {string.Join(", ", devConfig.GetEnabledCategories())}");
+}
+else
+{
+    foreach (var error in validationErrors)
+    {
+        Console.WriteLine($"Validation error: {error}");
+    }
+}
+
+// Use convenience factory methods for common scenarios
+var ciConfig = BenchmarkSuiteConfiguration.ForCi("CI-Regression-Tests");
+Console.WriteLine($"CI config accuracy: {ciConfig.AccuracyLevel}");
+Console.WriteLine($"CI config categories: {string.Join(", ", ciConfig.GetEnabledCategories())}");
+
+var releaseConfig = BenchmarkSuiteConfiguration.ForRelease("Formal-Performance-Report");
+Console.WriteLine($"Release config accuracy: {releaseConfig.AccuracyLevel}");
+Console.WriteLine($"Release config hardware counters: {releaseConfig.EnableHardwareCounters}");
+```
+
 ## Image
 
 The `Image` class is a core domain model that encapsulates raw image pixel data along with its metadata, such as format, color space, dimensions, and processing status. It provides essential validation and size calculation methods, making it the primary structure for representing images throughout the processing pipeline.
