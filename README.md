@@ -851,6 +851,63 @@ var clonedConfig = config.Clone();
 clonedConfig.Name = "CustomBlur_Copy";
 ```
 
+## FilterChainBuilder
+
+The `FilterChainBuilder` class provides a fluent interface for constructing and configuring `FilterChain` instances. It allows you to build filter chains programmatically with a clean, readable API, supporting all filter types and configuration options available in the domain. The builder pattern simplifies chain creation and ensures proper validation before the chain is used in processing pipelines.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+using System.Collections.Generic;
+
+// Create a filter chain builder
+var builder = FilterChainBuilder.Create()
+    .WithDescription("Photo enhancement chain with noise reduction and sharpening")
+    .WithExecutionOrder(1)
+    .AllowParallelExecution()
+    .CacheIntermediates();
+
+// Add various filter types to the chain
+builder.AddGrayscale()
+    .WithParameter("Intensity", 0.8f);
+
+builder.AddBlur()
+    .WithParameter("Radius", 3);
+
+builder.AddSharpen()
+    .WithParameter("Amount", 1.2f);
+
+builder.AddEdgeDetection()
+    .WithParameter("Threshold", 0.3f);
+
+builder.AddColorCorrection()
+    .WithParameter("Brightness", 1.1f)
+    .WithParameter("Contrast", 1.05f);
+
+builder.AddThreshold()
+    .WithParameter("ThresholdValue", 0.7f);
+
+builder.AddRotation()
+    .WithParameter("Degrees", 90);
+
+builder.AddScaling()
+    .WithParameter("ScaleFactor", 1.5f);
+
+// Build the final filter chain
+var chain = builder.Build();
+
+// Validate the chain before use
+if (chain.Validate())
+{
+    Console.WriteLine($"Filter chain '{chain.Name}' created successfully with {chain.GetEnabledSteps().Count} enabled steps.");
+    Console.WriteLine($"Execution order: {chain.ExecutionOrder}");
+    Console.WriteLine($"Parallel execution: {chain.AllowParallelExecution}");
+    Console.WriteLine($"Cache intermediates: {chain.CacheIntermediateResults}");
+}
+```
+
 ## FilterChain
 
 The `FilterChain` class represents a sequence of image processing filters that are applied in order to transform an image. It manages filter steps, execution order, parallel processing options, and caching behavior, making it the central component for defining image processing workflows. Filter chains can be validated, cloned, and configured with various options to optimize performance and resource usage.
