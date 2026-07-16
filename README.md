@@ -1837,6 +1837,111 @@ if (bestDevice != null)
 }
 ```
 
+## ImageProcessingServiceTests
+
+The `ImageProcessingServiceTests` class provides comprehensive unit tests for the `ImageProcessingService` class, focusing on image processing pipelines, error handling, and statistics calculation. These tests validate the service's ability to handle various scenarios including image validation, GPU device availability, filter application, and result tracking across different hardware configurations and edge cases.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Services;
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Tests.Services;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
+
+// Initialize required services with logging (typically via dependency injection)
+using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+ILogger<ImageProcessingService> logger = loggerFactory.CreateLogger<ImageProcessingService>();
+
+// Create mock repositories and services (in real usage these would be actual implementations)
+var imageRepository = new ImageRepository();
+var filterRepository = new FilterConfigurationRepository();
+var resultRepository = new ProcessingResultRepository();
+var filterService = new FilterService(filterRepository, logger);
+var gpuService = new GpuManagementService(logger);
+var performanceService = new PerformanceMonitoringService(logger);
+
+// Create the image processing service
+var processingService = new ImageProcessingService(
+    imageRepository,
+    filterRepository,
+    resultRepository,
+    filterService,
+    gpuService,
+    performanceService,
+    logger
+);
+
+// Create a test image
+var testImage = new Image(1920, 1080, 3)
+{
+    Id = Guid.NewGuid(),
+    FileName = "test_image.png",
+    FilePath = @"/test/test_image.png",
+    Format = ImageFormat.Png,
+    ColorSpace = ColorSpace.Rgb,
+    BitsPerPixel = 24
+};
+
+// Test 1: Process image with a single filter
+var filterId = Guid.NewGuid();
+var filterConfig = new FilterConfiguration
+{
+    Id = filterId,
+    Name = "Test Blur",
+    FilterType = FilterType.Blur,
+    IsActive = true
+};
+
+// Process the image (this would fail if image doesn't exist or GPU is unavailable)
+try
+{
+    var result = await processingService.ProcessImageAsync(testImage.Id, [filterId]);
+    Console.WriteLine($"Image processing result: {(result.IsSuccessful ? "SUCCESS" : "FAILED")}");
+}
+catch (InvalidImageException)
+{
+    Console.WriteLine("Image not found or invalid");
+}
+catch (GpuException)
+{
+    Console.WriteLine("No GPU device available");
+}
+
+// Test 2: Process image with multiple filters
+var filterId2 = Guid.NewGuid();
+try
+{
+    var result = await processingService.ProcessImageAsync(testImage.Id, [filterId, filterId2]);
+    Console.WriteLine($"Multiple filter processing result: {(result.IsSuccessful ? "SUCCESS" : "FAILED")}");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Multiple filter processing failed: {ex.Message}");
+}
+
+// Test 3: Get processing statistics
+var stats = await processingService.GetStatisticsAsync();
+Console.WriteLine($"Total images: {stats["TotalImages"]}");
+Console.WriteLine($"Processed images: {stats["ProcessedImages"]}");
+Console.WriteLine($"Success rate: {stats["SuccessRate"]:P0}");
+Console.WriteLine($"Average processing time: {stats["AverageProcessingTime"]}ms");
+
+// Test 4: Get processing result for an image
+var processingResult = await processingService.GetProcessingResultAsync(testImage.Id);
+if (processingResult != null)
+{
+    Console.WriteLine($"Found processing result for image {processingResult.ImageId}");
+    Console.WriteLine($"Status: {(processingResult.IsSuccessful ? "SUCCESS" : "FAILED")}");
+}
+else
+{
+    Console.WriteLine("No processing result found for image");
+}
+```
+
 ## PerformanceMonitoringService
 
 The `PerformanceMonitoringService` class provides centralized monitoring and tracking of performance metrics for GPU-accelerated image processing operations. It records execution times, system resource usage (CPU, memory, GPU), throughput metrics, and maintains a history of performance snapshots. This service is essential for performance analysis, optimization, and real-time monitoring of image processing pipelines.
@@ -2253,6 +2358,111 @@ result.AddFilterApplied("Grayscale", FilterType.Grayscale, 3.5);
 // Get total filter execution time
 double totalFilterTime = result.GetTotalFilterExecutionTime();
 Console.WriteLine($"Total filter execution time: {totalFilterTime}ms");
+```
+
+## ImageProcessingServiceTests
+
+The `ImageProcessingServiceTests` class provides comprehensive unit tests for the `ImageProcessingService` class, focusing on image processing pipelines, error handling, and statistics calculation. These tests validate the service's ability to handle various scenarios including image validation, GPU device availability, filter application, and result tracking across different hardware configurations and edge cases.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Services;
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Tests.Services;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
+
+// Initialize required services with logging (typically via dependency injection)
+using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+ILogger<ImageProcessingService> logger = loggerFactory.CreateLogger<ImageProcessingService>();
+
+// Create mock repositories and services (in real usage these would be actual implementations)
+var imageRepository = new ImageRepository();
+var filterRepository = new FilterConfigurationRepository();
+var resultRepository = new ProcessingResultRepository();
+var filterService = new FilterService(filterRepository, logger);
+var gpuService = new GpuManagementService(logger);
+var performanceService = new PerformanceMonitoringService(logger);
+
+// Create the image processing service
+var processingService = new ImageProcessingService(
+    imageRepository,
+    filterRepository,
+    resultRepository,
+    filterService,
+    gpuService,
+    performanceService,
+    logger
+);
+
+// Create a test image
+var testImage = new Image(1920, 1080, 3)
+{
+    Id = Guid.NewGuid(),
+    FileName = "test_image.png",
+    FilePath = @"/test/test_image.png",
+    Format = ImageFormat.Png,
+    ColorSpace = ColorSpace.Rgb,
+    BitsPerPixel = 24
+};
+
+// Test 1: Process image with a single filter
+var filterId = Guid.NewGuid();
+var filterConfig = new FilterConfiguration
+{
+    Id = filterId,
+    Name = "Test Blur",
+    FilterType = FilterType.Blur,
+    IsActive = true
+};
+
+// Process the image (this would fail if image doesn't exist or GPU is unavailable)
+try
+{
+    var result = await processingService.ProcessImageAsync(testImage.Id, [filterId]);
+    Console.WriteLine($"Image processing result: {(result.IsSuccessful ? "SUCCESS" : "FAILED")}");
+}
+catch (InvalidImageException)
+{
+    Console.WriteLine("Image not found or invalid");
+}
+catch (GpuException)
+{
+    Console.WriteLine("No GPU device available");
+}
+
+// Test 2: Process image with multiple filters
+var filterId2 = Guid.NewGuid();
+try
+{
+    var result = await processingService.ProcessImageAsync(testImage.Id, [filterId, filterId2]);
+    Console.WriteLine($"Multiple filter processing result: {(result.IsSuccessful ? "SUCCESS" : "FAILED")}");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Multiple filter processing failed: {ex.Message}");
+}
+
+// Test 3: Get processing statistics
+var stats = await processingService.GetStatisticsAsync();
+Console.WriteLine($"Total images: {stats["TotalImages"]}");
+Console.WriteLine($"Processed images: {stats["ProcessedImages"]}");
+Console.WriteLine($"Success rate: {stats["SuccessRate"]:P0}");
+Console.WriteLine($"Average processing time: {stats["AverageProcessingTime"]}ms");
+
+// Test 4: Get processing result for an image
+var processingResult = await processingService.GetProcessingResultAsync(testImage.Id);
+if (processingResult != null)
+{
+    Console.WriteLine($"Found processing result for image {processingResult.ImageId}");
+    Console.WriteLine($"Status: {(processingResult.IsSuccessful ? "SUCCESS" : "FAILED")}");
+}
+else
+{
+    Console.WriteLine("No processing result found for image");
+}
 ```
 
 ## PerformanceMonitoringServiceTests
