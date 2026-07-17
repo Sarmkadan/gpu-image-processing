@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =====================================================================
+// ===================================================================
 
 using System;
 using System.Text.Json;
@@ -15,7 +15,7 @@ namespace GpuImageProcessing.Integration
     /// </summary>
     public static class RemoteImageServiceJsonExtensions
     {
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -35,10 +35,7 @@ namespace GpuImageProcessing.Integration
             ArgumentNullException.ThrowIfNull(value);
 
             var options = indented
-                ? new JsonSerializerOptions(_jsonSerializerOptions)
-                {
-                    WriteIndented = true
-                }
+                ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
                 : _jsonSerializerOptions;
 
             return JsonSerializer.Serialize(value, options);
@@ -49,14 +46,11 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
         /// <returns>The deserialized <see cref="RemoteImageService"/> instance, or null if the JSON is null or empty.</returns>
-        /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or whitespace.</exception>
+        /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
         public static RemoteImageService? FromJson(string json)
         {
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return null;
-            }
+            ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
             return JsonSerializer.Deserialize<RemoteImageService>(json, _jsonSerializerOptions);
         }
