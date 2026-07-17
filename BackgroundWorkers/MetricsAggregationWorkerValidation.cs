@@ -32,11 +32,19 @@ namespace GpuImageProcessing.BackgroundWorkers
             {
                 errors.Add("PeriodMinutes must be a positive integer.");
             }
+            else if (value.PeriodMinutes > 1440) // Maximum 24 hours
+            {
+                errors.Add("PeriodMinutes must not exceed 1440 (24 hours).");
+            }
 
             // Validate SnapshotCount
             if (value.SnapshotCount < 0)
             {
                 errors.Add("SnapshotCount must be non-negative.");
+            }
+            else if (value.SnapshotCount > 10000)
+            {
+                errors.Add("SnapshotCount must not exceed 10000.");
             }
 
             // Validate AvgMemoryMb
@@ -50,6 +58,10 @@ namespace GpuImageProcessing.BackgroundWorkers
             {
                 errors.Add("MaxMemoryMb must be non-negative.");
             }
+            else if (value.MaxMemoryMb < value.AvgMemoryMb)
+            {
+                errors.Add("MaxMemoryMb must be greater than or equal to AvgMemoryMb.");
+            }
 
             // Validate AvgLatencyMs
             if (value.AvgLatencyMs < 0)
@@ -61,6 +73,10 @@ namespace GpuImageProcessing.BackgroundWorkers
             if (value.MaxLatencyMs < 0)
             {
                 errors.Add("MaxLatencyMs must be non-negative.");
+            }
+            else if (value.MaxLatencyMs < value.AvgLatencyMs)
+            {
+                errors.Add("MaxLatencyMs must be greater than or equal to AvgLatencyMs.");
             }
 
             // Validate AvgSuccessRate
@@ -87,6 +103,16 @@ namespace GpuImageProcessing.BackgroundWorkers
                 errors.Add("EndTime must be equal to or after StartTime.");
             }
 
+            // Validate SnapshotCount consistency with timestamps
+            if (value.SnapshotCount > 0 && value.StartTime != default && value.EndTime != default)
+            {
+                var expectedDurationMinutes = (int)(value.EndTime - value.StartTime).TotalMinutes;
+                if (value.PeriodMinutes > expectedDurationMinutes + 1) // Allow 1 minute tolerance
+                {
+                    errors.Add("PeriodMinutes should be consistent with the time range between StartTime and EndTime.");
+                }
+            }
+
             return errors.AsReadOnly();
         }
 
@@ -95,10 +121,7 @@ namespace GpuImageProcessing.BackgroundWorkers
         /// </summary>
         /// <param name="value">The metrics summary to check.</param>
         /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
-        public static bool IsValid(this MetricsSummary value)
-        {
-            return value.Validate().Count == 0;
-        }
+        public static bool IsValid(this MetricsSummary value) => value.Validate().Count == 0;
 
         /// <summary>
         /// Ensures that the specified <see cref="MetricsSummary"/> is valid.
@@ -114,7 +137,7 @@ namespace GpuImageProcessing.BackgroundWorkers
             if (errors.Count > 0)
             {
                 throw new ArgumentException(
-                    $"MetricsSummary is not valid:{Environment.NewLine}  - {string.Join($"{Environment.NewLine}  - ", errors)}");
+                    $"MetricsSummary is not valid:{Environment.NewLine} - {string.Join($"{Environment.NewLine} - ", errors)}");
             }
         }
     }
