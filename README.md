@@ -203,6 +203,120 @@ public class ImageQualityResult
 }
 ```
 
+## MetricsUtilitiesJsonExtensions
+
+The `MetricsUtilitiesJsonExtensions` class provides System.Text.Json serialization utilities for `MetricsConfiguration` instances. It enables serialization and deserialization of metrics configurations with support for both compact and indented JSON output formats, safe error handling, and thread-safe serialization with optimized JsonSerializerOptions.
+
+### Key Features
+
+- JSON serialization of `MetricsConfiguration` instances using camelCase property naming
+- Support for both compact and indented JSON output formats
+- Safe deserialization with null handling and error recovery
+- Configuration state management for metrics configurations
+- Thread-safe serialization with optimized JsonSerializerOptions
+- Access to `StatisticalMetrics` and `Histogram` configuration properties
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Utilities;
+using System;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a metrics configuration with statistical metrics and histogram
+        var metricsConfig = new MetricsUtilitiesJsonExtensions.MetricsConfiguration
+        {
+            StatisticalMetrics = new StatisticalMetrics
+            {
+                Count = 1000,
+                Min = 25.5,
+                Max = 98.7,
+                Mean = 67.3,
+                Median = 68.1,
+                P95 = 95.2,
+                P99 = 97.8,
+                StdDev = 12.4,
+                Sum = 67300.0
+            },
+            Histogram = new Histogram
+            {
+                TotalCount = 1000,
+                Buckets = new System.Collections.Generic.List<HistogramBucket>
+                {
+                    new HistogramBucket { BucketNumber = 1, Min = 0, Max = 25, Count = 250, Percentage = 25.0 },
+                    new HistogramBucket { BucketNumber = 2, Min = 25, Max = 50, Count = 500, Percentage = 50.0 },
+                    new HistogramBucket { BucketNumber = 3, Min = 50, Max = 75, Count = 200, Percentage = 20.0 },
+                    new HistogramBucket { BucketNumber = 4, Min = 75, Max = 100, Count = 50, Percentage = 5.0 }
+                }
+            }
+        };
+
+        // Serialize to compact JSON
+        string compactJson = metricsConfig.ToJson();
+        Console.WriteLine("Compact JSON metrics configuration:");
+        Console.WriteLine(compactJson);
+
+        // Serialize to indented JSON for readability
+        string indentedJson = metricsConfig.ToJson(indented: true);
+        Console.WriteLine("\nIndented JSON metrics configuration:");
+        Console.WriteLine(indentedJson);
+
+        // Deserialize from JSON string
+        string json = @"{
+    "statisticalMetrics": {
+        "count": 1000,
+        "min": 25.5,
+        "max": 98.7,
+        "mean": 67.3,
+        "median": 68.1,
+        "p95": 95.2,
+        "p99": 97.8,
+        "stdDev": 12.4,
+        "sum": 67300.0
+    },
+    "histogram": {
+        "totalCount": 1000,
+        "buckets": [
+            {"bucketNumber": 1, "min": 0, "max": 25, "count": 250, "percentage": 25.0},
+            {"bucketNumber": 2, "min": 25, "max": 50, "count": 500, "percentage": 50.0},
+            {"bucketNumber": 3, "min": 50, "max": 75, "count": 200, "percentage": 20.0},
+            {"bucketNumber": 4, "min": 75, "max": 100, "count": 50, "percentage": 5.0}
+        ]
+    }
+}";
+        var deserialized = MetricsUtilitiesJsonExtensions.FromJson(json);
+
+        if (deserialized != null)
+        {
+            Console.WriteLine($"\nDeserialized configuration:");
+            Console.WriteLine($"StatisticalMetrics present: {deserialized.StatisticalMetrics != null}");
+            Console.WriteLine($"Histogram present: {deserialized.Histogram != null}");
+            if (deserialized.StatisticalMetrics != null)
+            {
+                Console.WriteLine($"Mean: {deserialized.StatisticalMetrics.Mean:F1}");
+                Console.WriteLine($"StdDev: {deserialized.StatisticalMetrics.StdDev:F1}");
+            }
+        }
+
+        // Try to deserialize with error handling
+        string invalidJson = @"{ invalid json }";
+        bool success = MetricsUtilitiesJsonExtensions.TryFromJson(invalidJson, out var result);
+        Console.WriteLine($"\nTryFromJson with invalid JSON: {(success ? "Success" : "Failed (expected)")}");
+
+        // Serialize and deserialize round-trip to verify data integrity
+        string roundTripJson = metricsConfig.ToJson();
+        var roundTripResult = MetricsUtilitiesJsonExtensions.FromJson(roundTripJson);
+        Console.WriteLine($"\nRound-trip successful: {roundTripResult != null}");
+    }
+}
+
+```
+
 ## DeviceUtilitiesJsonExtensions
 
 The `DeviceUtilitiesJsonExtensions` class provides System.Text.Json serialization utilities for `DeviceConfiguration` instances. It enables serialization and deserialization of GPU device configurations with support for both compact and indented JSON output formats, safe error handling, and thread-safe serialization with optimized JsonSerializerOptions.
