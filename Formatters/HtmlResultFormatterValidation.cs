@@ -235,9 +235,10 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         /// <param name="value">The formatter instance to check.</param>
         /// <returns><see langword="true"/> if the instance is valid; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
         public static bool IsValid(this HtmlResultFormatter? value)
         {
-            return value?.Validate().Count == 0;
+            return value is not null && value.Validate().Count == 0;
         }
 
         /// <summary>
