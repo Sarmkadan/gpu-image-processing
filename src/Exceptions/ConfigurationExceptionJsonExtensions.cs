@@ -43,6 +43,7 @@ public static class ConfigurationExceptionJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>A deserialized <see cref="ConfigurationException"/> instance, or null if the JSON is empty or whitespace.</returns>
+/// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static ConfigurationException? FromJson(string json)
     {
@@ -58,9 +59,10 @@ public static class ConfigurationExceptionJsonExtensions
     /// Attempts to deserialize a JSON string to a <see cref="ConfigurationException"/>.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The resulting <see cref="ConfigurationException"/> if successful.</param>
+    /// <param name="value">The resulting <see cref="ConfigurationException"/> if successful; otherwise, null.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-    public static bool TryFromJson(string json, out ConfigurationException? value)
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+public static bool TryFromJson(string json, out ConfigurationException? value)
     {
         value = null;
 
