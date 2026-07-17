@@ -115,6 +115,111 @@ class Program
 }
 ```
 
+## TransformService
+
+The `TransformService` manages image transformation operations including rotation, resizing, color space conversion, and normalization. It provides comprehensive CRUD operations for transforms, parameter management, activation/deactivation control, and statistics tracking. The service supports chaining multiple transforms for sequential execution and can export transform configurations for reuse across different processing pipelines.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Services;
+using GpuImageProcessing.Core.Models;
+using GpuImageProcessing.Core.Repository;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+static async Task Main()
+{
+// Initialize the transform repository and service
+var transformRepository = new GenericRepository<Transform>();
+var transformService = new TransformService(transformRepository);
+
+// Create different types of transforms
+var rotateTransform = await transformService.CreateTransformAsync(
+TransformType.Rotate,
+"Image Rotation",
+"Rotates image by specified angle"
+);
+
+var resizeTransform = await transformService.CreateTransformAsync(
+TransformType.Resize,
+"Image Resize",
+"Resizes image to specified dimensions"
+);
+
+var colorTransform = await transformService.CreateTransformAsync(
+TransformType.ColorSpace,
+"Color Space Conversion",
+"Converts between different color spaces"
+);
+
+Console.WriteLine($"Created transforms: {rotateTransform.Name}, {resizeTransform.Name}, {colorTransform.Name}");
+
+// Set parameters for transforms
+await transformService.SetParameterAsync(rotateTransform.Id, "Angle", 45.0f);
+await transformService.SetParameterAsync(resizeTransform.Id, "Width", 800.0f);
+await transformService.SetParameterAsync(resizeTransform.Id, "Height", 600.0f);
+await transformService.SetParameterAsync(colorTransform.Id, "TargetColorspace", 1.0f); // RGB
+
+// Get parameter values
+float angle = await transformService.GetParameterAsync(rotateTransform.Id, "Angle");
+Console.WriteLine($"Rotation angle set to: {angle} degrees");
+
+// Activate transforms
+bool rotateActivated = await transformService.ActivateTransformAsync(rotateTransform.Id);
+bool resizeActivated = await transformService.ActivateTransformAsync(resizeTransform.Id);
+Console.WriteLine($"Transforms activated: Rotate={rotateActivated}, Resize={resizeActivated}");
+
+// Chain transforms for sequential execution
+var transformIds = new List<Guid> { rotateTransform.Id, resizeTransform.Id, colorTransform.Id };
+var chainedTransforms = await transformService.ChainTransformsAsync(transformIds);
+Console.WriteLine($"Created transform pipeline with {chainedTransforms.Count} steps");
+
+// Get transform statistics
+var stats = await transformService.GetStatisticsAsync();
+Console.WriteLine($"Transform statistics:");
+Console.WriteLine($" - Total transforms: {stats.TotalTransforms}");
+Console.WriteLine($" - Active transforms: {stats.ActiveTransforms}");
+Console.WriteLine($" - Transform types: {stats.TransformTypes}");
+Console.WriteLine($" - Average parameters: {stats.AverageParametersPerTransform:F1}");
+
+// Get all transforms of a specific type
+var rotateTransforms = await transformService.GetByTypeAsync(TransformType.Rotate);
+Console.WriteLine($"Found {rotateTransforms.Count()} rotate transforms");
+
+// Get active transforms (ordered by execution order)
+var activeTransforms = await transformService.GetActiveTransformsAsync();
+Console.WriteLine($"Active transforms count: {activeTransforms.Count()}");
+
+// Export transform configuration
+string config = await transformService.ExportConfigurationAsync(rotateTransform.Id);
+Console.WriteLine($"Transform configuration exported (length: {config.Length})");
+
+// Clone a transform
+var clonedTransform = await transformService.CloneTransformAsync(resizeTransform.Id);
+Console.WriteLine($"Cloned transform: {clonedTransform.Name}");
+
+// Get pipeline description
+string pipelineDescription = await transformService.GetPipelineDescriptionAsync(transformIds);
+Console.WriteLine(pipelineDescription);
+
+// Get OpenCL kernel code for a transform type
+string rotateKernel = await transformService.GetKernelCodeAsync(TransformType.Rotate);
+Console.WriteLine($"Rotate kernel code length: {rotateKernel.Length} characters");
+
+// Deactivate and delete a transform
+bool deactivated = await transformService.DeactivateTransformAsync(resizeTransform.Id);
+Console.WriteLine($"Transform deactivated: {deactivated}");
+
+bool deleted = await transformService.DeleteTransformAsync(resizeTransform.Id);
+Console.WriteLine($"Transform deleted: {deleted}");
+}
+}
+```
+
 ## GpuException
 
 The `GpuException` is thrown when a GPU operation fails or when the requested GPU device is unavailable. It provides comprehensive diagnostic information, including the name of the affected device, a specific error code, and the timestamp when the failure occurred, making it easier to troubleshoot GPU-related issues in the processing pipeline.
