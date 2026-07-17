@@ -21,6 +21,7 @@ namespace GpuImageProcessing.Benchmarks
 
             var problems = new List<string>();
 
+            // Validate Shuffle_32Items - should return a non-null, non-empty sequence
             try
             {
                 var shuffle32 = value.Shuffle_32Items();
@@ -38,6 +39,7 @@ namespace GpuImageProcessing.Benchmarks
                 problems.Add($"Shuffle_32Items threw an exception: {ex.Message}");
             }
 
+            // Validate Shuffle_1024Items - should return a non-null, non-empty sequence
             try
             {
                 var shuffle1024 = value.Shuffle_1024Items();
@@ -55,6 +57,7 @@ namespace GpuImageProcessing.Benchmarks
                 problems.Add($"Shuffle_1024Items threw an exception: {ex.Message}");
             }
 
+            // Validate Batch_1000By32 - should return a non-negative batch count
             try
             {
                 var batch32 = value.Batch_1000By32();
@@ -68,6 +71,7 @@ namespace GpuImageProcessing.Benchmarks
                 problems.Add($"Batch_1000By32 threw an exception: {ex.Message}");
             }
 
+            // Validate Batch_1000By8 - should return a non-negative batch count
             try
             {
                 var batch8 = value.Batch_1000By8();
@@ -81,6 +85,7 @@ namespace GpuImageProcessing.Benchmarks
                 problems.Add($"Batch_1000By8 threw an exception: {ex.Message}");
             }
 
+            // Validate DistinctBy_1000Strings - should return a non-negative count
             try
             {
                 var distinctBy = value.DistinctBy_1000Strings();
@@ -94,6 +99,7 @@ namespace GpuImageProcessing.Benchmarks
                 problems.Add($"DistinctBy_1000Strings threw an exception: {ex.Message}");
             }
 
+            // Validate SafeToDictionary_1000Items - should return a non-null, non-empty dictionary
             try
             {
                 var safeToDictionary = value.SafeToDictionary_1000Items();
@@ -123,7 +129,6 @@ namespace GpuImageProcessing.Benchmarks
         public static bool IsValid(this EnumerableExtensionsBenchmarks value)
         {
             ArgumentNullException.ThrowIfNull(value);
-
             return Validate(value).Count == 0;
         }
 
