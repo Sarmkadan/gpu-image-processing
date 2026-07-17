@@ -50,9 +50,12 @@ namespace GpuImageProcessing.Events
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
         /// <returns>The deserialized event aggregator, or null if the JSON is null or empty.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
         public static EventAggregator? FromJson(string json)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
             if (string.IsNullOrEmpty(json))
             {
                 return null;
@@ -65,11 +68,14 @@ namespace GpuImageProcessing.Events
         /// Attempts to deserialize a JSON string to an <see cref="EventAggregator"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <param name="value">Receives the deserialized event aggregator if successful.</param>
+        /// <param name="value">Receives the deserialized event aggregator if successful; otherwise, null.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         public static bool TryFromJson(string json, out EventAggregator? value)
         {
             value = null;
+
+            ArgumentNullException.ThrowIfNull(json);
 
             if (string.IsNullOrEmpty(json))
             {
