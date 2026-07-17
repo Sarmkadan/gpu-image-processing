@@ -695,6 +695,80 @@ Console.WriteLine($"\nVersion command summary: {versionSummary}");
 
 ```
 
+## TimeoutUtilitiesJsonExtensions
+
+The `TimeoutUtilitiesJsonExtensions` class provides System.Text.Json serialization utilities for timeout-related operations. It enables serialization and deserialization of timeout configurations with support for both compact and indented JSON output formats, safe error handling, and thread-safe serialization with optimized JsonSerializerOptions.
+
+### Key Features
+
+- JSON serialization of timeout configurations using camelCase property naming
+- Support for both compact and indented JSON output formats
+- Safe deserialization with null handling and error recovery
+- Conversion between `TimeSpan` and `TimeoutConfiguration` instances
+- Thread-safe serialization with optimized JsonSerializerOptions
+- Configurable JSON formatting options
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Utilities;
+using System;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a TimeSpan timeout
+        TimeSpan timeout = TimeSpan.FromSeconds(45);
+
+        // Serialize to compact JSON
+        string compactJson = TimeoutUtilitiesJsonExtensions.ToJson(timeout);
+        Console.WriteLine("Compact JSON timeout configuration:");
+        Console.WriteLine(compactJson);
+        
+        // Output: {"milliseconds":45000,"formatted":"00:00:45"}
+
+        // Serialize to indented JSON for readability
+        string indentedJson = TimeoutUtilitiesJsonExtensions.ToJson(timeout, indented: true);
+        Console.WriteLine("\nIndented JSON timeout configuration:");
+        Console.WriteLine(indentedJson);
+        
+        /* Output:
+        {
+          "milliseconds": 45000,
+          "formatted": "00:00:45"
+        }
+        */
+
+        // Deserialize from JSON string
+        string json = @"{ "milliseconds": 30000, "formatted": "00:00:30" }";
+        var deserializedConfig = TimeoutUtilitiesJsonExtensions.FromJson(json);
+
+        if (deserializedConfig != null)
+        {
+            Console.WriteLine($"\nDeserialized configuration:");
+            Console.WriteLine($"Milliseconds: {deserializedConfig.Milliseconds}");
+            Console.WriteLine($"Formatted: {deserializedConfig.Formatted}");
+            
+            // Convert back to TimeSpan
+            TimeSpan convertedTimeout = deserializedConfig.ToTimeSpan();
+            Console.WriteLine($"Converted to TimeSpan: {convertedTimeout.TotalSeconds} seconds");
+        }
+
+        // Try to deserialize with error handling
+        string invalidJson = @"{ invalid json }";
+        bool success = TimeoutUtilitiesJsonExtensions.TryFromJson(invalidJson, out var result);
+        Console.WriteLine($"\nTryFromJson with invalid JSON: {(success ? "Success" : "Failed (expected)")}");
+
+        // Serialize and deserialize round-trip to verify data integrity
+        string roundTripJson = TimeoutUtilitiesJsonExtensions.ToJson(timeout);
+        var roundTripResult = TimeoutUtilitiesJsonExtensions.FromJson(roundTripJson);
+        Console.WriteLine($"\nRound-trip successful: {roundTripResult != null}");
+    }
+}
+```
+
 ## MetricsPublisherJsonExtensions
 
 The `MetricsPublisherJsonExtensions` class provides System.Text.Json serialization utilities for the `MetricsPublisher` class. It enables serialization and deserialization of metrics publisher configurations with support for both compact and indented JSON output formats, safe error handling, and thread-safe serialization with optimized JsonSerializerOptions.
