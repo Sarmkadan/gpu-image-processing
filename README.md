@@ -115,6 +115,70 @@ class Program
 }
 ```
 
+## ImageUtilities
+
+The `ImageUtilities` class provides utility methods for common image file operations including format detection, validation, file size calculations, and path manipulation. These utilities are designed to work with standard image formats and provide safe, exception-tolerant operations for file system interactions.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Utilities;
+using System;
+using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        // Check if a file is a supported image format
+        string imagePath = "/path/to/photo.jpg";
+        bool isSupported = ImageUtilities.IsSupportedImageFile(imagePath);
+        Console.WriteLine($"Is supported: {isSupported}");
+        
+        // Get the image format
+        string format = ImageUtilities.GetImageFormat(imagePath);
+        Console.WriteLine($"Image format: {format}");
+        
+        // Validate that the image file exists and is accessible
+        bool isValid = ImageUtilities.ValidateImageFile(imagePath);
+        Console.WriteLine($"Is valid: {isValid}");
+        
+        // Get file size in bytes and human-readable format
+        long fileSize = ImageUtilities.GetImageFileSize(imagePath);
+        string formattedSize = ImageUtilities.FormatFileSize(fileSize);
+        Console.WriteLine($"File size: {formattedSize} ({fileSize} bytes)");
+        
+        // Generate a unique output filename
+        string outputPath = ImageUtilities.GenerateOutputFilename(
+            imagePath, 
+            "grayscale",
+            "/path/to/outputs"
+        );
+        Console.WriteLine($"Output will be: {outputPath}");
+        
+        // Ensure output directory exists
+        bool dirReady = ImageUtilities.EnsureOutputDirectory("/path/to/outputs");
+        Console.WriteLine($"Directory ready: {dirReady}");
+        
+        // Calculate aspect ratio
+        double aspectRatio = ImageUtilities.CalculateAspectRatio(1920, 1080);
+        Console.WriteLine($"Aspect ratio: {aspectRatio:F3}");
+        
+        // Calculate proportional dimensions
+        var (width, height) = ImageUtilities.CalculateProportionalSize(1920, 1080, 0.5);
+        Console.WriteLine($"Proportional size: {width}x{height}");
+        
+        // Get MIME type
+        string mimeType = ImageUtilities.GetMimeType(imagePath);
+        Console.WriteLine($"MIME type: {mimeType}");
+        
+        // Safely delete an image file
+        bool deleted = ImageUtilities.SafeDeleteImage(imagePath);
+        Console.WriteLine($"Deleted successfully: {deleted}");
+    }
+}
+```
+
 ## ImageProcessingController
 
 The `ImageProcessingController` provides a REST API facade for GPU-accelerated image processing operations. It exposes HTTP endpoints for registering images, applying filters and transforms, managing batch jobs, and retrieving processing results. The controller handles HTTP request/response cycles, validates inputs, and returns structured API responses with success/failure status and appropriate data payloads.
