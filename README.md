@@ -338,6 +338,98 @@ Console.WriteLine($"Denormalized: {denormalized:F2}"); // Output: Denormalized: 
 ```
 
 
+## FilterServiceExtensions
+
+The `FilterServiceExtensions` class provides extension methods for the `FilterService` that simplify common filter management operations. It includes convenient methods for creating standard filters (grayscale, blur, sharpen, convolution), managing filter activation states, and retrieving filters by type or name. These extensions help build flexible image processing pipelines with minimal boilerplate code.
+
+### Key Features
+
+- Create standard filters with sensible defaults (grayscale, blur, sharpen, convolution)
+- Manage filter activation states (activate/deactivate filters)
+- Retrieve filters by type or name with case-insensitive search
+- Apply multiple filters to images in sequence
+- Priority-based filter ordering for execution control
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Services;
+using GpuImageProcessing.Domain;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize the filter service (typically via dependency injection)
+        var filterService = new FilterService(...);
+
+        // Create standard filters with default parameters
+        var grayscaleFilter = await filterService.CreateGrayscaleFilterAsync(
+            name: "Convert to Grayscale",
+            priority: 1
+        );
+
+        var blurFilter = await filterService.CreateBlurFilterAsync(
+            name: "Gaussian Blur",
+            radius: 3.5f,
+            priority: 2
+        );
+
+        var sharpenFilter = await filterService.CreateSharpenFilterAsync(
+            name: "Edge Enhance",
+            strength: 4.2f,
+            priority: 3
+        );
+
+        // Create a custom convolution filter (e.g., edge detection)
+        var edgeDetectionKernel = new float[] { -1, -1, -1, -1, 8, -1, -1, -1, -1 };
+        var convolutionFilter = await filterService.CreateConvolutionFilterAsync(
+            name: "Edge Detection",
+            kernel: edgeDetectionKernel,
+            normalize: true,
+            priority: 4
+        );
+
+        // Find a filter by name
+        var foundFilter = await filterService.FindFilterByNameAsync("Gaussian Blur");
+        Console.WriteLine(foundFilter != null 
+            ? $"Found filter: {foundFilter.Name}"
+            : "Filter not found");
+
+        // Get all active filters sorted by priority
+        var activeFilters = await filterService.GetActiveFiltersAsync();
+        Console.WriteLine($"Active filters: {activeFilters.Count}");
+        foreach (var filter in activeFilters)
+        {
+            Console.WriteLine($"  - {filter.Name} (Priority: {filter.Priority})");
+        }
+
+        // Get filters by type
+        var blurFilters = await filterService.GetFiltersByTypeAsync(FilterType.Blur);
+        Console.WriteLine($"Blur filters: {blurFilters.Count}");
+
+        // Activate a filter
+        var activatedFilter = await filterService.ActivateFilterAsync(blurFilter.Id);
+        Console.WriteLine($"Activated: {activatedFilter.IsActive}");
+
+        // Deactivate a filter
+        bool wasDeactivated = await filterService.DeactivateFilterAsync(sharpenFilter.Id);
+        Console.WriteLine($"Was deactivated: {wasDeactivated}");
+
+        // Apply multiple filters to an image
+        var image = new Image(...);
+        await filterService.ApplyFiltersAsync(
+            image,
+            new[] { grayscaleFilter.Id, blurFilter.Id, sharpenFilter.Id }
+        );
+    }
+}
+
+```
+
 ## FilterChainBenchmarksExtensionsJsonExtensions
 
 The `FilterChainBenchmarksExtensionsJsonExtensions` class provides System.Text.Json serialization utilities for benchmark configuration and results in the FilterChainBenchmarksExtensions benchmark suite. It enables easy serialization and deserialization of benchmark configurations with support for validation, cloning, and parallel execution settings.
