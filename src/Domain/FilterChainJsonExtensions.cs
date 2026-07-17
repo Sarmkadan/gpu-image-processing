@@ -38,8 +38,9 @@ public static class FilterChainJsonExtensions
     /// Deserializes a JSON string to a <see cref="FilterChain"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized filter chain, or <see langword="null"/> if the JSON is empty.</returns>
+    /// <returns>The deserialized filter chain, or <see langword="null"/> if the JSON is empty or invalid.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is <see langword="null"/>.</exception>
+    /// <exception cref="JsonException">Thrown if the JSON is malformed or cannot be deserialized.</exception>
     public static FilterChain? FromJson(string json)
     {
         ArgumentNullException.ThrowIfNull(json);
@@ -54,6 +55,9 @@ public static class FilterChainJsonExtensions
     /// <param name="value">Receives the deserialized filter chain if successful.</param>
     /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is <see langword="null"/>.</exception>
+    /// <remarks>
+    /// This method catches <see cref="JsonException"/> internally and returns false on failure.
+    /// </remarks>
     public static bool TryFromJson(string json, out FilterChain? value)
     {
         ArgumentNullException.ThrowIfNull(json);
