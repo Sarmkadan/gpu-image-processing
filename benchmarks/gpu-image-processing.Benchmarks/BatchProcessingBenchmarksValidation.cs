@@ -1,7 +1,6 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace GpuImageProcessing.Benchmarks;
 
@@ -11,11 +10,11 @@ namespace GpuImageProcessing.Benchmarks;
 public static class BatchProcessingBenchmarksValidation
 {
     /// <summary>
-    /// Returns a read‑only list of validation problems for the supplied <paramref name="value"/>.
+    /// Returns a read-only list of validation problems for the supplied <paramref name="value"/>.
     /// </summary>
     /// <param name="value">The benchmark instance to validate.</param>
     /// <returns>
-    /// A read‑only list of human‑readable problem descriptions.
+    /// A read-only list of human-readable problem descriptions.
     /// The list is empty when the instance is considered valid.
     /// </returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
@@ -32,10 +31,6 @@ public static class BatchProcessingBenchmarksValidation
                 $"ImageCount must be greater than 0 (actual: {value.ImageCount}).");
         }
 
-        // The benchmark methods themselves do not expose mutable state that can be
-        // validated without executing them, so only simple member checks are performed.
-        // Additional checks could be added here if the public API exposed more data.
-
         return problems;
     }
 
@@ -46,7 +41,7 @@ public static class BatchProcessingBenchmarksValidation
     /// <returns><c>true</c> if no validation problems are found; otherwise, <c>false</c>.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
     public static bool IsValid(this BatchProcessingBenchmarks value) =>
-        value.Validate().Count == 0;
+        value.Validate().Count is 0;
 
     /// <summary>
     /// Ensures that the supplied <paramref name="value"/> is valid.
@@ -55,7 +50,7 @@ public static class BatchProcessingBenchmarksValidation
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentException">
     /// Thrown when one or more validation problems are detected. The exception message
-    /// contains a semicolon‑separated list of the problems.
+    /// contains a newline-separated list of the problems.
     /// </exception>
     public static void EnsureValid(this BatchProcessingBenchmarks value)
     {
@@ -65,7 +60,7 @@ public static class BatchProcessingBenchmarksValidation
         if (problems.Count > 0)
         {
             throw new ArgumentException(
-                $"BatchProcessingBenchmarks validation failed: {string.Join("; ", problems)}",
+                $"BatchProcessingBenchmarks validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, problems)}",
                 nameof(value));
         }
     }
