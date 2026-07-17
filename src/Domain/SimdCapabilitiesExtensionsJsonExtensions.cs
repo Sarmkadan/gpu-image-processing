@@ -67,22 +67,18 @@ public static class SimdCapabilitiesExtensionsJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized instance, or null if the JSON is null or empty.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
     /// <exception cref="JsonException">Thrown if the JSON is invalid or cannot be deserialized.</exception>
     public static SimdCapabilitiesExtensions? FromJson(string json)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         if (string.IsNullOrEmpty(json))
         {
             return null;
         }
 
-        try
-        {
-            return JsonSerializer.Deserialize<SimdCapabilitiesExtensions>(json, _jsonOptions);
-        }
-        catch (JsonException)
-        {
-            throw;
-        }
+        return JsonSerializer.Deserialize<SimdCapabilitiesExtensions>(json, _jsonOptions);
     }
 
     /// <summary>
