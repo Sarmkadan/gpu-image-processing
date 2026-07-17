@@ -14,14 +14,15 @@ namespace GpuImageProcessing.Utilities
     /// Provides validation helpers for file operation utilities and their metadata.
     /// Validates file metadata including names, paths, sizes, and dates.
     /// </summary>
-    public static class FileOperationUtilitiesValidation
+    public sealed class FileOperationUtilitiesValidation
     {
         /// <summary>
         /// Validates a file metadata instance.
         /// </summary>
         /// <param name="value">The file metadata to validate</param>
         /// <returns>List of validation problems; empty if valid</returns>
-        public static IReadOnlyList<string> Validate(this FileMetadata value)
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null</exception>
+        public static IReadOnlyList<string> Validate(FileMetadata value)
         {
             ArgumentNullException.ThrowIfNull(value);
 
@@ -100,7 +101,7 @@ namespace GpuImageProcessing.Utilities
             }
 
             // Validate Extension
-            if (value.Extension != null)
+            if (value.Extension is not null)
             {
                 if (value.Extension.Length > 10)
                 {
@@ -127,17 +128,15 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         /// <param name="value">The file metadata to check</param>
         /// <returns>True if valid; false otherwise</returns>
-        public static bool IsValid(this FileMetadata value)
-        {
-            return Validate(value).Count == 0;
-        }
+        public static bool IsValid(FileMetadata value) => Validate(value).Count == 0;
 
         /// <summary>
         /// Ensures that a file metadata instance is valid, throwing an exception if not.
         /// </summary>
         /// <param name="value">The file metadata to validate</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null</exception>
         /// <exception cref="ArgumentException">Thrown if the instance is invalid</exception>
-        public static void EnsureValid(this FileMetadata value)
+        public static void EnsureValid(FileMetadata value)
         {
             var problems = Validate(value);
             if (problems.Count > 0)
