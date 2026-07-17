@@ -6,9 +6,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
-using System.Linq;
 
 namespace GpuImageProcessing.Utilities
 {
@@ -22,14 +20,16 @@ namespace GpuImageProcessing.Utilities
         /// Validates the image utilities static class configuration.
         /// </summary>
         /// <returns>A list of validation errors. Empty if valid.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <see cref="ImageUtilities.SupportedExtensions"/> is null.</exception>
         public static IReadOnlyList<string> ValidateImageUtilitiesConfiguration()
         {
+            ArgumentNullException.ThrowIfNull(ImageUtilities.SupportedExtensions);
+
             var errors = new List<string>();
 
-            // Validate static members that could have invalid states
-            if (ImageUtilities.SupportedExtensions == null || ImageUtilities.SupportedExtensions.Length == 0)
+            if (ImageUtilities.SupportedExtensions.Length == 0)
             {
-                errors.Add("SupportedExtensions collection is null or empty.");
+                errors.Add("SupportedExtensions collection is empty.");
             }
             else
             {
@@ -57,9 +57,7 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
         public static bool IsImageUtilitiesConfigurationValid()
-        {
-            return ValidateImageUtilitiesConfiguration().Count == 0;
-        }
+            => ValidateImageUtilitiesConfiguration().Count == 0;
 
         /// <summary>
         /// Ensures that the image utilities static class configuration is valid.
@@ -82,8 +80,11 @@ namespace GpuImageProcessing.Utilities
         /// <param name="filePath">The file path to validate.</param>
         /// <param name="paramName">Name of the parameter for exception messages.</param>
         /// <returns>A list of validation errors. Empty if valid.</returns>
-        public static IReadOnlyList<string> ValidateFilePath(this string filePath, string paramName = "filePath")
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="filePath"/> is null.</exception>
+        public static IReadOnlyList<string> ValidateFilePath(this string? filePath, string paramName = "filePath")
         {
+            ArgumentNullException.ThrowIfNull(filePath);
+
             var errors = new List<string>();
 
             if (string.IsNullOrWhiteSpace(filePath))
@@ -115,11 +116,14 @@ namespace GpuImageProcessing.Utilities
         /// <param name="filePath">The file path to validate.</param>
         /// <param name="paramName">Name of the parameter for exception messages.</param>
         /// <returns>A list of validation errors. Empty if valid.</returns>
-        public static IReadOnlyList<string> ValidateImageFileAccess(this string filePath, string paramName = "filePath")
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="filePath"/> is null.</exception>
+        public static IReadOnlyList<string> ValidateImageFileAccess(this string? filePath, string paramName = "filePath")
         {
+            ArgumentNullException.ThrowIfNull(filePath);
+
             var errors = new List<string>(filePath.ValidateFilePath(paramName));
 
-            if (errors.Count == 0 && !string.IsNullOrEmpty(filePath))
+            if (errors.Count == 0)
             {
                 if (!File.Exists(filePath))
                 {
@@ -144,8 +148,11 @@ namespace GpuImageProcessing.Utilities
         /// <param name="directoryPath">The directory path to validate.</param>
         /// <param name="paramName">Name of the parameter for exception messages.</param>
         /// <returns>A list of validation errors. Empty if valid.</returns>
-        public static IReadOnlyList<string> ValidateOutputDirectory(this string directoryPath, string paramName = "directoryPath")
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="directoryPath"/> is null.</exception>
+        public static IReadOnlyList<string> ValidateOutputDirectory(this string? directoryPath, string paramName = "directoryPath")
         {
+            ArgumentNullException.ThrowIfNull(directoryPath);
+
             var errors = new List<string>();
 
             if (string.IsNullOrWhiteSpace(directoryPath))
@@ -179,8 +186,7 @@ namespace GpuImageProcessing.Utilities
         /// <param name="paramNameWidth">Name of the width parameter for exception messages.</param>
         /// <param name="paramNameHeight">Name of the height parameter for exception messages.</param>
         /// <returns>A list of validation errors. Empty if valid.</returns>
-        public static IReadOnlyList<string> ValidateImageDimensions(this int width, int height,
-            string paramNameWidth = "width", string paramNameHeight = "height")
+        public static IReadOnlyList<string> ValidateImageDimensions(this int width, int height, string paramNameWidth = "width", string paramNameHeight = "height")
         {
             var errors = new List<string>();
 
@@ -245,9 +251,13 @@ namespace GpuImageProcessing.Utilities
         /// <param name="paramNameInput">Name of the input parameter for exception messages.</param>
         /// <param name="paramNameFilter">Name of the filter parameter for exception messages.</param>
         /// <returns>A list of validation errors. Empty if valid.</returns>
-        public static IReadOnlyList<string> ValidateOutputFilenameParameters(this string inputPath, string filterName,
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="inputPath"/> or <paramref name="filterName"/> is null.</exception>
+        public static IReadOnlyList<string> ValidateOutputFilenameParameters(this string? inputPath, string? filterName,
             string paramNameInput = "inputPath", string paramNameFilter = "filterName")
         {
+            ArgumentNullException.ThrowIfNull(inputPath);
+            ArgumentNullException.ThrowIfNull(filterName);
+
             var errors = new List<string>();
 
             var inputErrors = inputPath.ValidateFilePath(paramNameInput);
