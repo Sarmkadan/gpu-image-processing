@@ -6,6 +6,11 @@
 
 using GpuImageProcessing.Core;
 using GpuImageProcessing.Domain;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Reflection;
+using System.Text;
 
 namespace GpuImageProcessing.Repository;
 
@@ -61,6 +66,7 @@ public static class FilterConfigurationRepositoryValidation
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
     public static bool IsValid(this FilterConfigurationRepository value)
     {
+        ArgumentNullException.ThrowIfNull(value);
         return Validate(value).Count == 0;
     }
 
@@ -79,7 +85,8 @@ public static class FilterConfigurationRepositoryValidation
         if (problems.Count > 0)
         {
             throw new ArgumentException(
-                $"FilterConfigurationRepository validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, problems)}");
+                $"FilterConfigurationRepository validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, problems)}",
+                nameof(value));
         }
     }
 
@@ -226,6 +233,7 @@ public static class FilterConfigurationRepositoryValidation
 
     private static object GetLockObject(this FilterConfigurationRepository repository)
     {
+        ArgumentNullException.ThrowIfNull(repository);
         var lockField = typeof(FilterConfigurationRepository).GetField(
             "_lockObject",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
@@ -234,6 +242,7 @@ public static class FilterConfigurationRepositoryValidation
 
     private static List<FilterConfiguration> GetStorage(this FilterConfigurationRepository repository)
     {
+        ArgumentNullException.ThrowIfNull(repository);
         var storageField = typeof(FilterConfigurationRepository).GetField(
             "_storage",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
