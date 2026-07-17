@@ -172,9 +172,7 @@ namespace GpuImageProcessing.Utilities
         /// <param name="value">The instance to check.</param>
         /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
         public static bool IsValid<T>(this BatchItem<T> value)
-        {
-            return value.Validate().Count == 0;
-        }
+    => value.Validate().Count == 0;
 
         /// <summary>
         /// Determines whether the specified <see cref="BatchProgress"/> instance is valid.
@@ -182,9 +180,7 @@ namespace GpuImageProcessing.Utilities
         /// <param name="value">The instance to check.</param>
         /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
         public static bool IsValid(this BatchProgress value)
-        {
-            return value.Validate().Count == 0;
-        }
+    => value.Validate().Count == 0;
 
         /// <summary>
         /// Determines whether the specified <see cref="ThrottleRecommendation"/> instance is valid.
@@ -192,9 +188,7 @@ namespace GpuImageProcessing.Utilities
         /// <param name="value">The instance to check.</param>
         /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
         public static bool IsValid(this ThrottleRecommendation value)
-        {
-            return value.Validate().Count == 0;
-        }
+    => value.Validate().Count == 0;
 
         /// <summary>
         /// Ensures that the specified <see cref="BatchItem{T}"/> instance is valid.
