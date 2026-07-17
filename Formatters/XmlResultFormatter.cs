@@ -179,7 +179,7 @@ namespace GpuImageProcessing.Formatters
         /// <summary>
         /// Formats an XElement with proper indentation if enabled.
         /// </summary>
-        private string FormatXml(XElement element)
+        internal string FormatXml(XElement element)
         {
             try
             {

@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Xml;
 using System.Xml.Linq;
 using GpuImageProcessing.Core.Models;
 
@@ -26,7 +27,7 @@ namespace GpuImageProcessing.Formatters
         /// <param name="results">Collection of processing results.</param>
         /// <param name="includeStatistics">Whether to include summary statistics.</param>
         /// <returns>Formatted XML string.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when formatter is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when formatter or results is null.</exception>
         public static string FormatResultsWithStatistics(
             this XmlResultFormatter formatter,
             IEnumerable<ProcessingResult> results,
@@ -74,7 +75,7 @@ namespace GpuImageProcessing.Formatters
             root.Add(new XAttribute("timestamp", DateTime.UtcNow.ToString("O")));
             root.Add(new XAttribute("count", resultList.Count));
 
-            return formatter.FormatResults(resultList);
+            return formatter.FormatXml(root);
         }
 
         /// <summary>
@@ -85,6 +86,7 @@ namespace GpuImageProcessing.Formatters
         /// <param name="includeBreakdown">Whether to include status breakdown.</param>
         /// <returns>Formatted XML string.</returns>
         /// <exception cref="ArgumentNullException">Thrown when formatter or job is null.</exception>
+        /// <exception cref="XmlException">Thrown when generated XML cannot be parsed.</exception>
         public static string FormatJobWithDetails(
             this XmlResultFormatter formatter,
             ProcessingJob job,
@@ -101,27 +103,35 @@ namespace GpuImageProcessing.Formatters
             }
 
             // Parse the generated XML to add breakdown
-            var xDoc = XDocument.Parse(jobXml);
-            var jobElement = xDoc.Root;
-
-            if (jobElement != null)
+            try
             {
-                var breakdown = new XElement("ProcessingBreakdown");
-                breakdown.Add(new XElement("TotalImages", job.TotalImages));
-                breakdown.Add(new XElement("ProcessedImages", job.ProcessedImages));
-                breakdown.Add(new XElement("FailedImages", job.FailedImages));
-                breakdown.Add(new XElement("PendingImages", job.TotalImages - job.ProcessedImages - job.FailedImages));
+                var xDoc = XDocument.Parse(jobXml);
+                var jobElement = xDoc.Root;
 
-                if (job.TotalImages > 0)
+                if (jobElement != null)
                 {
-                    breakdown.Add(new XElement("CompletionRate",
-                        (job.ProcessedImages / (double)job.TotalImages).ToString("P2", CultureInfo.InvariantCulture)));
-                }
+                    var breakdown = new XElement("ProcessingBreakdown");
+                    breakdown.Add(new XElement("TotalImages", job.TotalImages));
+                    breakdown.Add(new XElement("ProcessedImages", job.ProcessedImages));
+                    breakdown.Add(new XElement("FailedImages", job.FailedImages));
+                    breakdown.Add(new XElement("PendingImages", job.TotalImages - job.ProcessedImages - job.FailedImages));
 
-                jobElement.Add(breakdown);
+                    if (job.TotalImages > 0)
+                    {
+                        breakdown.Add(new XElement("CompletionRate",
+                            (job.ProcessedImages / (double)job.TotalImages).ToString("P2", CultureInfo.InvariantCulture)));
+                    }
+
+                    jobElement.Add(breakdown);
+                    return formatter.FormatXml(jobElement);
+                }
+            }
+            catch (XmlException ex)
+            {
+                throw new XmlException("Failed to parse job XML for breakdown generation", ex);
             }
 
-            return jobElement?.ToString() ?? jobXml;
+            return jobXml;
         }
 
         /// <summary>
@@ -132,6 +142,7 @@ namespace GpuImageProcessing.Formatters
         /// <param name="includeExtensions">Whether to include extension details.</param>
         /// <returns>Formatted XML string.</returns>
         /// <exception cref="ArgumentNullException">Thrown when formatter or device is null.</exception>
+        /// <exception cref="XmlException">Thrown when generated XML cannot be parsed.</exception>
         public static string FormatDeviceWithExtensions(
             this XmlResultFormatter formatter,
             DeviceInfo device,
@@ -148,23 +159,31 @@ namespace GpuImageProcessing.Formatters
             }
 
             // Parse the generated XML to add extensions
-            var xDoc = XDocument.Parse(deviceXml);
-            var deviceElement = xDoc.Root;
-
-            if (deviceElement != null)
+            try
             {
-                var extensionsElement = new XElement("Extensions");
-                foreach (var extension in device.Extensions)
+                var xDoc = XDocument.Parse(deviceXml);
+                var deviceElement = xDoc.Root;
+
+                if (deviceElement != null)
                 {
-                    extensionsElement.Add(new XElement("Extension",
-                        new XAttribute("name", extension.Key),
-                        new XElement("Version", extension.Value)
-                    ));
+                    var extensionsElement = new XElement("Extensions");
+                    foreach (var extension in device.Extensions)
+                    {
+                        extensionsElement.Add(new XElement("Extension",
+                            new XAttribute("name", extension.Key),
+                            new XElement("Version", extension.Value)
+                        ));
+                    }
+                    deviceElement.Add(extensionsElement);
+                    return formatter.FormatXml(deviceElement);
                 }
-                deviceElement.Add(extensionsElement);
+            }
+            catch (XmlException ex)
+            {
+                throw new XmlException("Failed to parse device XML for extensions generation", ex);
             }
 
-            return deviceElement?.ToString() ?? deviceXml;
+            return deviceXml;
         }
 
         /// <summary>
@@ -175,7 +194,8 @@ namespace GpuImageProcessing.Formatters
         /// <param name="content">The XML content to wrap.</param>
         /// <param name="metadata">Optional metadata to include.</param>
         /// <returns>Formatted XML string with envelope.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when formatter or content is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when formatter, contentType, or content is null.</exception>
+        /// <exception cref="XmlException">Thrown when content is not valid XML.</exception>
         public static string WrapInEnvelope(
             this XmlResultFormatter formatter,
             string contentType,
@@ -186,47 +206,41 @@ namespace GpuImageProcessing.Formatters
             ArgumentNullException.ThrowIfNull(contentType);
             ArgumentNullException.ThrowIfNull(content);
 
-            var envelope = new XElement("Envelope",
-                new XAttribute("version", "1.0"),
-                new XAttribute("timestamp", DateTime.UtcNow.ToString("O")),
-                new XElement("ContentType", contentType),
-                new XElement("Content", XElement.Parse(content))
-            );
-
-            if (metadata != null && metadata.Count > 0)
+            try
             {
-                var metadataElement = new XElement("Metadata");
-                foreach (var kvp in metadata)
+                var envelope = new XElement("Envelope",
+                    new XAttribute("version", "1.0"),
+                    new XAttribute("timestamp", DateTime.UtcNow.ToString("O")),
+                    new XElement("ContentType", contentType),
+                    new XElement("Content", XElement.Parse(content))
+                );
+
+                if (metadata?.Count > 0)
                 {
-                    metadataElement.Add(new XElement("Item",
-                        new XAttribute("key", kvp.Key),
-                        kvp.Value
-                    ));
+                    var metadataElement = new XElement("Metadata");
+                    foreach (var kvp in metadata)
+                    {
+                        metadataElement.Add(new XElement("Item",
+                            new XAttribute("key", kvp.Key),
+                            kvp.Value
+                        ));
+                    }
+                    envelope.Add(metadataElement);
                 }
-                envelope.Add(metadataElement);
+
+                return formatter.FormatXml(envelope);
             }
-
-            var result = new ProcessingResult
+            catch (XmlException ex)
             {
-                Id = Guid.NewGuid(),
-                JobId = Guid.NewGuid(),
-                ImageId = Guid.Empty,
-                InputFilePath = string.Empty,
-                OutputFilePath = string.Empty,
-                IsSuccessful = true,
-                Status = GpuImageProcessing.Core.Constants.ProcessingStatus.Completed,
-                StartTime = DateTime.UtcNow,
-                CompletionTime = DateTime.UtcNow
-            };
-
-            return formatter.FormatResult(result);
+                throw new XmlException("Failed to parse content XML for envelope generation", ex);
+            }
         }
 
         #region Private Helper Methods
 
         private static ResultStatistics CalculateResultStatistics(IReadOnlyList<ProcessingResult> results)
         {
-            if (results == null || results.Count == 0)
+            if (results is not { Count: > 0 })
             {
                 return new ResultStatistics
                 {
@@ -238,17 +252,19 @@ namespace GpuImageProcessing.Formatters
                 };
             }
 
-            int successful = results.Count(r => r.IsSuccessful);
-            int failed = results.Count - successful;
-            double totalDuration = results.Sum(r => (r.CompletionTime - r.StartTime)?.TotalMilliseconds ?? 0);
+            int successfulCount = results.Count(r => r.IsSuccessful);
+            int failedCount = results.Count - successfulCount;
+
+            var totalDuration = results.Sum(r => (r.CompletionTime - r.StartTime)?.TotalMilliseconds ?? 0);
+            double averageDuration = results.Count > 0 ? totalDuration / results.Count : 0.0;
 
             return new ResultStatistics
             {
                 TotalCount = results.Count,
-                SuccessfulCount = successful,
-                FailedCount = failed,
+                SuccessfulCount = successfulCount,
+                FailedCount = failedCount,
                 TotalDurationMs = (long)totalDuration,
-                AverageDurationMs = results.Count > 0 ? totalDuration / results.Count : 0.0
+                AverageDurationMs = averageDuration
             };
         }
 
