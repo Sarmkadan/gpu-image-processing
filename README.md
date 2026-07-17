@@ -40,6 +40,209 @@ class Program
         var logger = new ConsoleLogger<ImageProcessingService>();
         var filterService = new FilterService(...);
         var transformService = new TransformService(...);
+
+        var processingService = new ImageProcessingService(
+            imageRepository,
+            filterRepository,
+            transformRepository,
+            profileRepository,
+            deviceService,
+            computeShaderPipeline,
+            logger,
+            filterService,
+            transformService
+        );
+
+        // Register an image for processing
+        var imageId = await processingService.RegisterImageAsync("/path/to/input.jpg", "vacation-photo");
+        Console.WriteLine($"Registered image with ID: {imageId}");
+
+        // Get image statistics
+        var stats = await processingService.GetImageStatsAsync(imageId);
+        Console.WriteLine($"Image: {stats.ImageName}, Size: {stats.Width}x{stats.Height}, " +
+                      $"File: {stats.FileSizeBytes / 1024} KB");
+
+        // Check if processing is possible
+        bool canProcess = await processingService.CanProcessAsync(new List<Guid> { imageId },
+        Guid.Empty);
+        Console.WriteLine($"Can process: {canProcess}");
+
+        // Create a processing profile
+        var profile = await processingService.CreateProfileAsync(
+            "HighQuality",
+            "Optimized for high-quality output with GPU acceleration"
+        );
+        Console.WriteLine($"Created profile: {profile.Name}");
+
+        // Apply a filter to the image
+        var filterResult = await processingService.ApplyFilterAsync(imageId, Guid.NewGuid());
+        Console.WriteLine($"Filter applied: {filterResult.Status}, Time: {filterResult.ProcessingTimeMs}ms");
+
+        // Process the image with filters and transforms
+        var processingResult = await processingService.ProcessImageAsync(
+            imageId,
+            new List<Guid> { Guid.NewGuid() }, // filterIds
+            new List<Guid> { Guid.NewGuid() }, // transformIds
+            profile.Id
+        );
+
+        if (processingResult.IsSuccessful)
+        {
+            Console.WriteLine($"Processing successful! Output: {processingResult.OutputPath}");
+            Console.WriteLine($"Device used: {processingResult.DeviceUsed}");
+            Console.WriteLine($"Profile used: {processingResult.ProfileUsed}");
+        }
+
+        // Get processing history for the image
+        var history = await processingService.GetProcessingResultsAsync(imageId);
+        Console.WriteLine($"Processing history: {history.Count} operations");
+
+        // Process multiple images in batch
+        var imageIds = new List<Guid> { imageId, Guid.NewGuid(), Guid.NewGuid() };
+        var batchResults = await processingService.ProcessBatchAsync(
+            imageIds,
+            new List<Guid> { Guid.NewGuid() }, // filters to apply to all
+            new List<Guid>(), // transforms
+            profile.Id
+        );
+
+        Console.WriteLine($"Batch completed: {batchResults.Count(r => r.IsSuccessful)}/{batchResults.Count} successful");
+
+        // Get all available profiles
+        var allProfiles = await processingService.GetAllProfilesAsync();
+        Console.WriteLine($"Available profiles: {allProfiles.Count()}");
+    }
+}
+```
+
+## ImageProcessingController
+
+The `ImageProcessingController` provides a REST API facade for GPU-accelerated image processing operations. It exposes HTTP endpoints for registering images, applying filters and transforms, managing batch jobs, and retrieving processing results. The controller handles HTTP request/response cycles, validates inputs, and returns structured API responses with success/failure status and appropriate data payloads.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Api;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize HttpClient for API calls
+        var httpClient = new HttpClient
+        {
+            BaseAddress = new Uri("http://localhost:5000")
+        };
+
+        // Register a new image
+        var registerResponse = await httpClient.PostAsJsonAsync(
+            "/api/image/register",
+            new { filePath = "/data/images/sample.jpg", description = "Sample vacation photo" }
+        );
+        
+        var registerResult = await registerResponse.Content.ReadFromJsonAsync<ApiResponse<ImageMetadata>>();
+        if (registerResult.IsSuccess)
+        {
+            Console.WriteLine($"Image registered: {registerResult.Data.Id}");
+            Console.WriteLine($"Path: {registerResult.Data.Path}");
+            Console.WriteLine($"Dimensions: {registerResult.Data.Width}x{registerResult.Data.Height}");
+            Console.WriteLine($"Size: {registerResult.Data.FileSizeBytes / 1024} KB");
+            
+            var imageId = registerResult.Data.Id;
+
+            // Apply a filter to the image
+            var filterResponse = await httpClient.PostAsJsonAsync(
+                "/api/image/apply-filter",
+                new { imageId, filterId = Guid.NewGuid() }
+            );
+            
+            var filterResult = await filterResponse.Content.ReadFromJsonAsync<ApiResponse<ProcessingResult>>();
+            if (filterResult.IsSuccess)
+            {
+                Console.WriteLine($"Filter applied successfully!");
+                Console.WriteLine($"Processing time: {filterResult.Data.ProcessingTimeMs}ms");
+                Console.WriteLine($"Status: {filterResult.Data.Status}");
+            }
+
+            // Apply a transform to the image
+            var transformResponse = await httpClient.PostAsJsonAsync(
+                "/api/image/apply-transform",
+                new { imageId, transformId = Guid.NewGuid() }
+            );
+            
+            var transformResult = await transformResponse.Content.ReadFromJsonAsync<ApiResponse<ProcessingResult>>();
+            if (transformResult.IsSuccess)
+            {
+                Console.WriteLine($"Transform applied successfully!");
+            }
+
+            // Get image information
+            var infoResponse = await httpClient.GetAsync($"/api/image/info/{imageId}");
+            var infoResult = await infoResponse.Content.ReadFromJsonAsync<ApiResponse<ImageMetadata>>();
+            Console.WriteLine($"Image info: {infoResult.Data.Description}");
+
+            // List available filters
+            var filtersResponse = await httpClient.GetAsync("/api/image/filters");
+            var filtersResult = await filtersResponse.Content.ReadFromJsonAsync<ApiResponse<List<FilterInfo>>>();
+            Console.WriteLine($"Available filters: {filtersResult.Data.Count}");
+
+            // Create a batch job
+            var batchResponse = await httpClient.PostAsJsonAsync(
+                "/api/image/batch",
+                new
+                {
+                    jobName = "SummerPhotos-2024",
+                    imageIds = new List<Guid> { imageId },
+                    filterIds = new List<Guid> { Guid.NewGuid() },
+                    transformIds = new List<Guid>()
+                }
+            );
+            
+            var batchResult = await batchResponse.Content.ReadFromJsonAsync<ApiResponse<BatchJobMetadata>>();
+            if (batchResult.IsSuccess)
+            {
+                Console.WriteLine($"Batch job created: {batchResult.Data.JobId}");
+                Console.WriteLine($"Job name: {batchResult.Data.JobName}");
+                
+                // Monitor batch job status
+                var statusResponse = await httpClient.GetAsync($"/api/image/batch/{batchResult.Data.JobId}");
+                var statusResult = await statusResponse.Content.ReadFromJsonAsync<ApiResponse<BatchJobStatus>>();
+                Console.WriteLine($"Batch status: {statusResult.Data.Status}");
+                Console.WriteLine($"Progress: {statusResult.Data.PercentComplete:P0}");
+            }
+        }
+    }
+}
+```
+
+## ProcessingPipeline
+
+```csharp
+using GpuImageProcessing.Core.Services;
+using GpuImageProcessing.Core.Models;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize required services (typically via dependency injection in real applications)
+        var imageRepository = new ImageRepository();
+        var filterRepository = new GenericRepository<Filter>();
+        var transformRepository = new GenericRepository<Transform>();
+        var profileRepository = new GenericRepository<ProcessingProfile>();
+        var deviceService = new DeviceService();
+        var computeShaderPipeline = new ComputeShaderPipeline(...);
+        var logger = new ConsoleLogger<ImageProcessingService>();
+        var filterService = new FilterService(...);
+        var transformService = new TransformService(...);
         
         var processingService = new ImageProcessingService(
             imageRepository,
