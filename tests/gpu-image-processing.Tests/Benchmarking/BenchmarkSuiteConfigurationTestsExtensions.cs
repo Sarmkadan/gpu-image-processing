@@ -1,5 +1,5 @@
 using System;
-using GpuImageProcessing.Tests.Benchmarking;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GpuImageProcessing.Tests.Benchmarking;
 
@@ -11,8 +11,8 @@ public static class BenchmarkSuiteConfigurationTestsExtensions
     /// <summary>
     /// Executes all validation-related tests on the provided <see cref="BenchmarkSuiteConfigurationTests"/> instance.
     /// </summary>
-    /// <param name="tests">The test instance to operate on.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="tests"/> is null.</exception>
+    /// <param name="tests">The test instance to operate on. Must not be <see langword="null"/>.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="tests"/> is <see langword="null"/>.</exception>
     public static void ExecuteAllValidationTests(this BenchmarkSuiteConfigurationTests tests)
     {
         ArgumentNullException.ThrowIfNull(tests);
@@ -25,8 +25,8 @@ public static class BenchmarkSuiteConfigurationTestsExtensions
     /// <summary>
     /// Executes all category-related tests on the provided <see cref="BenchmarkSuiteConfigurationTests"/> instance.
     /// </summary>
-    /// <param name="tests">The test instance to operate on.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="tests"/> is null.</exception>
+    /// <param name="tests">The test instance to operate on. Must not be <see langword="null"/>.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="tests"/> is <see langword="null"/>.</exception>
     public static void ExecuteAllCategoryTests(this BenchmarkSuiteConfigurationTests tests)
     {
         ArgumentNullException.ThrowIfNull(tests);
@@ -38,8 +38,8 @@ public static class BenchmarkSuiteConfigurationTestsExtensions
     /// <summary>
     /// Executes all preset-related tests on the provided <see cref="BenchmarkSuiteConfigurationTests"/> instance.
     /// </summary>
-    /// <param name="tests">The test instance to operate on.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="tests"/> is null.</exception>
+    /// <param name="tests">The test instance to operate on. Must not be <see langword="null"/>.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="tests"/> is <see langword="null"/>.</exception>
     public static void ExecuteAllPresetTests(this BenchmarkSuiteConfigurationTests tests)
     {
         ArgumentNullException.ThrowIfNull(tests);
