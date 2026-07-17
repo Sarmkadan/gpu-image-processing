@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using Microsoft.Extensions.Logging;
+using GpuImageProcessing.Core.Services;
+using GpuImageProcessing.Events;
 
 namespace GpuImageProcessing.BackgroundWorkers;
 
@@ -25,7 +29,35 @@ public static class JobProcessingWorkerValidation
             errors.Add("Worker name cannot be null or whitespace.");
         }
 
+        if (value.IsRunning)
+        {
+            errors.Add("Worker cannot be running during validation.");
+        }
+
         return errors.AsReadOnly();
+    }
+
+    /// <summary>
+    /// Validates the constructor dependencies of a <see cref="JobProcessingWorker"/> instance.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="batchProcessingService">The batch processing service.</param>
+    /// <param name="imageProcessingService">The image processing service.</param>
+    /// <param name="eventPublisher">The event publisher.</param>
+    /// <returns>A list of human-readable validation problems; empty if valid.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
+    public static IReadOnlyList<string> ValidateDependencies(
+        ILogger<JobProcessingWorker> logger,
+        BatchProcessingService batchProcessingService,
+        ImageProcessingService imageProcessingService,
+        IEventPublisher eventPublisher)
+    {
+        ArgumentNullException.ThrowIfNull(logger);
+        ArgumentNullException.ThrowIfNull(batchProcessingService);
+        ArgumentNullException.ThrowIfNull(imageProcessingService);
+        ArgumentNullException.ThrowIfNull(eventPublisher);
+
+        return Array.Empty<string>();
     }
 
     /// <summary>
@@ -53,9 +85,25 @@ public static class JobProcessingWorkerValidation
         if (errors.Count > 0)
         {
             throw new ArgumentException(
-                "JobProcessingWorker is invalid. " +
-                string.Join(" ", errors),
+                $"JobProcessingWorker is invalid. {string.Join(" ", errors)}",
                 nameof(value));
         }
+    }
+
+    /// <summary>
+    /// Ensures that the constructor dependencies are valid.
+    /// </summary>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="batchProcessingService">The batch processing service.</param>
+    /// <param name="imageProcessingService">The image processing service.</param>
+    /// <param name="eventPublisher">The event publisher.</param>
+    /// <exception cref="ArgumentNullException">Thrown if any parameter is null.</exception>
+    public static void EnsureDependenciesValid(
+        ILogger<JobProcessingWorker> logger,
+        BatchProcessingService batchProcessingService,
+        ImageProcessingService imageProcessingService,
+        IEventPublisher eventPublisher)
+    {
+        _ = ValidateDependencies(logger, batchProcessingService, imageProcessingService, eventPublisher);
     }
 }
