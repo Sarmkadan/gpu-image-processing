@@ -351,6 +351,84 @@ Console.WriteLine($"Test failed: {ex.Message}");
 
 ```
 
+## ProcessImageCommandExtensions
+
+The `ProcessImageCommandExtensions` class provides extension methods for the `ProcessImageCommand` class that simplify common image processing operations in the command-line interface. It includes utilities for validating input files and output directories, parsing image processing parameters, generating output filenames, and logging processing statistics, making it easier to build robust image processing pipelines.
+
+### Key Features
+
+- Validate input files exist and are supported image formats
+- Validate output directories exist and are writable
+- Parse common image processing parameters (width, height, quality) from command line arguments
+- Generate unique output filenames based on input filename and processing parameters
+- Log detailed processing statistics including file sizes and processing duration
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Cli;
+using System;
+using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a ProcessImageCommand instance
+        var command = new ProcessImageCommand();
+
+        // Validate input file
+        string inputPath = "input.jpg";
+        bool isInputValid = command.ValidateInputFile(inputPath);
+        Console.WriteLine($"Input file valid: {isInputValid}");
+
+        // Validate output directory
+        string outputDir = "/output/images";
+        bool isOutputValid = command.ValidateOutputDirectory(outputDir);
+        Console.WriteLine($"Output directory valid: {isOutputValid}");
+
+        // Parse image parameters from command line arguments
+        var args = new[] { "--width=800", "--height=600", "--quality=90" };
+        bool parsed = command.TryParseImageParameters(
+            args,
+            out int width,
+            out int height,
+            out int quality
+        );
+        Console.WriteLine($"Parameters parsed: {parsed}");
+        Console.WriteLine($"Width: {width}, Height: {height}, Quality: {quality}");
+
+        // Generate output filename
+        string outputPath = command.GenerateOutputFilename(
+            inputPath,
+            outputDir,
+            width,
+            height,
+            quality
+        );
+        Console.WriteLine($"Output path: {outputPath}");
+
+        // Simulate processing and log statistics
+        var startTime = DateTime.UtcNow;
+        // ... perform image processing ...
+        var endTime = DateTime.UtcNow;
+        long originalSize = new FileInfo(inputPath).Length;
+        long processedSize = new FileInfo(outputPath).Length;
+
+        command.LogProcessingStats(
+            inputPath,
+            outputPath,
+            startTime,
+            endTime,
+            originalSize,
+            processedSize
+        );
+    }
+}
+
+```
+
 ## MetricsPublisherJsonExtensions
 
 The `MetricsPublisherJsonExtensions` class provides System.Text.Json serialization utilities for the `MetricsPublisher` class. It enables serialization and deserialization of metrics publisher configurations with support for both compact and indented JSON output formats, safe error handling, and thread-safe serialization with optimized JsonSerializerOptions.
