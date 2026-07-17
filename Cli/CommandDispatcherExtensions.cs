@@ -10,13 +10,13 @@ namespace GpuImageProcessing.Cli
     public static class CommandDispatcherExtensions
     {
         /// <summary>
-        /// Checks if a command with the given name is registered.
+        /// Determines whether a command with the specified name is registered in the dispatcher.
         /// </summary>
-        /// <param name="dispatcher">The dispatcher instance.</param>
-        /// <param name="commandName">The name of the command to check.</param>
-        /// <returns>True if the command is registered, otherwise false.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dispatcher"/> is null.</exception>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="commandName"/> is null or empty.</exception>
+        /// <param name="dispatcher">The command dispatcher instance. Cannot be null.</param>
+        /// <param name="commandName">The name of the command to check. Cannot be null or empty.</param>
+        /// <returns><see langword="true"/> if the command is registered; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="dispatcher"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException"><paramref name="commandName"/> is <see langword="null"/>, empty, or consists only of whitespace.</exception>
         public static bool HasCommand(this CommandDispatcher dispatcher, string commandName)
         {
             ArgumentNullException.ThrowIfNull(dispatcher);
@@ -26,11 +26,12 @@ namespace GpuImageProcessing.Cli
         }
 
         /// <summary>
-        /// Retrieves a collection of all registered commands and their descriptions.
+        /// Retrieves a collection of all registered commands along with their descriptions.
         /// </summary>
-        /// <param name="dispatcher">The dispatcher instance.</param>
-        /// <returns>A read-only list of key-value pairs representing command names and their descriptions.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dispatcher"/> is null.</exception>
+        /// <param name="dispatcher">The command dispatcher instance. Cannot be null.</param>
+        /// <returns>A read-only list of tuples containing the command name and its description.
+        /// If a command has no description, the description will be "No description available".</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="dispatcher"/> is <see langword="null"/>.</exception>
         public static IReadOnlyList<(string Name, string Description)> GetCommandDescriptions(this CommandDispatcher dispatcher)
         {
             ArgumentNullException.ThrowIfNull(dispatcher);
@@ -42,11 +43,11 @@ namespace GpuImageProcessing.Cli
         }
 
         /// <summary>
-        /// Registers a collection of commands.
+        /// Registers a collection of commands with the dispatcher.
         /// </summary>
-        /// <param name="dispatcher">The dispatcher instance.</param>
-        /// <param name="commands">The collection of commands to register.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="dispatcher"/> or <paramref name="commands"/> is null.</exception>
+        /// <param name="dispatcher">The command dispatcher instance. Cannot be null.</param>
+        /// <param name="commands">The collection of commands to register. Cannot be null.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="dispatcher"/> or <paramref name="commands"/> is <see langword="null"/>.</exception>
         public static void RegisterCommands(this CommandDispatcher dispatcher, IEnumerable<(string Name, Type CommandType)> commands)
         {
             ArgumentNullException.ThrowIfNull(dispatcher);
