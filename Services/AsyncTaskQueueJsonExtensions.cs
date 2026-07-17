@@ -12,7 +12,7 @@ using System.Text.Json.Serialization;
 namespace GpuImageProcessing.Services
 {
     /// <summary>
-    /// Provides System.Text.Json serialization extensions for AsyncTaskQueue
+    /// Provides System.Text.Json serialization extensions for <see cref="AsyncTaskQueue"/>
     /// </summary>
     public static class AsyncTaskQueueJsonExtensions
     {
@@ -50,9 +50,12 @@ namespace GpuImageProcessing.Services
         /// </summary>
         /// <param name="json">JSON string to deserialize</param>
         /// <returns>The deserialized task queue, or null if JSON is null or empty</returns>
+        /// <exception cref="ArgumentNullException">Thrown when json is null</exception>
         /// <exception cref="JsonException">Thrown when JSON is invalid or cannot be deserialized</exception>
         public static AsyncTaskQueue? FromJson(string json)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
             if (string.IsNullOrEmpty(json))
             {
                 return null;
@@ -67,8 +70,11 @@ namespace GpuImageProcessing.Services
         /// <param name="json">JSON string to deserialize</param>
         /// <param name="value">Output parameter for the deserialized task queue</param>
         /// <returns>True if deserialization succeeded; false otherwise</returns>
+        /// <exception cref="ArgumentNullException">Thrown when json is null</exception>
         public static bool TryFromJson(string json, out AsyncTaskQueue? value)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
             value = null;
 
             if (string.IsNullOrEmpty(json))
