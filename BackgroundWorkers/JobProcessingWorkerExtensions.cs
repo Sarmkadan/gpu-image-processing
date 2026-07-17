@@ -15,6 +15,7 @@ namespace GpuImageProcessing.BackgroundWorkers
         /// <param name="worker">The <see cref="JobProcessingWorker"/> to restart.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="worker"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the worker cannot be restarted.</exception>
         public static async Task RestartAsync(this JobProcessingWorker worker)
         {
             ArgumentNullException.ThrowIfNull(worker);
@@ -37,16 +38,16 @@ namespace GpuImageProcessing.BackgroundWorkers
         }
 
         /// <summary>
-        /// Returns a formatted diagnostic string for the worker.
+        /// Returns a formatted diagnostic string for the worker containing its name and running state.
         /// </summary>
         /// <param name="worker">The <see cref="JobProcessingWorker"/> to diagnose.</param>
-        /// <returns>A diagnostic string containing the worker's name.</returns>
+        /// <returns>A diagnostic string containing the worker's name and running state.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="worker"/> is null.</exception>
         public static string ToDiagnosticString(this JobProcessingWorker worker)
         {
             ArgumentNullException.ThrowIfNull(worker);
 
-            return $"Worker: {worker.GetName()}";
+            return $"Worker: {worker.GetName()}, IsRunning: {worker.IsRunning}";
         }
     }
 }
