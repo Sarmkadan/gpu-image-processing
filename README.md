@@ -162,6 +162,50 @@ class Program
 }
 ```
 
+## RequestMiddlewareContext
+
+The `RequestMiddlewareContext` class acts as the primary data container passed through the middleware pipeline, encapsulating request metadata, authentication details, and operational state. It provides methods to track the request lifecycle, manage response data, and securely handle errors during execution.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Middleware;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        // Initialize the context with basic request information
+        var context = new RequestMiddlewareContext
+        {
+            RequestId = Guid.NewGuid().ToString(),
+            ApiKey = "api-key-123",
+            UserId = "user-abc",
+            Operation = "ApplyGrayscaleFilter",
+            RequestData = new Dictionary<string, object> { { "intensity", 0.8f } }
+        };
+
+        // Update context with metadata
+        context.Metadata["source"] = "web-api";
+        context.Scopes.Add("read:images");
+
+        // Simulate successful processing
+        var resultData = new { ImageId = Guid.NewGuid(), Status = "Processed" };
+        context.SetSuccess(resultData, 200);
+
+        // Use RequestMiddlewareResult to return final status
+        var result = RequestMiddlewareResult.Success(context.ResponseData, "Operation completed successfully");
+
+        Console.WriteLine($"RequestId: {context.RequestId}");
+        Console.WriteLine($"Successful: {context.IsSuccessful}");
+        Console.WriteLine($"Response Data: {context.ResponseData}");
+        Console.WriteLine($"Result Message: {result.Message}");
+    }
+}
+```
+
 ## DeviceService
 
 The `DeviceService` manages GPU and CPU compute devices for image processing operations. It provides functionality for detecting available devices, selecting devices for processing, checking device capabilities and memory availability, and retrieving device statistics. The service automatically initializes with the most capable device and provides methods for refreshing device information and getting capabilities summaries.
