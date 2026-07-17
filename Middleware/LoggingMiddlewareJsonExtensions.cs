@@ -16,13 +16,7 @@ public static class LoggingMiddlewareJsonExtensions
     };
 
     private static JsonSerializerOptions GetJsonOptions(bool indented)
-    {
-        var options = new JsonSerializerOptions(_jsonOptions)
-        {
-            WriteIndented = indented
-        };
-        return options;
-    }
+        => new(_jsonOptions) { WriteIndented = indented };
 
     /// <summary>
     /// Serializes the <see cref="LoggingMiddleware"/> instance to a JSON string.
@@ -43,15 +37,15 @@ public static class LoggingMiddlewareJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized middleware instance, or null if the JSON is null or empty.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="json"/> is null.</exception>
     /// <exception cref="JsonException">Thrown if the JSON is invalid or cannot be deserialized.</exception>
     public static LoggingMiddleware? FromJson(string json)
     {
-        if (string.IsNullOrEmpty(json))
-        {
-            return null;
-        }
+        ArgumentNullException.ThrowIfNull(json);
 
-        return JsonSerializer.Deserialize<LoggingMiddleware>(json, _jsonOptions);
+        return string.IsNullOrEmpty(json)
+            ? null
+            : JsonSerializer.Deserialize<LoggingMiddleware>(json, _jsonOptions);
     }
 
     /// <summary>
@@ -60,8 +54,11 @@ public static class LoggingMiddlewareJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized middleware instance if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out LoggingMiddleware? value)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         try
         {
             value = FromJson(json);
