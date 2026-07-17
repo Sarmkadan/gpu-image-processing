@@ -204,6 +204,80 @@ public class ImageQualityResult
 ```
 
 
+## CpuFallbackPathTests
+
+The `CpuFallbackPathTests` class exercises the explicit no-OpenCL CPU fallback path end-to-end. These tests verify that the library remains functional on machines without OpenCL by ensuring that image processing operations can run entirely on the CPU without GPU acceleration. The test suite validates supported filter types, ensures unsupported filters are properly identified, and confirms that CPU processing produces correct results with proper metadata.
+
+### Key Features
+
+- Tests CPU-based image processing without requiring GPU devices
+- Validates supported filter types that can run on CPU
+- Verifies unsupported filters are correctly identified
+- Tests cancellation handling during CPU processing
+- Validates image resizing produces correct dimensions
+- Confirms grayscale conversion produces equal luma values across channels
+- Verifies metadata includes processor identification
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Fallback;
+using GpuImageProcessing.Domain;
+using Microsoft.Extensions.Logging.Abstractions;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create a CPU fallback image processor
+        var processor = new CpuImageProcessor(NullLogger<CpuImageProcessor>.Instance);
+
+        // Check if a filter can be processed on CPU
+        bool canProcessGrayscale = processor.CanProcess(FilterType.Grayscale);
+        Console.WriteLine($"Can process grayscale on CPU: {canProcessGrayscale}");
+
+        bool canProcessRotation = processor.CanProcess(FilterType.Rotation);
+        Console.WriteLine($"Can process rotation on CPU: {canProcessRotation}");
+
+        // Apply a filter to an image on CPU
+        var image = new Image
+        {
+            Width = 100,
+            Height = 100,
+            Channels = 3,
+            BitsPerPixel = 24,
+            PixelData = new byte[100 * 100 * 3]
+        };
+        Array.Fill(image.PixelData, (byte)128);
+
+        var config = new FilterConfiguration
+        {
+            Name = "grayscale",
+            FilterType = FilterType.Grayscale
+        };
+
+        var result = await processor.ApplyFilterAsync(image, config);
+
+        Console.WriteLine("Processing completed on CPU");
+        Console.WriteLine($"Result metadata contains processor: {result.Metadata.ContainsKey("processor")}");
+        Console.WriteLine($"Processor type: {result.Metadata.GetValueOrDefault("processor")}");
+
+        // Resize an image on CPU
+        var resized = processor.Resize(image, 50, 50);
+        Console.WriteLine($"Resized image dimensions: {resized.Width}x{resized.Height}");
+
+        // Convert to grayscale on CPU
+        var grayscale = processor.ToGrayscale(image);
+        Console.WriteLine($"Grayscale image channels: {grayscale.Channels}");
+        Console.WriteLine($"Grayscale pixel data length: {grayscale.PixelData?.Length}");
+    }
+}
+
+```
+
 ## BatchProcessingUtilities
 
 The `BatchProcessingUtilities` class provides utilities for managing and processing batches of images efficiently. It includes batch splitting, progress tracking, and result aggregation.
