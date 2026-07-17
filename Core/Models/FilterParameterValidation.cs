@@ -11,16 +11,16 @@ using System.Globalization;
 namespace GpuImageProcessing.Core.Models
 {
     /// <summary>
-    /// Provides validation helpers for FilterParameter instances
+    /// Provides validation helpers for <see cref="FilterParameter"/> instances
     /// </summary>
     public static class FilterParameterValidation
     {
         /// <summary>
-        /// Validates a FilterParameter instance and returns a list of human-readable validation errors
+        /// Validates a <see cref="FilterParameter"/> instance and returns a list of human-readable validation errors
         /// </summary>
-        /// <param name="value">The FilterParameter to validate</param>
+        /// <param name="value">The <see cref="FilterParameter"/> to validate</param>
         /// <returns>List of validation error messages; empty if valid</returns>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
         public static IReadOnlyList<string> Validate(this FilterParameter value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -91,7 +91,7 @@ namespace GpuImageProcessing.Core.Models
                 {
                     errors.Add("Unit cannot exceed 64 characters.");
                 }
-                else if (value.Unit.ContainsWhitespace())
+                else if (ContainsWhitespace(value.Unit))
                 {
                     errors.Add("Unit cannot contain whitespace.");
                 }
@@ -124,9 +124,9 @@ namespace GpuImageProcessing.Core.Models
         }
 
         /// <summary>
-        /// Checks if a FilterParameter instance is valid
+        /// Checks if a <see cref="FilterParameter"/> instance is valid
         /// </summary>
-        /// <param name="value">The FilterParameter to check</param>
+        /// <param name="value">The <see cref="FilterParameter"/> to check</param>
         /// <returns>True if valid; false otherwise</returns>
         public static bool IsValid(this FilterParameter value)
         {
@@ -134,11 +134,11 @@ namespace GpuImageProcessing.Core.Models
         }
 
         /// <summary>
-        /// Ensures a FilterParameter instance is valid, throwing an exception if not
+        /// Ensures a <see cref="FilterParameter"/> instance is valid, throwing an exception if not
         /// </summary>
-        /// <param name="value">The FilterParameter to validate</param>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
-        /// <exception cref="ArgumentException">Thrown when value is invalid with detailed error messages</exception>
+        /// <param name="value">The <see cref="FilterParameter"/> to validate</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="value"/> is invalid with detailed error messages</exception>
         public static void EnsureValid(this FilterParameter value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -147,15 +147,17 @@ namespace GpuImageProcessing.Core.Models
             if (errors.Count > 0)
             {
                 throw new ArgumentException(
-                    $"FilterParameter validation failed:{Environment.NewLine}- {
-                    string.Join(Environment.NewLine + "- ", errors)}");
+                    $"FilterParameter validation failed:{Environment.NewLine}- {string.Join(Environment.NewLine + "- ", errors)}");
             }
         }
 
         /// <summary>
         /// Checks if a string contains any whitespace characters
         /// </summary>
-        private static bool ContainsWhitespace(this string str)
+        /// <param name="str">The string to check</param>
+        /// <returns>True if the string contains whitespace; otherwise false</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="str"/> is null</exception>
+        private static bool ContainsWhitespace(string str)
         {
             ArgumentNullException.ThrowIfNull(str);
             foreach (var c in str)
