@@ -758,6 +758,110 @@ class Program
 
 ```
 
+## ImageUtilitiesValidation
+
+The `ImageUtilitiesValidation` class provides comprehensive validation utilities for image processing operations. It validates parameters and state before performing image processing tasks, ensuring that configurations, file paths, image dimensions, and other inputs are valid and safe for processing. This validation layer helps prevent runtime errors and provides detailed error messages for debugging.
+
+### Key Features
+
+- Validates `ImageUtilities` static class configuration including supported extensions
+- Validates file paths for existence, format, and accessibility
+- Validates image file access and supported formats
+- Validates output directories for existence and writability
+- Validates image dimensions (width and height) with reasonable limits
+- Validates scale factors for proportional resizing operations
+- Validates output filename parameters for safe file generation
+- Returns detailed error messages through `Validate()` methods
+- Provides convenience methods like `IsValid()` and `EnsureValid()` for fluent validation patterns
+- Throws descriptive exceptions when validation fails
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Utilities;
+using System;
+using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        // Validate ImageUtilities configuration
+        var configErrors = ImageUtilitiesValidation.ValidateImageUtilitiesConfiguration();
+        if (configErrors.Count > 0)
+        {
+            Console.WriteLine("Configuration errors:");
+            foreach (var error in configErrors)
+            {
+                Console.WriteLine($"- {error}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("ImageUtilities configuration is valid!");
+        }
+
+        // Check if configuration is valid using convenience method
+        bool isConfigValid = ImageUtilitiesValidation.IsImageUtilitiesConfigurationValid();
+        Console.WriteLine($"Is configuration valid: {isConfigValid}");
+
+        // Validate file path
+        string filePath = "input.jpg";
+        var pathErrors = filePath.ValidateFilePath();
+        Console.WriteLine($"File path validation: {(pathErrors.Count == 0 ? "Valid" : string.Join(", ", pathErrors))}");
+
+        // Validate image file access
+        var imageErrors = filePath.ValidateImageFileAccess();
+        Console.WriteLine($"Image file validation: {(imageErrors.Count == 0 ? "Valid" : string.Join(", ", imageErrors))}");
+
+        // Validate output directory
+        string outputDir = "/data/output";
+        var dirErrors = outputDir.ValidateOutputDirectory();
+        Console.WriteLine($"Output directory validation: {(dirErrors.Count == 0 ? "Valid" : string.Join(", ", dirErrors))}");
+
+        // Validate image dimensions
+        var dimensionErrors = 1920.ValidateImageDimensions(1080);
+        Console.WriteLine($"Dimension validation: {(dimensionErrors.Count == 0 ? "Valid" : string.Join(", ", dimensionErrors))}");
+
+        // Validate scale factor
+        var scaleErrors = 0.75.ValidateScaleFactor();
+        Console.WriteLine($"Scale factor validation: {(scaleErrors.Count == 0 ? "Valid" : string.Join(", ", scaleErrors))}");
+
+        // Validate output filename parameters
+        var filenameErrors = "input.ppm".ValidateOutputFilenameParameters("grayscale-filter");
+        Console.WriteLine($"Filename parameters validation: {(filenameErrors.Count == 0 ? "Valid" : string.Join(", ", filenameErrors))}");
+
+        // Use EnsureValid() to throw exception on invalid configuration
+        try
+        {
+            ImageUtilitiesValidation.EnsureImageUtilitiesConfigurationValid();
+            Console.WriteLine("Configuration is valid!");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Configuration validation failed: {ex.Message}");
+        }
+
+        // Example with actual file operations
+        string testImage = "/data/images/test.ppm";
+        if (testImage.ValidateImageFileAccess().Count == 0)
+        {
+            Console.WriteLine($"Processing image: {testImage}");
+            
+            // Create output directory
+            string outputPath = "/data/output/processed";
+            if (outputPath.ValidateOutputDirectory().Count == 0)
+            {
+                Directory.CreateDirectory(outputPath);
+                Console.WriteLine($"Created output directory: {outputPath}");
+            }
+        }
+    }
+}
+
+```
+
 ## RemoteImageServiceValidation
 
 The `RemoteImageServiceValidation` class provides validation helpers for `RemoteImageResult` and `RemoteImageData` instances. It validates the structure and content of remote image processing results, including success states, error messages, image data integrity, content types, and byte sizes. This ensures that remote image operations produce valid, well-formed results suitable for downstream processing.
