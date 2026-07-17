@@ -289,6 +289,74 @@ Console.WriteLine($"Denormalized: {denormalized:F2}"); // Output: Denormalized: 
 ```
 
 
+## FilterChainBenchmarksExtensionsJsonExtensions
+
+The `FilterChainBenchmarksExtensionsJsonExtensions` class provides System.Text.Json serialization utilities for benchmark configuration and results in the FilterChainBenchmarksExtensions benchmark suite. It enables easy serialization and deserialization of benchmark configurations with support for validation, cloning, and parallel execution settings.
+
+### Key Features
+
+- JSON serialization of benchmark configurations using camelCase property naming
+- Support for both compact and indented JSON output formats
+- Safe deserialization with null handling and error recovery
+- Configuration validation through JSON parsing
+- Thread-safe serialization with optimized JsonSerializerOptions
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Benchmarks;
+using System;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a benchmark configuration
+        var config = new 
+        {
+            FilterCount = 15,
+            EnableValidation = true,
+            EnableCloning = true,
+            MaxParallelSteps = 8
+        };
+
+        // Serialize to compact JSON
+        string compactJson = config.ToJson();
+        Console.WriteLine("Compact JSON:");
+        Console.WriteLine(compactJson);
+
+        // Serialize to indented JSON
+        string indentedJson = config.ToJson(indented: true);
+        Console.WriteLine("\nIndented JSON:");
+        Console.WriteLine(indentedJson);
+
+        // Deserialize from JSON
+        string json = @"{ "filterCount": 20, "enableValidation": false, "enableCloning": true, "maxParallelSteps": 2 }";
+        object? deserialized = FilterChainBenchmarksExtensionsJsonExtensions.FromJson(json);
+        
+        if (deserialized is not null)
+        {
+            Console.WriteLine($"\nDeserialized configuration:");
+            Console.WriteLine($"FilterCount: {((dynamic)deserialized).FilterCount}");
+            Console.WriteLine($"EnableValidation: {((dynamic)deserialized).EnableValidation}");
+        }
+
+        // Try to deserialize with error handling
+        string invalidJson = @"{ invalid json }";
+        bool success = FilterChainBenchmarksExtensionsJsonExtensions.TryFromJson(invalidJson, out object? result);
+        Console.WriteLine($"\nTryFromJson with invalid JSON: {(success ? "Success" : "Failed (expected)")}");
+
+        // Serialize and deserialize round-trip
+        string roundTripJson = config.ToJson();
+        object? roundTripResult = FilterChainBenchmarksExtensionsJsonExtensions.FromJson(roundTripJson);
+        Console.WriteLine($"\nRound-trip successful: {roundTripResult is not null}");
+    }
+}
+
+```
+
 ## EnumerableExtensions
 
 The `EnumerableExtensions` class provides a comprehensive set of extension methods for working with `IEnumerable<T>` sequences. These utilities extend LINQ with additional functional programming helpers for filtering, grouping, batching, searching, and aggregation operations that are commonly needed in GPU image processing pipelines.
