@@ -7,13 +7,12 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace GpuImageProcessing.Utilities
 {
     /// <summary>
     /// Validation helpers for DataConversionUtilities operations.
-    /// Provides validation, IsValid, and EnsureValid methods for all public members.
+    /// Provides validation methods for all conversion operations.
     /// </summary>
     public static class DataConversionUtilitiesValidation
     {
@@ -21,15 +20,12 @@ namespace GpuImageProcessing.Utilities
         /// Checks if the DataConversionUtilities class is valid (always true for static class)
         /// </summary>
         /// <returns>True</returns>
-        public static bool IsValid()
-        {
-            return true;
-        }
+        public static bool IsValid() => true;
 
         /// <summary>
         /// Ensures the DataConversionUtilities class is valid (no-op for static class)
         /// </summary>
-        /// <exception cref="ArgumentException">Never thrown - static class has no state to validate</exception>
+        /// <exception cref="InvalidOperationException">Never thrown - static class has no state to validate</exception>
         public static void EnsureValid()
         {
             // Static class has no state to validate
@@ -38,8 +34,10 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Validates the BytesToHex method with provided parameters
         /// </summary>
+        /// <param name="bytesToHex">The BytesToHex conversion method</param>
         /// <param name="bytes">The byte array to convert</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="bytesToHex"/> is null</exception>
         public static IReadOnlyList<string> Validate(this Func<byte[], string> bytesToHex, byte[] bytes)
         {
             ArgumentNullException.ThrowIfNull(bytesToHex);
@@ -56,8 +54,10 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Validates the HexToBytes method with provided parameters
         /// </summary>
+        /// <param name="hexToBytes">The HexToBytes conversion method</param>
         /// <param name="hex">The hexadecimal string to convert</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="hexToBytes"/> is null</exception>
         public static IReadOnlyList<string> Validate(this Func<string, byte[]> hexToBytes, string hex)
         {
             ArgumentNullException.ThrowIfNull(hexToBytes);
@@ -74,8 +74,10 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Validates the FloatsToBytes method with provided parameters
         /// </summary>
+        /// <param name="floatsToBytes">The FloatsToBytes conversion method</param>
         /// <param name="floats">The float array to convert</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="floatsToBytes"/> is null</exception>
         public static IReadOnlyList<string> Validate(this Func<float[], byte[]> floatsToBytes, float[] floats)
         {
             ArgumentNullException.ThrowIfNull(floatsToBytes);
@@ -92,8 +94,10 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Validates the BytesToFloats method with provided parameters
         /// </summary>
+        /// <param name="bytesToFloats">The BytesToFloats conversion method</param>
         /// <param name="bytes">The byte array to convert</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="bytesToFloats"/> is null</exception>
         public static IReadOnlyList<string> Validate(this Func<byte[], float[]> bytesToFloats, byte[] bytes)
         {
             ArgumentNullException.ThrowIfNull(bytesToFloats);
@@ -112,15 +116,17 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Validates the FormatFileSize method with provided parameters
         /// </summary>
+        /// <param name="formatFileSize">The FormatFileSize conversion method</param>
         /// <param name="bytes">The file size in bytes</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="formatFileSize"/> is null</exception>
         public static IReadOnlyList<string> Validate(this Func<long, string> formatFileSize, long bytes)
         {
             ArgumentNullException.ThrowIfNull(formatFileSize);
             var problems = new List<string>();
 
-            // bytes can be any long value, including negative
-            // No validation needed beyond null check on the delegate
+            if (bytes < 0)
+                problems.Add("File size cannot be negative");
 
             return problems.AsReadOnly();
         }
@@ -128,8 +134,10 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Validates the ParseFileSize method with provided parameters
         /// </summary>
+        /// <param name="parseFileSize">The ParseFileSize conversion method</param>
         /// <param name="sizeString">The human-readable size string</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="parseFileSize"/> is null</exception>
         public static IReadOnlyList<string> Validate(this Func<string, long> parseFileSize, string sizeString)
         {
             ArgumentNullException.ThrowIfNull(parseFileSize);
@@ -144,15 +152,14 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Validates the FormatTimeSpan method with provided parameters
         /// </summary>
+        /// <param name="formatTimeSpan">The FormatTimeSpan conversion method</param>
         /// <param name="timeSpan">The TimeSpan to format</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="formatTimeSpan"/> is null</exception>
         public static IReadOnlyList<string> Validate(this Func<TimeSpan, string> formatTimeSpan, TimeSpan timeSpan)
         {
             ArgumentNullException.ThrowIfNull(formatTimeSpan);
             var problems = new List<string>();
-
-            // TimeSpan can be any value
-            // No validation needed beyond null check on the delegate
 
             return problems.AsReadOnly();
         }
@@ -160,8 +167,10 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Validates the ParseDuration method with provided parameters
         /// </summary>
+        /// <param name="parseDuration">The ParseDuration conversion method</param>
         /// <param name="durationString">The duration string to parse</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="parseDuration"/> is null</exception>
         public static IReadOnlyList<string> Validate(this Func<string, TimeSpan> parseDuration, string durationString)
         {
             ArgumentNullException.ThrowIfNull(parseDuration);
@@ -176,10 +185,12 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Validates the ToBinaryString method with provided parameters
         /// </summary>
-        /// <param name="valueToBinaryString">The method to validate</param>
-        /// <param name="value">The integer value</param>
+        /// <param name="valueToBinaryString">The ToBinaryString conversion method</param>
+        /// <param name="value">The integer value to convert</param>
         /// <param name="minWidth">The minimum width for binary string</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="valueToBinaryString"/> is null</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="minWidth"/> is negative</exception>
         public static IReadOnlyList<string> Validate(this Func<int, int, string> valueToBinaryString, int value, int minWidth)
         {
             ArgumentNullException.ThrowIfNull(valueToBinaryString);
@@ -194,11 +205,12 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Validates the IsWithinTolerance method with provided parameters
         /// </summary>
-        /// <param name="isWithinTolerance">The method to validate</param>
-        /// <param name="actual">The actual value</param>
-        /// <param name="expected">The expected value</param>
-        /// <param name="tolerance">The tolerance threshold</param>
+        /// <param name="isWithinTolerance">The IsWithinTolerance comparison method</param>
+        /// <param name="actual">The actual value to compare</param>
+        /// <param name="expected">The expected value to compare against</param>
+        /// <param name="tolerance">The tolerance threshold for comparison</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="isWithinTolerance"/> is null</exception>
         public static IReadOnlyList<string> Validate(this Func<float, float, float, bool> isWithinTolerance, float actual, float expected, float tolerance)
         {
             ArgumentNullException.ThrowIfNull(isWithinTolerance);
@@ -227,11 +239,12 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Validates the Normalize method with provided parameters
         /// </summary>
-        /// <param name="normalize">The method to validate</param>
+        /// <param name="normalize">The Normalize conversion method</param>
         /// <param name="value">The value to normalize</param>
         /// <param name="min">The minimum bound</param>
         /// <param name="max">The maximum bound</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="normalize"/> is null</exception>
         public static IReadOnlyList<string> ValidateNormalize(this Func<float, float, float, float> normalize, float value, float min, float max)
         {
             ArgumentNullException.ThrowIfNull(normalize);
@@ -260,11 +273,13 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Validates the Denormalize method with provided parameters
         /// </summary>
-        /// <param name="denormalize">The method to validate</param>
+        /// <param name="denormalize">The Denormalize conversion method</param>
         /// <param name="normalized">The normalized value (0-1 range)</param>
         /// <param name="min">The minimum bound</param>
         /// <param name="max">The maximum bound</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="denormalize"/> is null</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="normalized"/> is outside [0, 1] range</exception>
         public static IReadOnlyList<string> ValidateDenormalize(this Func<float, float, float, float> denormalize, float normalized, float min, float max)
         {
             ArgumentNullException.ThrowIfNull(denormalize);
