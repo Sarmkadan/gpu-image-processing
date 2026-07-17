@@ -4378,4 +4378,116 @@ class Program
 
 ```
 
+## AsyncTaskQueueExtensions
+
+The `AsyncTaskQueueExtensions` class provides extension methods for the `AsyncTaskQueue` class that extend the queue with additional query capabilities and task management utilities. It includes methods for enqueuing tasks, retrieving tasks by state, getting task counts, finding oldest/newest tasks, and calculating performance metrics.
+
+### Key Features
+
+- Enqueue new tasks with priorities and names
+- Get tasks filtered by state (running, queued, completed, failed, cancelled)
+- Retrieve oldest and newest tasks based on enqueue time
+- Get task counts by state and total task count
+- Calculate task durations and average processing times
+- Determine task positions based on priority
+- Check if tasks exist in specific states
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Services;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create an AsyncTaskQueue instance
+        var taskQueue = new AsyncTaskQueue();
+
+        // Enqueue some tasks with different priorities
+        var task1 = taskQueue.EnqueueTask(
+            async ct => 
+            {
+                await Task.Delay(100, ct);
+                Console.WriteLine("Task 1 completed");
+            },
+            priority: 1,
+            name: "High Priority Task"
+        );
+
+        var task2 = taskQueue.EnqueueTask(
+            async ct => 
+            {
+                await Task.Delay(200, ct);
+                Console.WriteLine("Task 2 completed");
+            },
+            priority: 2,
+            name: "Medium Priority Task"
+        );
+
+        var task3 = taskQueue.EnqueueTask(
+            async ct => 
+            {
+                await Task.Delay(50, ct);
+                Console.WriteLine("Task 3 completed");
+            },
+            priority: 0,
+            name: "Low Priority Task"
+        );
+
+        // Get task counts by state
+        Console.WriteLine($"Total tasks: {taskQueue.GetTotalTaskCount()}");
+        Console.WriteLine($"Queued tasks: {taskQueue.GetTaskCount(TaskState.Queued)}");
+        Console.WriteLine($"Running tasks: {taskQueue.GetTaskCount(TaskState.Running)}");
+
+        // Get oldest and newest tasks
+        var oldestTask = taskQueue.GetOldestTask();
+        var newestTask = taskQueue.GetNewestTask();
+        Console.WriteLine($"Oldest task: {oldestTask?.Name ?? "None"}");
+        Console.WriteLine($"Newest task: {newestTask?.Name ?? "None"}");
+
+        // Get tasks by state
+        var queuedTasks = taskQueue.GetQueuedTasks();
+        var runningTasks = taskQueue.GetRunningTasks();
+        var completedTasks = taskQueue.GetCompletedTasks();
+        var failedTasks = taskQueue.GetFailedTasks();
+        var cancelledTasks = taskQueue.GetCancelledTasks();
+
+        Console.WriteLine($"Queued: {queuedTasks.Count}, Running: {runningTasks.Count}");
+        Console.WriteLine($"Completed: {completedTasks.Count}, Failed: {failedTasks.Count}");
+        Console.WriteLine($"Cancelled: {cancelledTasks.Count}");
+
+        // Get task position (lower numbers = higher priority)
+        int position = taskQueue.GetTaskPosition(task1);
+        Console.WriteLine($"Task 1 position: {position}");
+
+        // Check if tasks exist in specific states
+        bool hasQueued = taskQueue.HasTasksInState(TaskState.Queued);
+        bool hasRunning = taskQueue.HasTasksInState(TaskState.Running);
+        Console.WriteLine($"Has queued tasks: {hasQueued}");
+        Console.WriteLine($"Has running tasks: {hasRunning}");
+
+        // Wait for tasks to complete
+        await Task.Delay(1000);
+
+        // Get task duration after completion
+        long? duration = taskQueue.GetTaskDurationMilliseconds(task1);
+        Console.WriteLine($"Task 1 duration: {duration}ms");
+
+        // Get average task duration
+        double? avgDuration = taskQueue.GetAverageTaskDurationMilliseconds();
+        Console.WriteLine($"Average task duration: {avgDuration?.ToString("F2") ?? "N/A"}ms");
+
+        // Get tasks by state
+        var allQueued = taskQueue.GetQueuedTasks();
+        Console.WriteLine($"Remaining queued tasks: {allQueued.Count}");
+    }
+}
+
+```
+
 ## ProcessingPipeline
