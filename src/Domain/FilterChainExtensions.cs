@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// ===========================================================================
 
 using System;
 using System.Collections.Generic;
@@ -37,16 +37,18 @@ public static class FilterChainExtensions
     /// <param name="index">The zero-based index of the step.</param>
     /// <returns>The <see cref="FilterStep"/> at the specified index.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="chain"/> is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when index is out of range.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="index"/> is negative or exceeds the chain step count.</exception>
     public static FilterStep GetStepByIndex(this FilterChain chain, int index)
     {
         ArgumentNullException.ThrowIfNull(chain);
 
         if (index < 0 || index >= chain.Steps.Count)
         {
-            throw new ArgumentOutOfRangeException(nameof(index),
-                string.Format(CultureInfo.InvariantCulture,
-                    "Index must be between 0 and {0}. Actual: {1}",
+            throw new ArgumentOutOfRangeException(
+                nameof(index),
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    "Index must be between 0 and {0}. Actual: {1}.",
                     chain.Steps.Count - 1,
                     index));
         }
@@ -72,11 +74,11 @@ public static class FilterChainExtensions
     /// Calculates the estimated memory footprint of processing this filter chain in megabytes.
     /// </summary>
     /// <param name="chain">The filter chain.</param>
-    /// <param name="bytesPerPixel">Bytes per pixel for the image being processed (default: 4 for RGBA).</param>
-    /// <param name="estimatedImageSize">Estimated image dimensions in pixels (width × height).</param>
-    /// <returns>Estimated memory usage in MB.</returns>
+    /// <param name="bytesPerPixel">Bytes per pixel for the image being processed (default: 4 for RGBA). Must be positive.</param>
+    /// <param name="estimatedImageSize">Estimated image dimensions in pixels (width × height). Must be positive.</param>
+    /// <returns>Estimated memory usage in MB, rounded to two decimal places.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="chain"/> is null.</exception>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when bytesPerPixel or estimatedImageSize is invalid.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="bytesPerPixel"/> or <paramref name="estimatedImageSize"/> is not positive.</exception>
     public static double CalculateMemoryFootprint(
         this FilterChain chain,
         int bytesPerPixel = 4,
@@ -86,14 +88,16 @@ public static class FilterChainExtensions
 
         if (bytesPerPixel <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(bytesPerPixel),
-                "Bytes per pixel must be positive.");
+            throw new ArgumentOutOfRangeException(
+                nameof(bytesPerPixel),
+                "Bytes per pixel must be a positive integer.");
         }
 
         if (estimatedImageSize <= 0)
         {
-            throw new ArgumentOutOfRangeException(nameof(estimatedImageSize),
-                "Estimated image size must be positive.");
+            throw new ArgumentOutOfRangeException(
+                nameof(estimatedImageSize),
+                "Estimated image size must be a positive integer.");
         }
 
         // Base memory: image buffer × bytes per pixel
