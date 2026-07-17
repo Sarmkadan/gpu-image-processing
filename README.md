@@ -14,6 +14,55 @@ A high-performance GPU-accelerated image processing library using C# and .NET wi
 - [Contributing](#contributing)
 - [License](#license)
 
+## PortablePixmap
+
+The `PortablePixmap` class provides a minimal reader/writer for the binary Netpbm formats: P6 (24-bit RGB PPM) and P5 (8-bit grayscale PGM). These formats are dependency-free, byte-exact, and trivial to round-trip, making them ideal as a portable on-disk representation for the batch CLI and for golden-image regression fixtures. The pixel buffers produced here are laid out row-major with `bpp` bytes per pixel, exactly what the CPU image processor expects.
+
+### Key Features
+
+- Supports both P6 (RGB) and P5 (grayscale) Netpbm formats
+- Dependency-free implementation with minimal dependencies
+- Byte-exact round-tripping for regression testing
+- Row-major pixel layout compatible with GPU processing pipelines
+- File extension detection (.ppm, .pgm)
+- Pixel hash computation for change detection
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Imaging;
+using System;
+using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        // Check if a file is a supported portable pixmap
+        bool isSupported = PortablePixmap.IsSupported("test.ppm");
+        Console.WriteLine($"Is supported: {isSupported}"); // Output: Is supported: True
+
+        // Load a PPM/PGM file into an Image object
+        var image = PortablePixmap.Load("input.ppm");
+        Console.WriteLine($"Loaded image: {image.Width}x{image.Height}, {image.Channels} channels, {image.BitsPerPixel} bpp");
+
+        // Compute a stable hash of the pixel data for regression testing
+        string pixelHash = PortablePixmap.PixelHash(image);
+        Console.WriteLine($"Pixel hash: {pixelHash}");
+
+        // Save the image back to disk (automatically chooses P6 or P5 based on channels)
+        PortablePixmap.Save(image, "output.ppm");
+
+        // Decode from a stream (useful for testing or memory-based operations)
+        using var memoryStream = new MemoryStream(File.ReadAllBytes("input.pgm"));
+        var decodedImage = PortablePixmap.Decode(memoryStream);
+        Console.WriteLine($"Decoded: {decodedImage.Width}x{decodedImage.Height} grayscale image");
+    }
+}
+
+```
+
 ## PerformanceUtilities
 
 The `PerformanceUtilities` class provides high-resolution timing and performance measurement utilities for GPU-accelerated image processing operations. It includes stopwatch-based timing, frame rate calculation, and performance statistics collection.
