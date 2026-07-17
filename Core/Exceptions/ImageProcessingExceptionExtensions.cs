@@ -59,5 +59,17 @@ namespace GpuImageProcessing.Core.Exceptions
             ArgumentNullException.ThrowIfNull(exception);
             return exception is ImageFileException;
         }
+
+        /// <summary>
+        /// Determines whether an <see cref="ImageProcessingException"/> instance is related to an invalid image.
+        /// </summary>
+        /// <param name="exception">The exception instance.</param>
+        /// <returns>True if the exception is related to an invalid image; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="exception"/> is null.</exception>
+        public static bool IsInvalidImage(this ImageProcessingException exception)
+        {
+            ArgumentNullException.ThrowIfNull(exception);
+            return exception is InvalidImageException;
+        }
     }
 }
