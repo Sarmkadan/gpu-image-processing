@@ -6,8 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using GpuImageProcessing.Core.Models;
 
 namespace GpuImageProcessing.Core.Services
 {
@@ -21,50 +19,57 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         /// <param name="value">The DeviceService instance to validate</param>
         /// <returns>List of validation problems; empty if valid</returns>
-        public static IReadOnlyList<string> Validate(this DeviceService value)
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/></exception>
+        public static IReadOnlyList<string> Validate(this global::GpuImageProcessing.Core.Services.DeviceService value)
         {
             ArgumentNullException.ThrowIfNull(value);
-
             var problems = new List<string>();
 
             // Validate service state by checking statistics
             try
             {
-                var stats = value.GetStatisticsAsync().GetAwaiter().GetResult();
+                var stats = value.GetStatisticsAsync().ConfigureAwait(false).GetAwaiter().GetResult();
 
-                if (stats.TotalDevices < 0)
+                if (stats is null)
                 {
-                    problems.Add("TotalDevices cannot be negative");
+                    problems.Add("Device statistics cannot be null");
                 }
-
-                if (stats.AvailableDevices < 0)
+                else
                 {
-                    problems.Add("AvailableDevices cannot be negative");
-                }
+                    if (stats.TotalDevices < 0)
+                    {
+                        problems.Add("TotalDevices cannot be negative");
+                    }
 
-                if (stats.GpuDevices < 0)
-                {
-                    problems.Add("GpuDevices cannot be negative");
-                }
+                    if (stats.AvailableDevices < 0)
+                    {
+                        problems.Add("AvailableDevices cannot be negative");
+                    }
 
-                if (stats.CpuDevices < 0)
-                {
-                    problems.Add("CpuDevices cannot be negative");
-                }
+                    if (stats.GpuDevices < 0)
+                    {
+                        problems.Add("GpuDevices cannot be negative");
+                    }
 
-                if (stats.TotalMemoryBytes < 0)
-                {
-                    problems.Add("TotalMemoryBytes cannot be negative");
-                }
+                    if (stats.CpuDevices < 0)
+                    {
+                        problems.Add("CpuDevices cannot be negative");
+                    }
 
-                if (stats.TotalComputeUnits < 0)
-                {
-                    problems.Add("TotalComputeUnits cannot be negative");
-                }
+                    if (stats.TotalMemoryBytes < 0)
+                    {
+                        problems.Add("TotalMemoryBytes cannot be negative");
+                    }
 
-                if (stats.AverageCapabilityScore < 0)
-                {
-                    problems.Add("AverageCapabilityScore cannot be negative");
+                    if (stats.TotalComputeUnits < 0)
+                    {
+                        problems.Add("TotalComputeUnits cannot be negative");
+                    }
+
+                    if (stats.AverageCapabilityScore < 0)
+                    {
+                        problems.Add("AverageCapabilityScore cannot be negative");
+                    }
                 }
             }
             catch (Exception ex)
@@ -80,28 +85,25 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         /// <param name="value">The DeviceService instance to check</param>
         /// <returns>True if valid; otherwise false</returns>
-        public static bool IsValid(this DeviceService value)
-        {
-            return Validate(value).Count == 0;
-        }
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/></exception>
+        public static bool IsValid(this global::GpuImageProcessing.Core.Services.DeviceService value) => Validate(value).Count == 0;
 
         /// <summary>
         /// Ensures that a DeviceService instance is valid, throwing an exception if not
         /// </summary>
         /// <param name="value">The DeviceService instance to validate</param>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/></exception>
         /// <exception cref="ArgumentException">Thrown when the DeviceService is invalid</exception>
-        public static void EnsureValid(this DeviceService value)
+        public static void EnsureValid(this global::GpuImageProcessing.Core.Services.DeviceService value)
         {
             ArgumentNullException.ThrowIfNull(value);
 
             var problems = Validate(value);
-            if (problems.Count == 0)
+            if (problems.Count > 0)
             {
-                return;
+                throw new ArgumentException(
+                    $"DeviceService is invalid:{Environment.NewLine} - {string.Join($"{Environment.NewLine} - ", problems)}");
             }
-
-            throw new ArgumentException(
-                $"DeviceService is invalid:{Environment.NewLine}  - {string.Join($"{Environment.NewLine}  - ", problems)}");
         }
     }
 }
