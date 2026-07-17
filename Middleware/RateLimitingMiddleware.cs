@@ -24,6 +24,21 @@ namespace GpuImageProcessing.Middleware
         private readonly TokenBucket _tokenBucket;
         private readonly SemaphoreSlim _semaphore;
 
+    /// <summary>
+    /// Gets the rate limit configuration.
+    /// </summary>
+    public RateLimitConfig Config => _config;
+
+    /// <summary>
+    /// Gets the token bucket used for rate limiting.
+    /// </summary>
+    public TokenBucket TokenBucket => _tokenBucket;
+
+    /// <summary>
+    /// Gets the semaphore used for concurrency control.
+    /// </summary>
+    public SemaphoreSlim Semaphore => _semaphore;
+
         public RateLimitingMiddleware(ILogger<RateLimitingMiddleware> logger, RateLimitConfig config = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

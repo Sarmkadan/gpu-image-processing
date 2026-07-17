@@ -18,7 +18,42 @@ namespace GpuImageProcessing.Middleware
         {
             ArgumentNullException.ThrowIfNull(value);
 
-            return Array.Empty<string>();
+            var problems = new List<string>();
+
+            // Validate configuration values
+            if (value.Config == null)
+            {
+                problems.Add("RateLimitConfig cannot be null");
+            }
+            else
+            {
+                if (value.Config.MaxTokens <= 0)
+                {
+                    problems.Add("MaxTokens must be greater than 0");
+                }
+
+                if (value.Config.RefillRate <= 0)
+                {
+                    problems.Add("RefillRate must be greater than 0");
+                }
+
+                if (value.Config.TokenCost <= 0)
+                {
+                    problems.Add("TokenCost must be greater than 0");
+                }
+
+                if (value.Config.MaxConcurrentOperations <= 0)
+                {
+                    problems.Add("MaxConcurrentOperations must be greater than 0");
+                }
+
+                if (value.Config.RetryAfterSeconds < 0)
+                {
+                    problems.Add("RetryAfterSeconds cannot be negative");
+                }
+            }
+
+            return problems;
         }
 
         /// <summary>
@@ -46,7 +81,7 @@ namespace GpuImageProcessing.Middleware
             if (problems.Count > 0)
             {
                 throw new ArgumentException(
-                    $"RateLimitingMiddleware is invalid. Validation errors: {string.Join(" ", problems)}");
+                    $"RateLimitingMiddleware is invalid. Validation errors: {string.Join(", ", problems)}");
             }
         }
     }
