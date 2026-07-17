@@ -12,7 +12,7 @@ namespace GpuImageProcessing.Pipeline;
 
 /// <summary>
 /// Provides System.Text.Json serialization helpers for <see cref="BatchProcessingPipeline"/>
-/// and related types.
+/// and related types using invariant culture for consistent JSON formatting.
 /// </summary>
 public static class BatchProcessingPipelineJsonExtensions
 {
@@ -48,6 +48,7 @@ public static class BatchProcessingPipelineJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized <see cref="BatchProcessingPipeline"/> instance, or null if JSON is invalid.</returns>
     /// <exception cref="ArgumentException">When <paramref name="json"/> is null or empty.</exception>
+    /// <exception cref="JsonException">When the JSON is malformed and cannot be deserialized.</exception>
     public static BatchProcessingPipeline? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
