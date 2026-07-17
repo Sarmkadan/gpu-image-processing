@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 namespace GpuImageProcessing.Integration
 {
     /// <summary>
-    /// Provides JSON serialization and deserialization extensions for <see cref="DatabaseConnectionPool"/>.
+    /// Provides JSON serialization and deserialization extensions for <see cref="DatabaseConnectionPool"/>
     /// </summary>
     public static class DatabaseConnectionPoolJsonExtensions
     {
@@ -35,10 +35,7 @@ namespace GpuImageProcessing.Integration
             ArgumentNullException.ThrowIfNull(value);
 
             var options = indented
-                ? new JsonSerializerOptions(_jsonSerializerOptions)
-                {
-                    WriteIndented = true
-                }
+                ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
                 : _jsonSerializerOptions;
 
             return JsonSerializer.Serialize(value, options);
@@ -53,10 +50,7 @@ namespace GpuImageProcessing.Integration
         /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or whitespace.</exception>
         public static DatabaseConnectionPool? FromJson(string json)
         {
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return null;
-            }
+            ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
             return JsonSerializer.Deserialize<DatabaseConnectionPool>(json, _jsonSerializerOptions);
         }
