@@ -50,7 +50,7 @@ public static class GpuDeviceExtensionsJsonExtensions
     }
 
     /// <summary>
-    /// Serializes a GpuDeviceExtensions configuration to a JSON string.
+    /// Serializes a <see cref="GpuDeviceExtensionsConfig"/> to a JSON string.
     /// </summary>
     /// <param name="value">The configuration to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
@@ -68,13 +68,16 @@ public static class GpuDeviceExtensionsJsonExtensions
     }
 
     /// <summary>
-    /// Deserializes a JSON string to a GpuDeviceExtensions configuration instance.
+    /// Deserializes a JSON string to a <see cref="GpuDeviceExtensionsConfig"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized configuration, or null if the JSON is null or empty.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
     /// <exception cref="JsonException">Thrown if the JSON is invalid or cannot be deserialized.</exception>
     public static GpuDeviceExtensionsConfig? FromJson(string json)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         if (string.IsNullOrEmpty(json))
         {
             return null;
@@ -91,13 +94,16 @@ public static class GpuDeviceExtensionsJsonExtensions
     }
 
     /// <summary>
-    /// Attempts to deserialize a JSON string to a GpuDeviceExtensions configuration instance.
+    /// Attempts to deserialize a JSON string to a <see cref="GpuDeviceExtensionsConfig"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized configuration if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out GpuDeviceExtensionsConfig? value)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         value = null;
 
         if (string.IsNullOrEmpty(json))
