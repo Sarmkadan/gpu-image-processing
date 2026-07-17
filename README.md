@@ -5668,10 +5668,53 @@ class Program
             Timestamp = DateTime.UtcNow,
             Details = new Dictionary<string, object> { { "key", "value" } }
         };
-        
-        // Accessing notification properties
-        Console.WriteLine($"Notification: {customNotification.Title} (Severity: {customNotification.Severity})");
-    }
-}
-```
+
+
+        ## AsyncTaskQueue
+
+        The `AsyncTaskQueue` is a background service for managing task execution with priority and concurrency control. It allows enqueuing asynchronous actions, tracking their status, and handling task cancellation, making it useful for managing resource-intensive GPU tasks efficiently.
+
+        ### Usage Example
+
+        ```csharp
+        using GpuImageProcessing.Services;
+        using System;
+        using System.Threading;
+        using System.Threading.Tasks;
+
+        class Program
+        {
+            static async Task Main()
+            {
+                // Initialize with a concurrency limit
+                var queue = new AsyncTaskQueue(maxConcurrentTasks: 2);
+
+                // Enqueue tasks with priorities
+                var taskId = queue.EnqueueTask(async ct => {
+                    Console.WriteLine("Executing background task...");
+                    await Task.Delay(100, ct);
+                }, priority: 1, name: "ProcessingTask");
+
+                // Start the background processing
+                var cts = new CancellationTokenSource();
+                _ = queue.StartAsync(cts.Token);
+
+                // Check the queue status
+                var status = queue.GetStatus();
+                Console.WriteLine($"Is Running: {status.IsRunning}, Queued: {status.QueuedCount}");
+
+                // Cancel a specific task
+                bool cancelled = queue.CancelTask(taskId);
+                Console.WriteLine($"Task {taskId} cancelled: {cancelled}");
+
+                // List all tasks with their current info
+                var tasks = queue.GetAllTasks();
+                foreach (var task in tasks)
+                {
+                    Console.WriteLine($"Task: {task.Name}, State: {task.State}");
+                }
+            }
+        }
+        ```
+
 
