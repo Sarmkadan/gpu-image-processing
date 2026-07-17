@@ -485,85 +485,93 @@ class Program
 
 The `PathUtilities` class provides a comprehensive set of utilities for path manipulation, normalization, and directory management. It handles cross-platform path operations, safe file operations, and directory traversal with robust error handling to ensure reliable file system operations across different operating systems.
 
-### Usage Example
+## ValidationUtilities
+
+The `ValidationUtilities` class provides comprehensive validation utilities for image processing parameters and configurations. It includes validation methods for filter parameters, image dimensions, rotation angles, scaling factors, batch jobs, processing profiles, device IDs, and string parameters, ensuring all inputs meet expected criteria before processing.
+
+### Key Features
+
+- Validates filter parameters for different filter types (Gaussian, Sobel, Median, Canny, Bilateral)
+- Validates image dimensions, rotation angles, and scaling factors
+- Validates batch processing jobs and processing profiles
+- Checks for safe file paths and valid device IDs
+- Validates string parameters with configurable length constraints
+- Provides detailed validation results with error messages
+
+### Usage Examples
 
 ```csharp
 using GpuImageProcessing.Utilities;
 using System;
-using System.IO;
+using System.Collections.Generic;
 
 class Program
 {
     static void Main()
     {
-        string basePath = "/home/user/projects/gpu-image-processing";
-        string tempDir = PathUtilities.CombinePaths(basePath, "temp");
+        // Validate image dimensions
+        var dimensionsResult = ValidationUtilities.ValidateImageDimensions(1920, 1080);
+        if (!dimensionsResult.IsValid)
+        {
+            Console.WriteLine($"Invalid dimensions: {dimensionsResult.ErrorMessage}");
+        }
+        else
+        {
+            Console.WriteLine("Image dimensions are valid");
+        }
 
-        // Normalize and get absolute path
-        string normalizedPath = PathUtilities.NormalizePath("~/projects/../projects/gpu-image-processing");
-        Console.WriteLine($"Normalized: {normalizedPath}");
+        // Validate rotation angle
+        var rotationResult = ValidationUtilities.ValidateRotationAngle(45.5f);
+        Console.WriteLine($"Rotation angle validation: {(rotationResult.IsValid ? "Valid" : rotationResult.ErrorMessage)}");
 
-        // Get relative path
-        string relativePath = PathUtilities.GetRelativePath(basePath, "/home/user/data/images");
-        Console.WriteLine($"Relative: {relativePath}");
+        // Validate scale factor
+        var scaleResult = ValidationUtilities.ValidateScaleFactor(1.5);
+        Console.WriteLine($"Scale factor validation: {(scaleResult.IsValid ? "Valid" : scaleResult.ErrorMessage)}");
 
-        // Combine multiple path segments
-        string combinedPath = PathUtilities.CombinePaths(basePath, "output", "processed", "images");
-        Console.WriteLine($"Combined: {combinedPath}");
+        // Validate filter parameters
+        var filterParams = new Dictionary<string, object> { { "sigma", 2.5f } };
+        var filterResult = ValidationUtilities.ValidateFilterParameters(FilterType.Gaussian, filterParams);
+        Console.WriteLine($"Filter validation: {(filterResult.IsValid ? "Valid" : filterResult.ErrorMessage)}");
 
-        // Ensure directory exists
-        bool dirCreated = PathUtilities.EnsureDirectoryExists(tempDir);
-        Console.WriteLine($"Directory created: {dirCreated}");
+        // Validate batch job
+        var batchResult = ValidationUtilities.ValidateBatchJob(100, 5, 16);
+        Console.WriteLine($"Batch job validation: {(batchResult.IsValid ? "Valid" : batchResult.ErrorMessage)}");
 
-        // Get absolute path
-        string absolutePath = PathUtilities.GetAbsolutePath("temp/../temp2");
-        Console.WriteLine($"Absolute: {absolutePath}");
+        // Validate processing profile
+        var profileResult = ValidationUtilities.ValidateProcessingProfile(8, 32, 60);
+        Console.WriteLine($"Processing profile validation: {(profileResult.IsValid ? "Valid" : profileResult.ErrorMessage)}");
 
-        // Safe directory operations
-        bool cleared = PathUtilities.ClearDirectory(tempDir);
-        Console.WriteLine($"Directory cleared: {cleared}");
+        // Check safe file path
+        bool isSafe = ValidationUtilities.IsSafeFilePath("/data/images/output.jpg");
+        Console.WriteLine($"File path is safe: {isSafe}");
 
-        // Count files recursively
-        int fileCount = PathUtilities.CountFiles(basePath, "*.cs");
-        Console.WriteLine($"C# files: {fileCount}");
+        // Validate device ID
+        var deviceResult = ValidationUtilities.ValidateDeviceId(1, 4);
+        Console.WriteLine($"Device ID validation: {(deviceResult.IsValid ? "Valid" : deviceResult.ErrorMessage)}");
 
-        // Get all files recursively
-        var allFiles = PathUtilities.GetFilesRecursive(basePath, "*.md");
-        Console.WriteLine($"Markdown files found: {allFiles.Count}");
+        // Validate string parameter
+        var stringResult = ValidationUtilities.ValidateStringParameter("profile-name", "Profile name", minLength: 3, maxLength: 50);
+        Console.WriteLine($"String validation: {(stringResult.IsValid ? "Valid" : stringResult.ErrorMessage)}");
 
-        // Generate unique filename
-        string testFile = PathUtilities.CombinePaths(tempDir, "test.txt");
-        File.WriteAllText(testFile, "test");
-        string uniqueFile = PathUtilities.GenerateUniqueFilename(testFile);
-        Console.WriteLine($"Unique filename: {Path.GetFileName(uniqueFile)}");
-
-        // Get directory size
-        long dirSize = PathUtilities.GetDirectorySize(basePath);
-        Console.WriteLine($"Project size: {dirSize:N0} bytes");
-
-        // Safe file operations
-        string destFile = PathUtilities.CombinePaths(tempDir, "copy.txt");
-        bool copied = PathUtilities.SafeCopyFile(testFile, destFile, overwrite: true);
-        Console.WriteLine($"File copied: {copied}");
-
-        bool moved = PathUtilities.SafeMoveFile(destFile, PathUtilities.CombinePaths(tempDir, "moved.txt"), overwrite: true);
-        Console.WriteLine($"File moved: {moved}");
-
-        // Get recent files (modified in last 24 hours)
-        var recentFiles = PathUtilities.GetRecentFiles(basePath, TimeSpan.FromHours(24), "*.cs");
-        Console.WriteLine($"Recently modified C# files: {recentFiles.Count}");
-
-        // Get path size info
-        string sizeInfo = PathUtilities.GetPathSizeInfo(basePath);
-        Console.WriteLine($"Path size info: {sizeInfo}");
-
-        // Cleanup
-        PathUtilities.SafeDeleteDirectory(tempDir);
+        // Create custom validation result and add errors
+        var customResult = ValidationUtilities.ValidationResult.Success();
+        if (!customResult.IsValid)
+        {
+            Console.WriteLine("Custom validation failed");
+        }
+        
+        // Add multiple errors to a validation result
+        var errorResult = ValidationUtilities.ValidationResult.Failure("Initial error");
+        errorResult.AddError("Second error occurred");
+        errorResult.AddError("Third error detected");
+        Console.WriteLine($"Multiple errors: {errorResult.ErrorMessage}");
+        Console.WriteLine($"Error count: {errorResult.Errors.Count}");
     }
 }
 ```
 
 ## ConfigurationValidator
+
 
 The `ConfigurationValidator` class provides comprehensive validation utilities for application configuration. It ensures that configuration values meet expected criteria before they are used at runtime, including required keys, value ranges, timeouts, batch sizes, memory specifications, URLs, and environment variables. The validator supports both individual validation checks and bulk validation of all configuration values.
 
