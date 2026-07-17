@@ -4,6 +4,7 @@
 // CTO & Software Architect
 // =====================================================================
 
+using System.IO;
 using GpuImageProcessing.Core;
 
 namespace GpuImageProcessing.Domain;
@@ -171,7 +172,12 @@ public static class ImageValidation
     /// </summary>
     /// <param name="value">The image to check.</param>
     /// <returns><see langword="true"/> if the image is valid; otherwise, <see langword="false"/>.</returns>
-    public static bool IsValid(this Image value) => Validate(value).Count == 0;
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
+    public static bool IsValid(this Image value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return Validate(value).Count == 0;
+    }
 
     /// <summary>
     /// Ensures that the specified image is valid, throwing an exception if it is not.
@@ -184,12 +190,9 @@ public static class ImageValidation
         ArgumentNullException.ThrowIfNull(value);
 
         var problems = Validate(value);
-        if (problems.Count > 0)
+        if (problems.Count is not 0)
         {
-            throw new ArgumentException(
-                $"Image validation failed:{Environment.NewLine}- {
-                    string.Join($"{Environment.NewLine}- ", problems)
-                }");
+            throw new ArgumentException($"Image validation failed:{Environment.NewLine}- {string.Join($"{Environment.NewLine}- ", problems)}");
         }
     }
 }
