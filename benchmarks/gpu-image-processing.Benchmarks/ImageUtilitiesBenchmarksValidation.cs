@@ -86,16 +86,28 @@ public static class ImageUtilitiesBenchmarksValidation
         }
     }
 
+    /// <summary>
+    /// Validates that a boolean benchmark method returned a meaningful value.
+    /// </summary>
+    /// <param name="result">The boolean result to validate</param>
+    /// <param name="methodName">Name of the benchmark method</param>
+    /// <param name="problems">List to collect validation problems</param>
     private static void ValidateBooleanMethod(bool result, string methodName, List<string> problems)
     {
         // Boolean methods should return true or false, not default(bool) which is false
         // The actual values will be validated based on the benchmark logic
-        if (!result && result == default)
+        if (result == default)
         {
             problems.Add($"{methodName} returned default(false) value");
         }
     }
 
+    /// <summary>
+    /// Validates that a string benchmark method returned a valid non-empty result.
+    /// </summary>
+    /// <param name="result">The string result to validate</param>
+    /// <param name="methodName">Name of the benchmark method</param>
+    /// <param name="problems">List to collect validation problems</param>
     private static void ValidateStringMethod(string result, string methodName, List<string> problems)
     {
         if (string.IsNullOrEmpty(result))
@@ -109,6 +121,12 @@ public static class ImageUtilitiesBenchmarksValidation
         }
     }
 
+    /// <summary>
+    /// Validates that a nullable string benchmark method returned a valid non-null result.
+    /// </summary>
+    /// <param name="result">The nullable string result to validate</param>
+    /// <param name="methodName">Name of the benchmark method</param>
+    /// <param name="problems">List to collect validation problems</param>
     private static void ValidateNullableStringMethod(string? result, string methodName, List<string> problems)
     {
         if (result is null)
@@ -121,6 +139,12 @@ public static class ImageUtilitiesBenchmarksValidation
         }
     }
 
+    /// <summary>
+    /// Validates that a tuple benchmark method returned reasonable dimensions.
+    /// </summary>
+    /// <param name="result">The tuple result to validate</param>
+    /// <param name="methodName">Name of the benchmark method</param>
+    /// <param name="problems">List to collect validation problems</param>
     private static void ValidateTupleMethod((int, int) result, string methodName, List<string> problems)
     {
         if (result.Item1 <= 0 || result.Item2 <= 0)
