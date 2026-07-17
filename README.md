@@ -5112,6 +5112,70 @@ if (image.Validate())
 
 
 ```
+## JobProcessingWorker
+
+The `JobProcessingWorker` is a background worker that processes image processing jobs asynchronously from a queue. It coordinates the application of filters and transforms to images, manages job lifecycle events, and provides graceful start/stop functionality. The worker integrates with the batch processing service and publishes events for monitoring and observability.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.BackgroundWorkers;
+using GpuImageProcessing.Core.Services;
+using GpuImageProcessing.Events;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize required services (typically via dependency injection in real applications)
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        ILogger<JobProcessingWorker> logger = loggerFactory.CreateLogger<JobProcessingWorker>();
+        
+        var batchProcessingService = new BatchProcessingService(...);
+        var imageProcessingService = new ImageProcessingService(...);
+        var eventPublisher = new EventPublisher(logger);
+        
+        // Create the job processing worker
+        var worker = new JobProcessingWorker(
+            logger,
+            batchProcessingService,
+            imageProcessingService,
+            eventPublisher
+        );
+        
+        Console.WriteLine($"Worker name: {worker.GetName()}");
+        Console.WriteLine($"Worker running: {worker.IsRunning}");
+        
+        // Start the worker asynchronously
+        var cts = new CancellationTokenSource();
+        var workerTask = worker.StartAsync(cts.Token);
+        
+        Console.WriteLine("Job processing worker started...");
+        Console.WriteLine("Press Ctrl+C to stop the worker.");
+        
+        // Keep the worker running
+        try
+        {
+            await workerTask;
+        }
+        catch (OperationCanceledException)
+        {
+            Console.WriteLine("Worker stopped via cancellation.");
+        }
+        
+        // Gracefully stop the worker
+        await worker.StopAsync(TimeSpan.FromSeconds(5));
+        
+        // Clean up
+        worker.Dispose();
+    }
+}
+```
+
 ## CacheMaintenanceWorker
 
 The `CacheMaintenanceWorker` is a background worker that performs periodic cache maintenance tasks including cleanup of expired entries and monitoring of cache health. It automatically removes stale cache entries to prevent memory bloat and provides real-time status updates through events, including warnings when memory usage exceeds configured thresholds.
