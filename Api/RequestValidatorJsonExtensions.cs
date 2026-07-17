@@ -29,7 +29,7 @@ namespace GpuImageProcessing.Api
         /// <param name="value">The request validator to serialize.</param>
         /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
         /// <returns>A JSON string representation of the request validator.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
         public static string ToJson(this RequestValidator value, bool indented = false)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -46,24 +46,19 @@ namespace GpuImageProcessing.Api
         /// Deserializes a JSON string to a <see cref="RequestValidator"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <returns>The deserialized request validator, or null if the JSON is null or empty.</returns>
+        /// <returns>The deserialized request validator, or <see langword="null"/> if the JSON is <see langword="null"/> or empty.</returns>
         /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
         public static RequestValidator? FromJson(string json)
-        {
-            if (string.IsNullOrEmpty(json))
-            {
-                return null;
-            }
-
-            return JsonSerializer.Deserialize<RequestValidator>(json, _jsonSerializerOptions);
-        }
+            => string.IsNullOrEmpty(json)
+                ? null
+                : JsonSerializer.Deserialize<RequestValidator>(json, _jsonSerializerOptions);
 
         /// <summary>
         /// Attempts to deserialize a JSON string to a <see cref="RequestValidator"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
         /// <param name="value">Receives the deserialized request validator if successful.</param>
-        /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+        /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
         public static bool TryFromJson(string json, out RequestValidator? value)
         {
             value = null;
