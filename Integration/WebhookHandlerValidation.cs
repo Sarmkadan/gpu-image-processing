@@ -41,28 +41,28 @@ namespace GpuImageProcessing.Integration
 
             // Validate subscriptions list
             var subscriptions = GetSubscriptions(value);
-            if (subscriptions == null)
+            if (subscriptions is not System.Collections.IList)
             {
-                errors.Add("Subscriptions list cannot be null.");
+                errors.Add("Subscriptions list must be a valid IList instance.");
             }
 
             // Validate http client
             var httpClient = GetHttpClient(value);
-            if (httpClient == null)
+            if (httpClient is null)
             {
                 errors.Add("HttpClient cannot be null.");
             }
 
             // Validate logger
             var logger = GetLogger(value);
-            if (logger == null)
+            if (logger is null)
             {
                 errors.Add("Logger cannot be null.");
             }
 
             // Validate lock object
             var lockObject = GetLockObject(value);
-            if (lockObject == null)
+            if (lockObject is null)
             {
                 errors.Add("Lock object cannot be null.");
             }
@@ -75,10 +75,7 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         /// <param name="value">The webhook handler to check.</param>
         /// <returns>True if the instance is valid; otherwise false.</returns>
-        public static bool IsValid(this WebhookHandler value)
-        {
-            return value?.Validate().Count == 0;
-        }
+        public static bool IsValid(this WebhookHandler value) => value is not null && value.Validate().Count == 0;
 
         /// <summary>
         /// Ensures that a <see cref="WebhookHandler"/> instance is valid, throwing an exception if it is not.
@@ -91,38 +88,73 @@ namespace GpuImageProcessing.Integration
             ArgumentNullException.ThrowIfNull(value);
 
             var errors = value.Validate();
-            if (errors.Count > 0)
+            if (errors.Count is not 0)
             {
-                throw new ArgumentException(
-                    $"WebhookHandler is not valid. Validation errors:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
+                ThrowValidationException("WebhookHandler", errors);
             }
         }
 
-        private static System.Collections.IList GetSubscriptions(WebhookHandler handler)
+        /// <summary>
+/// Gets the subscriptions list from a <see cref="WebhookHandler"/> instance.
+/// </summary>
+/// <param name="handler">The webhook handler instance.</param>
+/// <returns>The subscriptions list, or null if not found.</returns>
+/// <exception cref="ArgumentNullException">Thrown when <paramref name="handler"/> is null.</exception>
+private static System.Collections.IList? GetSubscriptions(WebhookHandler handler)
         {
-            var field = _subscriptionsField;
-            var subscriptions = field.GetValue(handler) as System.Collections.IList;
-            return subscriptions;
+            ArgumentNullException.ThrowIfNull(handler);
+            return _subscriptionsField.GetValue(handler) as System.Collections.IList;
         }
 
-        private static object GetHttpClient(WebhookHandler handler)
+        /// <summary>
+/// Gets the HTTP client from a <see cref="WebhookHandler"/> instance.
+/// </summary>
+/// <param name="handler">The webhook handler instance.</param>
+/// <returns>The HTTP client instance, or null if not found.</returns>
+/// <exception cref="ArgumentNullException">Thrown when <paramref name="handler"/> is null.</exception>
+private static object? GetHttpClient(WebhookHandler handler)
         {
-            var property = _httpClientProperty;
-            return property.GetValue(handler);
+            ArgumentNullException.ThrowIfNull(handler);
+            return _httpClientProperty.GetValue(handler);
         }
 
-        private static object GetLogger(WebhookHandler handler)
+        /// <summary>
+/// Gets the logger from a <see cref="WebhookHandler"/> instance.
+/// </summary>
+/// <param name="handler">The webhook handler instance.</param>
+/// <returns>The logger instance, or null if not found.</returns>
+/// <exception cref="ArgumentNullException">Thrown when <paramref name="handler"/> is null.</exception>
+private static object? GetLogger(WebhookHandler handler)
         {
-            var property = _loggerProperty;
-            return property.GetValue(handler);
+            ArgumentNullException.ThrowIfNull(handler);
+            return _loggerProperty.GetValue(handler);
         }
 
-        private static object GetLockObject(WebhookHandler handler)
+        /// <summary>
+/// Gets the lock object from a <see cref="WebhookHandler"/> instance.
+/// </summary>
+/// <param name="handler">The webhook handler instance.</param>
+/// <returns>The lock object instance, or null if not found.</returns>
+/// <exception cref="ArgumentNullException">Thrown when <paramref name="handler"/> is null.</exception>
+private static object? GetLockObject(WebhookHandler handler)
         {
-            var property = _lockObjectProperty;
-            return property.GetValue(handler);
+            ArgumentNullException.ThrowIfNull(handler);
+            return _lockObjectProperty.GetValue(handler);
+        }
+
+        /// <summary>
+/// Throws a validation exception with the accumulated errors.
+/// </summary>
+/// <param name="typeName">The type name being validated.</param>
+/// <param name="errors">The list of validation error messages.</param>
+/// <exception cref="ArgumentException">Always thrown with the validation errors.</exception>
+private static void ThrowValidationException(string typeName, IReadOnlyList<string> errors)
+        {
+            throw new ArgumentException(
+                $"{typeName} is not valid. Validation errors:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
         }
     }
+}
 
     /// <summary>
     /// Provides validation helpers for <see cref="WebhookRetryPolicy"/> instances.
@@ -157,7 +189,7 @@ namespace GpuImageProcessing.Integration
             {
                 errors.Add("MaxDelayMs must be positive.");
             }
-            else if (value.MaxDelayMs < value.InitialDelayMs)
+            else if (value.MaxDelayMs is { } maxDelay && maxDelay < value.InitialDelayMs)
             {
                 errors.Add("MaxDelayMs must be greater than or equal to InitialDelayMs.");
             }
@@ -176,10 +208,7 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         /// <param name="value">The retry policy to check.</param>
         /// <returns>True if the instance is valid; otherwise false.</returns>
-        internal static bool IsValid(this WebhookRetryPolicy value)
-        {
-            return value?.Validate().Count == 0;
-        }
+        internal static bool IsValid(this WebhookRetryPolicy value) => value is not null && value.Validate().Count == 0;
 
         /// <summary>
         /// Ensures that a <see cref="WebhookRetryPolicy"/> instance is valid, throwing an exception if it is not.
@@ -192,11 +221,22 @@ namespace GpuImageProcessing.Integration
             ArgumentNullException.ThrowIfNull(value);
 
             var errors = value.Validate();
-            if (errors.Count > 0)
+            if (errors.Count is not 0)
             {
-                throw new ArgumentException(
-                    $"WebhookRetryPolicy is not valid. Validation errors:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
+                ThrowValidationException("WebhookRetryPolicy", errors);
             }
+        }
+
+        /// <summary>
+/// Throws a validation exception with the accumulated errors.
+/// </summary>
+/// <param name="typeName">The type name being validated.</param>
+/// <param name="errors">The list of validation error messages.</param>
+/// <exception cref="ArgumentException">Always thrown with the validation errors.</exception>
+private static void ThrowValidationException(string typeName, IReadOnlyList<string> errors)
+        {
+            throw new ArgumentException(
+                $"{typeName} is not valid. Validation errors:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
         }
     }
 
@@ -217,13 +257,13 @@ namespace GpuImageProcessing.Integration
             var errors = new List<string>();
 
             // Validate Id
-            if (string.IsNullOrWhiteSpace(value.Id))
+            if (value.Id is not { Length: > 0 } || string.IsNullOrWhiteSpace(value.Id))
             {
                 errors.Add("Id cannot be null or whitespace.");
             }
 
             // Validate WebhookUrl
-            if (string.IsNullOrWhiteSpace(value.WebhookUrl))
+            if (value.WebhookUrl is not { Length: > 0 } || string.IsNullOrWhiteSpace(value.WebhookUrl))
             {
                 errors.Add("WebhookUrl cannot be null or whitespace.");
             }
@@ -233,7 +273,7 @@ namespace GpuImageProcessing.Integration
             }
 
             // Validate EventType
-            if (string.IsNullOrWhiteSpace(value.EventType))
+            if (value.EventType is not { Length: > 0 } || string.IsNullOrWhiteSpace(value.EventType))
             {
                 errors.Add("EventType cannot be null or whitespace.");
             }
@@ -248,9 +288,6 @@ namespace GpuImageProcessing.Integration
                 errors.Add("CreatedAt cannot be in the future.");
             }
 
-            // Validate IsActive
-            // No validation needed for boolean
-
             // Validate FailureCount
             if (value.FailureCount < 0)
             {
@@ -258,7 +295,7 @@ namespace GpuImageProcessing.Integration
             }
 
             // Validate RetryPolicy
-            if (value.RetryPolicy == null)
+            if (value.RetryPolicy is null)
             {
                 errors.Add("RetryPolicy cannot be null.");
             }
@@ -275,10 +312,7 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         /// <param name="value">The subscription to check.</param>
         /// <returns>True if the instance is valid; otherwise false.</returns>
-        internal static bool IsValid(this WebhookSubscription value)
-        {
-            return value?.Validate().Count == 0;
-        }
+        internal static bool IsValid(this WebhookSubscription value) => value is not null && value.Validate().Count == 0;
 
         /// <summary>
         /// Ensures that a <see cref="WebhookSubscription"/> instance is valid, throwing an exception if it is not.
@@ -291,11 +325,21 @@ namespace GpuImageProcessing.Integration
             ArgumentNullException.ThrowIfNull(value);
 
             var errors = value.Validate();
-            if (errors.Count > 0)
+            if (errors.Count is not 0)
             {
-                throw new ArgumentException(
-                    $"WebhookSubscription is not valid. Validation errors:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
+                ThrowValidationException("WebhookSubscription", errors);
             }
         }
+
+        /// <summary>
+/// Throws a validation exception with the accumulated errors.
+/// </summary>
+/// <param name="typeName">The type name being validated.</param>
+/// <param name="errors">The list of validation error messages.</param>
+/// <exception cref="ArgumentException">Always thrown with the validation errors.</exception>
+private static void ThrowValidationException(string typeName, IReadOnlyList<string> errors)
+        {
+            throw new ArgumentException(
+                $"{typeName} is not valid. Validation errors:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
+        }
     }
-}
