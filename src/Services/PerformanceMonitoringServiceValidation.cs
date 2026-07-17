@@ -5,8 +5,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+using GpuImageProcessing.Domain;
 
 namespace GpuImageProcessing.Services;
 
@@ -27,13 +26,127 @@ public static class PerformanceMonitoringServiceValidation
 
         var problems = new List<string>();
 
-        // Add validation rules here
-        if (value.GetCurrentMetrics() == null)
+        try
         {
-            problems.Add("Current metrics are null");
+            var currentMetrics = value.GetCurrentMetrics();
+            if (currentMetrics == null)
+            {
+                problems.Add("Current metrics are null");
+            }
+            else
+            {
+                ValidatePerformanceMetrics(currentMetrics, problems);
+            }
+
+            var history = value.GetMetricsHistory(limit: 1);
+            if (history == null)
+            {
+                problems.Add("Metrics history enumeration is null");
+            }
+        }
+        catch (Exception ex)
+        {
+            problems.Add($"Validation failed with exception: {ex.Message}");
         }
 
         return problems;
+    }
+
+    /// <summary>
+    /// Validates a <see cref="PerformanceMetrics"/> instance.
+    /// </summary>
+    /// <param name="metrics">The metrics to validate.</param>
+    /// <param name="problems">Collection to accumulate validation problems.</param>
+    private static void ValidatePerformanceMetrics(PerformanceMetrics metrics, ICollection<string> problems)
+    {
+        ArgumentNullException.ThrowIfNull(metrics);
+        ArgumentNullException.ThrowIfNull(problems);
+
+        if (metrics.CpuUsagePercent < 0 || metrics.CpuUsagePercent > 100)
+        {
+            problems.Add($"CPU usage percentage must be between 0 and 100, got {metrics.CpuUsagePercent:F2}%");
+        }
+
+        if (metrics.MemoryUsedBytes < 0)
+        {
+            problems.Add($"Memory used bytes must be non-negative, got {metrics.MemoryUsedBytes}");
+        }
+
+        if (metrics.GpuMemoryUsedBytes < 0)
+        {
+            problems.Add($"GPU memory used bytes must be non-negative, got {metrics.GpuMemoryUsedBytes}");
+        }
+
+        if (metrics.GpuUtilizationPercent < 0 || metrics.GpuUtilizationPercent > 100)
+        {
+            problems.Add($"GPU utilization percentage must be between 0 and 100, got {metrics.GpuUtilizationPercent:F2}%");
+        }
+
+        if (metrics.AverageExecutionTimeMs < 0)
+        {
+            problems.Add($"Average execution time must be non-negative, got {metrics.AverageExecutionTimeMs:F2}ms");
+        }
+
+        if (metrics.MaxExecutionTimeMs < 0)
+        {
+            problems.Add($"Max execution time must be non-negative, got {metrics.MaxExecutionTimeMs:F2}ms");
+        }
+
+        if (metrics.MinExecutionTimeMs < 0)
+        {
+            problems.Add($"Min execution time must be non-negative, got {metrics.MinExecutionTimeMs:F2}ms");
+        }
+
+        if (metrics.TotalOperationsCount < 0)
+        {
+            problems.Add($"Total operations count must be non-negative, got {metrics.TotalOperationsCount}");
+        }
+
+        if (metrics.FailedOperationsCount < 0)
+        {
+            problems.Add($"Failed operations count must be non-negative, got {metrics.FailedOperationsCount}");
+        }
+
+        if (metrics.FailedOperationsCount > metrics.TotalOperationsCount)
+        {
+            problems.Add($"Failed operations count ({metrics.FailedOperationsCount}) cannot exceed total operations count ({metrics.TotalOperationsCount })");
+        }
+
+        if (metrics.ThroughputMegabytesPerSecond < 0)
+        {
+            problems.Add($"Throughput must be non-negative, got {metrics.ThroughputMegabytesPerSecond:F2} MB/s");
+        }
+
+        if (metrics.ImagePixelsProcessedPerSecond < 0)
+        {
+            problems.Add($"Pixels processed per second must be non-negative, got {metrics.ImagePixelsProcessedPerSecond}");
+        }
+
+        if (metrics.ExecutionTimes == null)
+        {
+            problems.Add("Execution times collection is null");
+        }
+        else if (metrics.ExecutionTimes.Count > 0)
+        {
+            foreach (var executionTime in metrics.ExecutionTimes)
+            {
+                if (executionTime < 0)
+                {
+                    problems.Add($"Execution time must be non-negative, got {executionTime:F2}ms");
+                    break;
+                }
+            }
+        }
+
+        if (metrics.RecordedAt > DateTime.UtcNow.AddMinutes(1))
+        {
+            problems.Add($"Recorded timestamp is in the future, got {metrics.RecordedAt:O}");
+        }
+
+        if (metrics.RecordedAt < DateTime.UtcNow.AddDays(-365))
+        {
+            problems.Add($"Recorded timestamp is too old, got {metrics.RecordedAt:O}");
+        }
     }
 
     /// <summary>
@@ -58,7 +171,7 @@ public static class PerformanceMonitoringServiceValidation
         var problems = Validate(value);
         if (problems.Count > 0)
         {
-            throw new ArgumentException($"Invalid PerformanceMonitoringService instance: {string.Join(Environment.NewLine, problems)}", nameof(value));
+            throw new ArgumentException($"Invalid PerformanceMonitoringService instance:{Environment.NewLine}{string.Join(Environment.NewLine, problems)}", nameof(value));
         }
     }
 }
