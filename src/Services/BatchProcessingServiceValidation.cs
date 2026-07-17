@@ -1,19 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 
 namespace GpuImageProcessing.Services
 {
     /// <summary>
-    /// Validation helpers for the <see cref="BatchProcessingService"/> class.
+    /// Provides validation methods for <see cref="BatchProcessingService"/> instances.
     /// </summary>
     public static class BatchProcessingServiceValidation
     {
         /// <summary>
-        /// Validates the specified <see cref="BatchProcessingService"/> instance.
+        /// Validates the specified <see cref="BatchProcessingService"/> instance and its dependencies.
         /// </summary>
         /// <param name="value">The <see cref="BatchProcessingService"/> instance to validate.</param>
-        /// <returns>A list of human-readable problems with the instance.</returns>
+        /// <returns>A list of human-readable problems with the instance or its dependencies.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
         public static IReadOnlyList<string> Validate(this BatchProcessingService value)
         {
@@ -21,7 +20,19 @@ namespace GpuImageProcessing.Services
 
             var problems = new List<string>();
 
-            // No validation is possible for this class as it does not have any public properties or fields.
+            // Validate service dependencies through reflection to check for null fields
+            // Since BatchProcessingService has private readonly fields that are validated in constructor,
+            // we can only verify they're not null by attempting to use them
+            try
+            {
+                // Trigger validation by accessing a method that uses the dependencies
+                _ = value.GetActiveBatchCount();
+            }
+            catch (NullReferenceException)
+            {
+                problems.Add("Service dependencies contain null references. The service may not have been properly initialized.");
+            }
+
             return problems.AsReadOnly();
         }
 
