@@ -198,7 +198,12 @@ namespace GpuImageProcessing.Events
             _asyncHandlers.Remove(key);
         }
 
-        private void ThrowIfDisposed()
+        /// <summary>
+    /// Gets a value indicating whether this instance has been disposed.
+    /// </summary>
+    internal bool IsDisposed => _disposed;
+
+    private void ThrowIfDisposed()
         {
             if (_disposed)
                 throw new ObjectDisposedException("EventAggregator");
