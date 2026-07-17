@@ -3,7 +3,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
 using System.Collections.Generic;
@@ -22,7 +22,7 @@ public static class BatchProcessingPipelineValidation
     /// </summary>
     /// <param name="value">The batch pipeline result to validate.</param>
     /// <returns>A list of human-readable validation problems; empty if valid.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
     public static IReadOnlyList<string> Validate(this BatchPipelineResult? value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -95,17 +95,23 @@ public static class BatchProcessingPipelineValidation
             problems.Add("Completed timestamp cannot be in the future.");
         }
 
-        // Validate Outcomes collection
-        if (value.Outcomes == null)
+        // Validate Outcomes collection using pattern matching
+        if (value.Outcomes is null)
         {
             problems.Add("Outcomes collection cannot be null.");
         }
         else
         {
-            // Validate each outcome
+            // Validate Outcomes count matches TotalImages
+            if (value.TotalImages > 0 && value.Outcomes.Count != value.TotalImages)
+            {
+                problems.Add("Outcomes collection count must match total images count.");
+            }
+
+            // Validate each outcome using pattern matching and expression bodies
             foreach (var outcome in value.Outcomes)
             {
-                if (outcome == null)
+                if (outcome is null)
                 {
                     problems.Add("Outcome in collection cannot be null.");
                     continue;
@@ -117,9 +123,8 @@ public static class BatchProcessingPipelineValidation
                     problems.Add("Image ID in outcome cannot be empty.");
                 }
 
-                // Validate Stage
-                // PipelineStage.Pending = 0 is valid for incomplete batches
-                if (outcome.Stage < PipelineStage.Pending || outcome.Stage > PipelineStage.Failed)
+                // Validate Stage using pattern matching
+                if (outcome.Stage is not (>= PipelineStage.Pending and <= PipelineStage.Failed))
                 {
                     problems.Add($"Image outcome has invalid stage: {outcome.Stage}.");
                 }
@@ -136,21 +141,18 @@ public static class BatchProcessingPipelineValidation
                     problems.Add("Processing time cannot be negative.");
                 }
 
-                // Validate Error message
-                if (outcome.Stage == PipelineStage.Failed && string.IsNullOrWhiteSpace(outcome.Error))
+                // Validate Error message using pattern matching
+                if (outcome.Stage == PipelineStage.Failed)
                 {
-                    problems.Add("Failed outcome must have an error message.");
+                    if (string.IsNullOrWhiteSpace(outcome.Error))
+                    {
+                        problems.Add("Failed outcome must have an error message.");
+                    }
                 }
-                else if (outcome.Stage != PipelineStage.Failed && !string.IsNullOrWhiteSpace(outcome.Error))
+                else if (!string.IsNullOrWhiteSpace(outcome.Error))
                 {
                     problems.Add("Only failed outcomes should have error messages.");
                 }
-            }
-
-            // Validate Outcomes count matches TotalImages
-            if (value.TotalImages > 0 && value.Outcomes.Count != value.TotalImages)
-            {
-                problems.Add("Outcomes collection count must match total images count.");
             }
         }
 
@@ -162,13 +164,14 @@ public static class BatchProcessingPipelineValidation
     /// </summary>
     /// <param name="value">The batch pipeline result to check.</param>
     /// <returns><see langword="true"/> if the result is valid; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
     public static bool IsValid(this BatchPipelineResult? value) => Validate(value).Count == 0;
 
     /// <summary>
     /// Ensures that the specified <see cref="BatchPipelineResult"/> instance is valid.
     /// </summary>
     /// <param name="value">The batch pipeline result to validate.</param>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException">Thrown when the result is invalid, containing a list of validation problems.</exception>
     public static void EnsureValid(this BatchPipelineResult? value)
     {
