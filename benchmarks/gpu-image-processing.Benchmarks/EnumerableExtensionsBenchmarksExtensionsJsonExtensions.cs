@@ -12,8 +12,7 @@ using System.Text.Json.Serialization;
 namespace GpuImageProcessing.Benchmarks;
 
 /// <summary>
-/// Provides System.Text.Json serialization extensions for EnumerableExtensionsBenchmarksExtensions
-/// benchmark configuration and results.
+/// Provides System.Text.Json serialization extensions for benchmark configuration and results.
 /// </summary>
 public static class EnumerableExtensionsBenchmarksExtensionsJsonExtensions
 {
@@ -36,36 +35,30 @@ public static class EnumerableExtensionsBenchmarksExtensionsJsonExtensions
     }
 
     /// <summary>
-    /// Serializes an EnumerableExtensionsBenchmarksExtensions instance to JSON.
+    /// Serializes a benchmark configuration object to JSON.
     /// </summary>
-    /// <param name="value">The instance to serialize. Must not be null.</param>
+    /// <param name="value">The configuration object to serialize. Must not be null.</param>
     /// <param name="indented">Whether to format with indentation.</param>
-    /// <returns>JSON string representation.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when value is null.</exception>
+    /// <returns>JSON string representation of the configuration.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static string ToJson(this object value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
-
-        var config = new BenchmarkConfig
-        {
-            BatchSize = 32,
-            ShuffleIterations = 100,
-            EnableValidation = true
-        };
 
         var options = indented
             ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
             : _jsonOptions;
 
-        return JsonSerializer.Serialize(config, options);
+        return JsonSerializer.Serialize(value, options);
     }
 
     /// <summary>
-    /// Deserializes JSON to an EnumerableExtensionsBenchmarksExtensions instance.
+    /// Deserializes JSON to a benchmark configuration.
     /// </summary>
-    /// <param name="json">JSON string to deserialize.</param>
-    /// <returns>Deserialized instance or null.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when json is null.</exception>
+    /// <param name="json">JSON string to deserialize. Must not be null or whitespace.</param>
+    /// <returns>Deserialized configuration instance or null if JSON is empty.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
     /// <exception cref="JsonException">Thrown when JSON is invalid.</exception>
     public static object? FromJson(string json)
     {
@@ -76,23 +69,16 @@ public static class EnumerableExtensionsBenchmarksExtensionsJsonExtensions
             return null;
         }
 
-        try
-        {
-            return JsonSerializer.Deserialize<BenchmarkConfig>(json, _jsonOptions);
-        }
-        catch (JsonException)
-        {
-            throw;
-        }
+        return JsonSerializer.Deserialize<BenchmarkConfig>(json, _jsonOptions);
     }
 
     /// <summary>
-    /// Attempts to deserialize JSON to an EnumerableExtensionsBenchmarksExtensions instance.
+    /// Attempts to deserialize JSON to a benchmark configuration.
     /// </summary>
-    /// <param name="json">JSON string to deserialize.</param>
-    /// <param name="value">Receives deserialized instance if successful.</param>
+    /// <param name="json">JSON string to deserialize. Must not be null.</param>
+    /// <param name="value">Receives deserialized configuration if successful.</param>
     /// <returns>True if successful; otherwise false.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when json is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out object? value)
     {
         ArgumentNullException.ThrowIfNull(json);
