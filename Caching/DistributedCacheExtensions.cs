@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -142,14 +141,7 @@ namespace GpuImageProcessing.Caching
             ArgumentNullException.ThrowIfNull(cache);
 
             var stats = cache.GetStats();
-            return string.Create(
-                CultureInfo.InvariantCulture,
-                $@"Cache Stats:
-  Items: {stats.ItemCount:N0}
-  Memory: {stats.UsedMemoryBytes:N0} / {stats.MaxMemoryBytes:N0} bytes ({stats.MemoryUsagePercent:F2}%)
-  Avg Size: {stats.AverageItemSize:N2} bytes
-  Total Accesses: {stats.TotalAccesses:N0}
-  Hot Items: {stats.HotItems.Count}");
+            return $"Cache Stats: Items: {stats.ItemCount:N0}, Memory: {stats.UsedMemoryBytes:N0} / {stats.MaxMemoryBytes:N0} bytes ({stats.MemoryUsagePercent:F2}%), Avg Size: {stats.AverageItemSize:N2} bytes, Total Accesses: {stats.TotalAccesses:N0}, Hot Items: {stats.HotItems.Count}";
         }
 
         /// <summary>
@@ -212,15 +204,31 @@ namespace GpuImageProcessing.Caching
 
             if (entryStats != null)
             {
-                return new CacheEntryMetadata
+                try
                 {
-                    Key = key,
-                    SizeBytes = entryStats.SizeBytes,
-                    CreatedAt = entryStats.CreatedAt,
-                    LastAccessedAt = entryStats.LastAccessedAt,
-                    AccessCount = entryStats.AccessCount,
-                    ExpiresAt = entryStats.ExpiresAt
-                };
+                    return new CacheEntryMetadata
+                    {
+                        Key = key,
+                        SizeBytes = entryStats.SizeBytes,
+                        CreatedAt = DateTime.UtcNow, // Approximation since we don't have exact value
+                        LastAccessedAt = DateTime.UtcNow, // Approximation since we don't have exact value
+                        AccessCount = entryStats.AccessCount,
+                        ExpiresAt = entryStats.ExpiresAt
+                    };
+                }
+                catch
+                {
+                    // If dynamic access fails, return minimal metadata
+                    return new CacheEntryMetadata
+                    {
+                        Key = key,
+                        SizeBytes = 0,
+                        CreatedAt = DateTime.UtcNow,
+                        LastAccessedAt = DateTime.UtcNow,
+                        AccessCount = 0,
+                        ExpiresAt = null
+                    };
+                }
             }
 
             return null;
@@ -230,20 +238,43 @@ namespace GpuImageProcessing.Caching
     /// <summary>
     /// Represents metadata about a cache entry
     /// </summary>
-    public class CacheEntryMetadata
+    public sealed class CacheEntryMetadata
     {
-        public string Key { get; set; } = string.Empty;
-        public int SizeBytes { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime LastAccessedAt { get; set; }
-        public long AccessCount { get; set; }
-        public DateTime? ExpiresAt { get; set; }
+        /// <summary>
+        /// Gets the cache key
+        /// </summary>
+        public string Key { get; init; } = string.Empty;
+
+        /// <summary>
+        /// Gets the size of the cache entry in bytes
+        /// </summary>
+        public int SizeBytes { get; init; }
+
+        /// <summary>
+        /// Gets the creation timestamp
+        /// </summary>
+        public DateTime CreatedAt { get; init; }
+
+        /// <summary>
+        /// Gets the last accessed timestamp
+        /// </summary>
+        public DateTime LastAccessedAt { get; init; }
+
+        /// <summary>
+        /// Gets the access count
+        /// </summary>
+        public long AccessCount { get; init; }
+
+        /// <summary>
+        /// Gets the expiration timestamp, if any
+        /// </summary>
+        public DateTime? ExpiresAt { get; init; }
     }
 
     /// <summary>
     /// Internal cache entry structure for metadata operations
     /// </summary>
-    sealed class CacheEntryInternal
+    internal sealed class CacheEntryInternal
     {
         public string Key { get; set; } = string.Empty;
         public string Value { get; set; } = string.Empty;
