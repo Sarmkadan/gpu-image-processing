@@ -1911,6 +1911,137 @@ Console.WriteLine($"Result still exists after delete: {resultAfterDelete != null
 }
 ```
 
+## JobRepository
+
+The `JobRepository` class provides data access operations for managing `ProcessingJob` entities, implementing a repository pattern for job management in memory. It offers comprehensive CRUD operations along with specialized query methods for filtering jobs by status, progress, date ranges, and other criteria. This repository is particularly useful for monitoring and managing batch image processing jobs throughout the GPU pipeline.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Repository;
+using GpuImageProcessing.Core.Models;
+using GpuImageProcessing.Core.Constants;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create repository instance
+        var repository = new JobRepository();
+
+        // Create sample jobs with different statuses
+        var pendingJob = new ProcessingJob
+        {
+            Name = "Batch-001",
+            Description = "High priority batch processing",
+            Status = ProcessingStatus.Pending,
+            CreatedAt = DateTime.UtcNow.AddMinutes(-30)
+        };
+        pendingJob.ImageIds.Add(Guid.NewGuid());
+        pendingJob.FilterIds.Add(Guid.NewGuid());
+
+        var runningJob = new ProcessingJob
+        {
+            Name = "Batch-002",
+            Description = "Currently processing",
+            Status = ProcessingStatus.Running,
+            CreatedAt = DateTime.UtcNow.AddMinutes(-15)
+        };
+        runningJob.ImageIds.Add(Guid.NewGuid());
+        runningJob.FilterIds.Add(Guid.NewGuid());
+
+        var completedJob = new ProcessingJob
+        {
+            Name = "Batch-003",
+            Description = "Recently completed",
+            Status = ProcessingStatus.Completed,
+            CreatedAt = DateTime.UtcNow.AddHours(-2),
+            CompletedAt = DateTime.UtcNow.AddHours(-1),
+            ProcessedImages = 150,
+            FailedImages = 2
+        };
+        completedJob.ImageIds.Add(Guid.NewGuid());
+        completedJob.FilterIds.Add(Guid.NewGuid());
+
+        // Add jobs to repository
+        await repository.AddAsync(pendingJob);
+        await repository.AddAsync(runningJob);
+        await repository.AddAsync(completedJob);
+
+        Console.WriteLine("Created 3 sample jobs");
+
+        // Get all jobs
+        var allJobs = await repository.GetAllAsync();
+        Console.WriteLine($"Total jobs: {allJobs.Count()}");
+
+        // Get jobs by status
+        var pendingJobs = await repository.GetPendingAsync();
+        Console.WriteLine($"Pending jobs: {pendingJobs.Count()}");
+
+        var runningJobs = await repository.GetRunningAsync();
+        Console.WriteLine($"Running jobs: {runningJobs.Count()}");
+
+        var failedJobs = await repository.GetFailedAsync();
+        Console.WriteLine($"Failed jobs: {failedJobs.Count()}");
+
+        // Get completed jobs within date range
+        var completedBetween = await repository.GetCompletedBetweenAsync(
+            DateTime.UtcNow.AddDays(-1),
+            DateTime.UtcNow
+        );
+        Console.WriteLine($"Jobs completed today: {completedBetween.Count()}");
+
+        // Get jobs by filter
+        var filterJobs = await repository.GetByFilterAsync(completedJob.FilterIds.First());
+        Console.WriteLine($"Jobs using filter {completedJob.FilterIds.First()}: {filterJobs.Count()}");
+
+        // Get jobs by image
+        var imageJobs = await repository.GetByImageAsync(completedJob.ImageIds.First());
+        Console.WriteLine($"Jobs processing image {completedJob.ImageIds.First()}: {imageJobs.Count()}");
+
+        // Get jobs with high progress
+        var highProgressJobs = await repository.GetHighProgressAsync(75f);
+        Console.WriteLine($"Jobs with progress >75%: {highProgressJobs.Count()}");
+
+        // Get oldest incomplete job
+        var oldestIncomplete = await repository.GetOldestIncompleteAsync();
+        Console.WriteLine($"Oldest incomplete job: {oldestIncomplete?.Name ?? "None"}");
+
+        // Get job statistics
+        var stats = await repository.GetStatisticsAsync();
+        Console.WriteLine($"\nJob Statistics:");
+        Console.WriteLine($" Total: {stats.TotalJobs}");
+        Console.WriteLine($" Pending: {stats.PendingJobs}");
+        Console.WriteLine($" Running: {stats.RunningJobs}");
+        Console.WriteLine($" Completed: {stats.CompletedJobs}");
+        Console.WriteLine($" Failed: {stats.FailedJobs}");
+        Console.WriteLine($" Cancelled: {stats.CancelledJobs}");
+        Console.WriteLine($" Success Rate: {stats.SuccessRate:P0}");
+        Console.WriteLine($" Avg Completion Time: {stats.AverageCompletionTime:F2}s");
+        Console.WriteLine($" Total Images Processed: {stats.TotalImagesProcessed}");
+
+        // Clear old failed jobs (older than 7 days)
+        var clearedCount = await repository.ClearOldFailedJobsAsync(DateTime.UtcNow.AddDays(-7));
+        Console.WriteLine($"\nCleared {clearedCount} old failed jobs");
+
+        // Access repository statistics (synchronous properties)
+        Console.WriteLine($"\nRepository Statistics:");
+        Console.WriteLine($" Total: {repository.TotalJobs}");
+        Console.WriteLine($" Pending: {repository.PendingJobs}");
+        Console.WriteLine($" Running: {repository.RunningJobs}");
+        Console.WriteLine($" Completed: {repository.CompletedJobs}");
+        Console.WriteLine($" Failed: {repository.FailedJobs}");
+        Console.WriteLine($" Cancelled: {repository.CancelledJobs}");
+        Console.WriteLine($" Success Rate: {repository.SuccessRate:P0}");
+        Console.WriteLine($" Avg Completion Time: {repository.AverageCompletionTime:F2}s");
+        Console.WriteLine($" Total Images Processed: {repository.TotalImagesProcessed}");
+    }
+}
+```
+
 ## ResultRepository
 
 The `ResultRepository` class provides data access operations for `ProcessingResult` entities, implementing a repository pattern for managing processing results in memory. It offers comprehensive CRUD operations along with specialized query methods for filtering results by job, image, processing status, success/failure state, time ranges, applied filters, and performance metrics. This repository is particularly useful for tracking and analyzing image processing operations throughout the GPU pipeline.
