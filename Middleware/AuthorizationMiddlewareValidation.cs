@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GpuImageProcessing.Middleware
 {
@@ -18,7 +19,41 @@ namespace GpuImageProcessing.Middleware
         {
             ArgumentNullException.ThrowIfNull(value);
 
-            return Array.Empty<string>();
+            var errors = new List<string>();
+
+            // Validate API keys
+            var activeKeys = value.ListActiveKeys();
+            if (activeKeys.Count == 0)
+            {
+                errors.Add("No active API keys registered");
+            }
+            else
+            {
+                foreach (var key in activeKeys)
+                {
+                    if (string.IsNullOrWhiteSpace(key.UserId))
+                    {
+                        errors.Add("API key has null or empty UserId");
+                    }
+
+                    if (key.Scopes == null || key.Scopes.Count == 0)
+                    {
+                        errors.Add($"API key for user '{key.UserId}' has no scopes defined");
+                    }
+                }
+            }
+
+            // Validate user roles
+            var allUserIds = activeKeys.Select(k => k.UserId).Distinct().ToList();
+            foreach (var userId in allUserIds)
+            {
+                if (value.GetUserRole(userId) == null)
+                {
+                    errors.Add($"User '{userId}' has no role assigned");
+                }
+            }
+
+            return errors.AsReadOnly();
         }
 
         /// <summary>
@@ -46,8 +81,35 @@ namespace GpuImageProcessing.Middleware
             if (errors.Count > 0)
             {
                 throw new ArgumentException(
-                    $"AuthorizationMiddleware is invalid. Validation errors: {string.Join(" ", errors)}");
+                    $"AuthorizationMiddleware is invalid. Validation errors: {string.Join("; ", errors)}");
             }
+        }
+
+        /// <summary>
+        /// Gets the role assigned to a user.
+        /// </summary>
+        /// <param name="middleware">The middleware instance.</param>
+        /// <param name="userId">The user identifier.</param>
+        /// <returns>The user's role, or null if not assigned.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="middleware"/> or <paramref name="userId"/> is null.</exception>
+        private static UserRole? GetUserRole(this AuthorizationMiddleware middleware, string userId)
+        {
+            ArgumentNullException.ThrowIfNull(middleware);
+            ArgumentNullException.ThrowIfNull(userId);
+
+            // Access the private _userRoles field via reflection
+            var field = typeof(AuthorizationMiddleware).GetField("_userRoles",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (field != null)
+            {
+                var userRoles = field.GetValue(middleware) as Dictionary<string, UserRole>;
+                if (userRoles != null && userRoles.TryGetValue(userId, out var role))
+                {
+                    return role;
+                }
+            }
+
+            return null;
         }
     }
 }
