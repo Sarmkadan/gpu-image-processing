@@ -13,7 +13,7 @@ namespace GpuImageProcessing.Services
         /// Gets the total count of measurements across all monitored operations.
         /// </summary>
         /// <param name="service">The <see cref="SystemPerformanceMonitoringService"/> instance.</param>
-        /// <returns>The total count of measurements.</returns>
+        /// <returns>The total count of measurements across all operations.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is null.</exception>
         public static long GetTotalMeasurementCount(this SystemPerformanceMonitoringService service)
         {
@@ -27,7 +27,8 @@ namespace GpuImageProcessing.Services
         /// Gets all operations sorted by their average latency in descending order.
         /// </summary>
         /// <param name="service">The <see cref="SystemPerformanceMonitoringService"/> instance.</param>
-        /// <returns>A read-only list of <see cref="OperationStatistics"/> sorted by average latency.</returns>
+        /// <returns>A read-only list of <see cref="OperationStatistics"/> sorted by average latency in descending order.
+        /// Returns an empty list if no operations are being monitored.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is null.</exception>
         public static IReadOnlyList<OperationStatistics> GetOperationsByAverageLatency(this SystemPerformanceMonitoringService service)
         {
@@ -41,15 +42,18 @@ namespace GpuImageProcessing.Services
         /// Gets details for operations that have an average latency exceeding the specified threshold.
         /// </summary>
         /// <param name="service">The <see cref="SystemPerformanceMonitoringService"/> instance.</param>
-        /// <param name="thresholdMs">The latency threshold in milliseconds.</param>
-        /// <returns>A read-only list of <see cref="OperationStatistics"/> for slow operations.</returns>
+        /// <param name="thresholdMs">The latency threshold in milliseconds. Must be non-negative.</param>
+        /// <returns>A read-only list of <see cref="OperationStatistics"/> for operations with average latency exceeding the threshold,
+        /// sorted by average latency in descending order. Returns an empty list if no operations exceed the threshold.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="service"/> is null.</exception>
         /// <exception cref="ArgumentException">Thrown if <paramref name="thresholdMs"/> is negative.</exception>
         public static IReadOnlyList<OperationStatistics> GetSlowOperationsDetails(this SystemPerformanceMonitoringService service, long thresholdMs)
         {
             ArgumentNullException.ThrowIfNull(service);
             if (thresholdMs < 0)
+            {
                 throw new ArgumentException("Threshold must be non-negative.", nameof(thresholdMs));
+            }
 
             var stats = service.GetAllStatistics();
             return stats.Values
