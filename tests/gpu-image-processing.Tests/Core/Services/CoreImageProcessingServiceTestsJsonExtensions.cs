@@ -23,16 +23,10 @@ namespace GpuImageProcessing.Tests.Core.Services
         /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
         /// <returns>A JSON representation of the value.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
-        public static string ToJson(this CoreImageProcessingServiceTests value, bool indented = false)
-        {
-            ArgumentNullException.ThrowIfNull(value);
-
-            var options = indented
+        public static string ToJson(this CoreImageProcessingServiceTests value, bool indented = false) =>
+            JsonSerializer.Serialize(value, indented
                 ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
-                : _jsonSerializerOptions;
-
-            return JsonSerializer.Serialize(value, options);
-        }
+                : _jsonSerializerOptions);
 
         /// <summary>
         /// Deserializes a JSON string to a <see cref="CoreImageProcessingServiceTests"/> instance.
