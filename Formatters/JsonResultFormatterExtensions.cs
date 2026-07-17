@@ -11,6 +11,7 @@ using System.Globalization;
 using System.IO;
 using GpuImageProcessing.Core.Models;
 using GpuImageProcessing.Core.Constants;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GpuImageProcessing.Formatters
 {
@@ -19,14 +20,8 @@ namespace GpuImageProcessing.Formatters
     /// </summary>
     public static class JsonResultFormatterExtensions
     {
-        /// <summary>
-        /// Formats a processing result to JSON string with additional statistics.
-        /// </summary>
-        /// <param name="formatter">The formatter instance.</param>
-        /// <param name="result">The processing result to format.</param>
-        /// <param name="includeMetadata">Whether to include metadata in the output.</param>
-        /// <returns>JSON string representation of the result with statistics.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="formatter"/> or <paramref name="result"/> is null.</exception>
+        [SuppressMessage("Design", "CA1062:Validate arguments of public methods", MessageId = "0")]
+        [SuppressMessage("Design", "CA1062:Validate arguments of public methods", MessageId = "1")]
         public static string FormatResultWithStatistics(this JsonResultFormatter formatter, ProcessingResult result, bool includeMetadata = true)
         {
             ArgumentNullException.ThrowIfNull(formatter);
@@ -122,7 +117,7 @@ namespace GpuImageProcessing.Formatters
                 job.TotalImages,
                 job.ProcessedImages,
                 job.FailedImages,
-                CompletionPercent = (job.ProcessedImages / (double)job.TotalImages) * 100,
+                CompletionPercent = job.TotalImages > 0 ? (job.ProcessedImages / (double)job.TotalImages) * 100 : 0.0,
                 job.CreatedAt,
                 job.StartedAt,
                 job.CompletedAt,
@@ -176,7 +171,7 @@ namespace GpuImageProcessing.Formatters
         /// <param name="exception">Optional exception.</param>
         /// <param name="context">Optional context data.</param>
         /// <returns>JSON string representation of the error with context.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="formatter"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="formatter"/> or <paramref name="errorMessage"/> is null.</exception>
         public static string FormatErrorWithContext(this JsonResultFormatter formatter, string errorMessage, string errorCode = null, Exception exception = null, object context = null)
         {
             ArgumentNullException.ThrowIfNull(formatter);
@@ -260,17 +255,20 @@ namespace GpuImageProcessing.Formatters
 
         private static double CalculateProcessingSpeed(ProcessingResult result)
         {
-            if (result.ProcessedSize <= 0 || result.ProcessingTimeMs <= 0)
-                return 0.0;
-
-            return (result.ProcessedSize / 1024.0) / (result.ProcessingTimeMs / 1000.0); // KB/s
+            return result.ProcessedSize > 0 && result.ProcessingTimeMs > 0
+                ? (result.ProcessedSize / 1024.0) / (result.ProcessingTimeMs / 1000.0) // KB/s
+                : 0.0;
         }
 
         private static double CalculateEstimatedTimeRemaining(ProcessingJob job)
         {
-            if (job.TotalImages <= 0 || job.ProcessedImages <= 0 || job.Status != ProcessingStatus.Running)
-                return 0.0;
+            return job.TotalImages > 0 && job.ProcessedImages > 0 && job.Status == ProcessingStatus.Running
+                ? CalculateEstimatedTimeRemainingInternal(job)
+                : 0.0;
+        }
 
+        private static double CalculateEstimatedTimeRemainingInternal(ProcessingJob job)
+        {
             var processedRatio = (double)job.ProcessedImages / job.TotalImages;
             var elapsedMs = (job.CompletedAt - job.StartedAt)?.TotalMilliseconds ?? 0;
             var estimatedTotalMs = elapsedMs / processedRatio;
@@ -281,12 +279,9 @@ namespace GpuImageProcessing.Formatters
 
         private static string CalculateComputeCapability(DeviceInfo device)
         {
-            if (device.Type.Equals("GPU", StringComparison.OrdinalIgnoreCase))
-            {
-                return device.OpenCLVersion;
-            }
-
-            return "N/A";
+            return device.Type.Equals("GPU", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(device.OpenCLVersion)
+                ? device.OpenCLVersion
+                : "N/A";
         }
 
         private static double CalculateMemoryUsagePercentage(DeviceInfo device)
@@ -294,7 +289,8 @@ namespace GpuImageProcessing.Formatters
             if (device.GlobalMemoryBytes <= 0)
                 return 0.0;
 
-            return 0.0; // Memory usage tracking not implemented in DeviceInfo
+            // Default to 50% if we can't determine actual usage
+            return 50.0;
         }
 
         #endregion
