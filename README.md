@@ -966,6 +966,102 @@ Console.WriteLine($"Distinct count: {distinctCount}");
 Console.WriteLine($"Dictionary count: {dictionary.Count}");
 ```
 
+## HealthCheckService
+
+The `HealthCheckService` monitors the health status of application components and dependencies. It provides comprehensive health check management, allowing registration of custom health checks, execution of all checks, and targeted health checks for specific components. The service aggregates results into an overall health status and detailed component reports, making it ideal for monitoring systems, diagnostics, and alerting.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Monitoring;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize the health check service
+        var healthCheckService = new HealthCheckService();
+        
+        // Register custom health checks for different components
+        // Memory health check - monitors application memory usage
+        var memoryCheck = new MemoryHealthCheck(degradedThreshold: 75, unhealthyThreshold: 90);
+        healthCheckService.RegisterHealthCheck("Memory", memoryCheck);
+        
+        // Response time health check - monitors operation performance
+        var testOperation = new Func<Task>(async () => 
+        {
+            await Task.Delay(100); // Simulate a quick operation
+        });
+        var responseTimeCheck = new ResponseTimeHealthCheck(testOperation, thresholdMs: 500);
+        healthCheckService.RegisterHealthCheck("ResponseTime", responseTimeCheck);
+        
+        // Register additional health checks for GPU, database, etc.
+        // var gpuCheck = new GpuHealthCheck(...);
+        // healthCheckService.RegisterHealthCheck("GPU", gpuCheck);
+        
+        Console.WriteLine("Registered health checks:");
+        foreach (var checkName in healthCheckService.GetRegisteredChecks())
+        {
+            Console.WriteLine($" - {checkName}");
+        }
+        
+        // Perform a comprehensive health check of all components
+        Console.WriteLine("\nRunning comprehensive health check...");
+        var healthResult = await healthCheckService.CheckHealthAsync();
+        
+        Console.WriteLine($"\nOverall Status: {healthResult.Status}");
+        Console.WriteLine($"Summary: {healthResult.Summary}");
+        Console.WriteLine($"Timestamp: {healthResult.Timestamp:O}");
+        Console.WriteLine($"Is Healthy: {healthResult.IsHealthy}");
+        Console.WriteLine($"Has Issues: {healthResult.HasIssues}");
+        
+        // Display details for each component
+        Console.WriteLine("\nComponent Health Details:");
+        foreach (var component in healthResult.Components)
+        {
+            var health = component.Value;
+            Console.WriteLine($"\n{component.Key}:");
+            Console.WriteLine($"  Status: {health.Status}");
+            Console.WriteLine($"  Message: {health.Message}");
+            Console.WriteLine($"  Checked At: {health.CheckedAt:O}");
+            
+            if (health.Details != null && health.Details.Count > 0)
+            {
+                Console.WriteLine("  Details:");
+                foreach (var detail in health.Details)
+                {
+                    Console.WriteLine($"    {detail.Key}: {detail.Value}");
+                }
+            }
+        }
+        
+        // Check health of a specific component
+        Console.WriteLine("\nChecking specific component health...");
+        var memoryHealth = await healthCheckService.CheckComponentAsync("Memory");
+        Console.WriteLine($"Memory Status: {memoryHealth.Status}");
+        Console.WriteLine($"Memory Message: {memoryHealth.Message}");
+        
+        // Use health status for conditional logic
+        if (healthResult.Status == HealthStatus.Unhealthy)
+        {
+            Console.WriteLine("\nALERT: System is unhealthy! Taking corrective action...");
+            // Implement recovery logic here
+        }
+        else if (healthResult.Status == HealthStatus.Degraded)
+        {
+            Console.WriteLine("\nWARNING: System performance is degraded. Monitoring closely...");
+        }
+        else
+        {
+            Console.WriteLine("\nSystem is healthy and operational.");
+        }
+    }
+}
+```
+
 ## ImageRegisteredEvent
 
 The `ImageRegisteredEvent` is a domain event that is published when an image is registered for processing. It contains metadata about the image, including its ID, path, width, height, and description. This event can be used to trigger subsequent processing steps or to update external systems.
