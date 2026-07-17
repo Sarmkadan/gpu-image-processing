@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace GpuImageProcessing.Domain
 {
@@ -14,13 +13,13 @@ namespace GpuImageProcessing.Domain
         /// </summary>
         /// <param name="metrics">The performance metrics instance.</param>
         /// <returns>The average execution time in milliseconds.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="metrics"/> is null.</exception>
-        /// <exception cref="InvalidOperationException">Thrown when no execution times are recorded.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="metrics"/> is <see langword="null"/>.</exception>
+        /// <exception cref="InvalidOperationException">No execution times are recorded.</exception>
         public static double CalculateAverageExecutionTime(this PerformanceMetrics metrics)
         {
             ArgumentNullException.ThrowIfNull(metrics);
             if (metrics.ExecutionTimes.Count == 0)
-                throw new InvalidOperationException("No execution times recorded to calculate average.");
+                throw new InvalidOperationException("Cannot calculate average execution time: no execution times have been recorded.");
 
             return metrics.ExecutionTimes.Average();
         }
@@ -30,14 +29,14 @@ namespace GpuImageProcessing.Domain
         /// </summary>
         /// <param name="metrics">The performance metrics instance.</param>
         /// <param name="criticalThresholdPercent">The GPU utilization threshold percentage (0-100).</param>
-        /// <returns>True if GPU utilization is below the critical threshold.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="metrics"/> is null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="criticalThresholdPercent"/> is outside 0-100.</exception>
+        /// <returns><see langword="true"/> if GPU utilization is below the critical threshold; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="metrics"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="criticalThresholdPercent"/> is outside the range 0-100.</exception>
         public static bool IsGpuUnderutilized(this PerformanceMetrics metrics, double criticalThresholdPercent)
         {
             ArgumentNullException.ThrowIfNull(metrics);
             if (criticalThresholdPercent < 0 || criticalThresholdPercent > 100)
-                throw new ArgumentOutOfRangeException(nameof(criticalThresholdPercent), "Value must be between 0 and 100.");
+                throw new ArgumentOutOfRangeException(nameof(criticalThresholdPercent), "Threshold percentage must be between 0 and 100 inclusive.");
 
             return metrics.GpuUtilizationPercent < criticalThresholdPercent;
         }
@@ -47,14 +46,14 @@ namespace GpuImageProcessing.Domain
         /// </summary>
         /// <param name="metrics">The performance metrics instance.</param>
         /// <param name="baselineThroughputMbps">The baseline throughput threshold in Mbps.</param>
-        /// <returns>True if throughput is below the baseline.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="metrics"/> is null.</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="baselineThroughputMbps"/> is negative.</exception>
+        /// <returns><see langword="true"/> if throughput is below the baseline; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="metrics"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="baselineThroughputMbps"/> is negative.</exception>
         public static bool HasThroughputDropped(this PerformanceMetrics metrics, double baselineThroughputMbps)
         {
             ArgumentNullException.ThrowIfNull(metrics);
             if (baselineThroughputMbps < 0)
-                throw new ArgumentOutOfRangeException(nameof(baselineThroughputMbps), "Baseline throughput cannot be negative.");
+                throw new ArgumentOutOfRangeException(nameof(baselineThroughputMbps), "Baseline throughput threshold cannot be negative.");
 
             return metrics.ThroughputMegabytesPerSecond < baselineThroughputMbps;
         }
