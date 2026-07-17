@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
 using System.Collections.Generic;
@@ -49,9 +49,12 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
         /// <returns>A deserialized <see cref="MarkdownResultFormatter"/> instance, or null if the JSON is empty.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
         public static MarkdownResultFormatter? FromJson(string json)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
             if (string.IsNullOrWhiteSpace(json))
             {
                 return null;
@@ -66,8 +69,11 @@ namespace GpuImageProcessing.Formatters
         /// <param name="json">The JSON string to deserialize.</param>
         /// <param name="value">Receives the deserialized instance if successful.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         public static bool TryFromJson(string json, out MarkdownResultFormatter? value)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
             value = null;
 
             if (string.IsNullOrWhiteSpace(json))
@@ -82,6 +88,7 @@ namespace GpuImageProcessing.Formatters
             }
             catch (JsonException)
             {
+                value = null;
                 return false;
             }
         }
