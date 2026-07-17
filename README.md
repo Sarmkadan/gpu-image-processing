@@ -812,6 +812,127 @@ static async Task Main()
 
 ```
 
+## JsonResultFormatterExtensions
+
+The `JsonResultFormatterExtensions` class provides extension methods for the `JsonResultFormatter` class that extend the JSON formatting capabilities with additional context and statistics. It includes methods for formatting processing results with statistics, batch results with summaries, job progress details, device information with hardware specs, error context, and file output operations, making it easier to generate comprehensive JSON reports for image processing operations.
+
+### Key Features
+
+- Format single processing results with statistics including file sizes, processing speeds, and metadata
+- Format batch processing results with summary statistics (success rate, average duration, totals)
+- Format processing jobs with progress details including completion percentage and estimated time remaining
+- Format device information with hardware details like memory capacity, compute units, and extensions
+- Format error information with context including error codes, timestamps, and exception details
+- Output formatted results directly to files with optional metadata inclusion
+- Helper methods for file size formatting, processing speed calculation, and time estimation
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Formatters;
+using GpuImageProcessing.Core.Models;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var formatter = new JsonResultFormatter();
+
+        // Format a single processing result with statistics
+        var result = new ProcessingResult
+        {
+            Id = Guid.NewGuid(),
+            JobId = Guid.NewGuid(),
+            ImageId = Guid.NewGuid(),
+            Status = ProcessingStatus.Completed,
+            StartTime = DateTime.UtcNow.AddMinutes(-5),
+            CompletionTime = DateTime.UtcNow,
+            ProcessingTimeMs = 1250,
+            OutputImagePath = "/output/processed-image.jpg",
+            ProcessedSize = 2560000, // 2.5MB
+            Metadata = new Dictionary<string, object> { { "filter", "gaussian-blur" }, { "iterations", 3 } }
+        };
+
+        string formattedResult = formatter.FormatResultWithStatistics(result);
+        Console.WriteLine(formattedResult);
+
+        // Format batch processing results with summary statistics
+        var results = new List<ProcessingResult>
+        {
+            new ProcessingResult { Id = Guid.NewGuid(), JobId = Guid.NewGuid(), ImageId = Guid.NewGuid(), Status = ProcessingStatus.Completed, ProcessingTimeMs = 1000, ProcessedSize = 1024000 },
+            new ProcessingResult { Id = Guid.NewGuid(), JobId = Guid.NewGuid(), ImageId = Guid.NewGuid(), Status = ProcessingStatus.Completed, ProcessingTimeMs = 1200, ProcessedSize = 1536000 },
+            new ProcessingResult { Id = Guid.NewGuid(), JobId = Guid.NewGuid(), ImageId = Guid.NewGuid(), Status = ProcessingStatus.Failed, ProcessingTimeMs = 500, ProcessedSize = 512000 }
+        };
+
+        string formattedBatch = formatter.FormatResultsWithSummary(results);
+        Console.WriteLine(formattedBatch);
+
+        // Format a processing job with progress details
+        var job = new ProcessingJob
+        {
+            Id = Guid.NewGuid(),
+            Name = "Batch Image Processing Job #12345",
+            Status = ProcessingStatus.Running,
+            TotalImages = 100,
+            ProcessedImages = 45,
+            FailedImages = 2,
+            CreatedAt = DateTime.UtcNow.AddHours(-2),
+            StartedAt = DateTime.UtcNow.AddHours(-1),
+            Filters = new List<FilterConfiguration> { new FilterConfiguration { Name = "resize", FilterType = FilterType.Resize, Parameters = new Dictionary<string, object> { { "width", 1920 }, { "height", 1080 } } } }
+        };
+
+        string formattedJob = formatter.FormatJobWithProgress(job);
+        Console.WriteLine(formattedJob);
+
+        // Format device information with hardware details
+        var device = new DeviceInfo
+        {
+            Id = 0,
+            Name = "NVIDIA RTX 3090",
+            Type = "GPU",
+            Vendor = "NVIDIA",
+            MemoryBytes = 24L * 1024 * 1024 * 1024, // 24GB
+            ComputeUnits = 82,
+            IsAvailable = true,
+            DriverVersion = "510.47.03",
+            Extensions = new List<string> { "cl_khr_fp64", "cl_khr_global_int32_base_atomics" }
+        };
+
+        string formattedDevice = formatter.FormatDeviceWithDetails(device);
+        Console.WriteLine(formattedDevice);
+
+        // Format error information with context
+        try
+        {
+            // Simulate an error
+            throw new InvalidOperationException("Device initialization failed");
+        }
+        catch (Exception ex)
+        {
+            string formattedError = formatter.FormatErrorWithContext(
+                "Failed to initialize GPU device",
+                "DEVICE_INIT_ERROR",
+                ex,
+                new { DeviceName = device.Name, Attempt = 3 }
+            );
+            Console.WriteLine(formattedError);
+        }
+
+        // Format result to file with metadata
+        string outputPath = formatter.FormatResultToFile(result, "/output/result-statistics.json");
+        Console.WriteLine($"Result saved to: {outputPath}");
+
+        // Format batch results to file with summary
+        string batchOutputPath = formatter.FormatResultsToFile(results, "/output/batch-summary.json");
+        Console.WriteLine($"Batch summary saved to: {batchOutputPath}");
+    }
+}
+
+```
+
 ## HelpCommandExtensions
 
 
