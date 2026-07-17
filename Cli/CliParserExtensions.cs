@@ -14,6 +14,7 @@ namespace GpuImageProcessing.Cli
 {
     /// <summary>
     /// Extension methods for <see cref="CliParser"/> that provide additional parsing and validation functionality.
+    /// This class cannot be inherited.
     /// </summary>
     public static class CliParserExtensions
     {
@@ -125,14 +126,18 @@ namespace GpuImageProcessing.Cli
         {
             ArgumentNullException.ThrowIfNull(parsedCommand);
 
-            if (expectedCount.HasValue && expectedCount.Value >= 0)
+            if (expectedCount.GetValueOrDefault(-1) < 0)
             {
-                if (parsedCommand.PositionalArguments.Count != expectedCount.Value)
-                {
-                    throw new ArgumentException(
-                        $"Expected {expectedCount.Value} positional argument(s), but got {parsedCommand.PositionalArguments.Count}",
-                        nameof(expectedCount));
-                }
+                throw new ArgumentException(
+                    "Expected count must be non-negative or null",
+                    nameof(expectedCount));
+            }
+
+            if (expectedCount.HasValue && parsedCommand.PositionalArguments.Count != expectedCount.Value)
+            {
+                throw new ArgumentException(
+                    $"Expected {expectedCount.Value} positional argument(s), but got {parsedCommand.PositionalArguments.Count}",
+                    nameof(expectedCount));
             }
 
             return parsedCommand.PositionalArguments.AsReadOnly();
