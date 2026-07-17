@@ -6,6 +6,10 @@ namespace GpuImageProcessing.Services;
 /// <summary>
 /// Provides JSON serialization extensions for <see cref="ImageProcessingService"/>.
 /// </summary>
+/// <remarks>
+/// This class supports both compact and indented JSON serialization of <see cref="ImageProcessingService"/> instances.
+/// The default serialization uses camelCase property naming policy and excludes type information.
+/// </remarks>
 public static class ImageProcessingServiceJsonExtensions
 {
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
@@ -18,9 +22,9 @@ public static class ImageProcessingServiceJsonExtensions
     /// <summary>
     /// Serializes the <see cref="ImageProcessingService"/> instance to a JSON string.
     /// </summary>
-    /// <param name="value">The service instance to serialize.</param>
+    /// <param name="value">The service instance to serialize. Cannot be <see langword="null"/>.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
-    /// <returns>A JSON string representation of the service.</returns>
+    /// <returns>A JSON string representation of the service using camelCase property naming.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
     public static string ToJson(this ImageProcessingService value, bool indented = false)
     {
@@ -32,7 +36,7 @@ public static class ImageProcessingServiceJsonExtensions
     /// <summary>
     /// Deserializes a JSON string to an <see cref="ImageProcessingService"/> instance.
     /// </summary>
-    /// <param name="json">The JSON string to deserialize.</param>
+    /// <param name="json">The JSON string to deserialize. Cannot be <see langword="null"/>.</param>
     /// <returns>The deserialized service instance, or <see langword="null"/> if the JSON represents a null value.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
@@ -46,7 +50,7 @@ public static class ImageProcessingServiceJsonExtensions
     /// <summary>
     /// Attempts to deserialize a JSON string to an <see cref="ImageProcessingService"/> instance.
     /// </summary>
-    /// <param name="json">The JSON string to deserialize.</param>
+    /// <param name="json">The JSON string to deserialize. Cannot be <see langword="null"/>.</param>
     /// <param name="value">Receives the deserialized service instance, or <see langword="null"/> if the JSON represents a null value.</param>
     /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
@@ -66,12 +70,6 @@ public static class ImageProcessingServiceJsonExtensions
         }
     }
 
-    private static JsonSerializerOptions GetIndentedOptions()
-    {
-        var options = new JsonSerializerOptions(_jsonOptions)
-        {
-            WriteIndented = true,
-        };
-        return options;
-    }
+    private static JsonSerializerOptions GetIndentedOptions() =>
+        new(_jsonOptions) { WriteIndented = true };
 }
