@@ -18,7 +18,7 @@ namespace GpuImageProcessing.Cli
         /// </summary>
         /// <typeparam name="T">The type to convert the argument to.</typeparam>
         /// <param name="handler">The command handler.</param>
-        /// <param name="key">The argument key (case‑insensitive).</param>
+        /// <param name="key">The argument key (case-insensitive).</param>
         /// <param name="defaultValue">The value to return when the argument is absent or conversion fails.</param>
         /// <returns>The converted argument value or <paramref name="defaultValue"/>.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="handler"/> or <paramref name="key"/> is <c>null</c>.</exception>
@@ -33,7 +33,15 @@ namespace GpuImageProcessing.Cli
 
             // Fast path for string
             if (typeof(T) == typeof(string))
-                return (T)(object)raw;
+                return (T)(object)raw!;
+
+            // Fast path for bool
+            if (typeof(T) == typeof(bool))
+            {
+                if (bool.TryParse(raw, out var boolResult))
+                    return (T)(object)boolResult;
+                return defaultValue;
+            }
 
             // Enum handling
             if (typeof(T).IsEnum)
@@ -82,6 +90,18 @@ namespace GpuImageProcessing.Cli
                 return true;
             }
 
+            // Fast path for bool
+            if (typeof(T) == typeof(bool))
+            {
+                if (bool.TryParse(raw, out var boolResult))
+                {
+                    value = (T)(object)boolResult;
+                    return true;
+                }
+                value = default!;
+                return false;
+            }
+
             // Enum handling
             if (typeof(T).IsEnum)
             {
@@ -110,7 +130,7 @@ namespace GpuImageProcessing.Cli
         /// Sets the arguments on the handler using the supplied collection and returns the handler for fluent chaining.
         /// </summary>
         /// <param name="handler">The command handler.</param>
-        /// <param name="args">The raw argument strings (including the command name at index 0).</param>
+        /// <param name="args">The raw argument strings (including the command name at index 0).</param>
         /// <returns>The same <paramref name="handler"/> instance.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="handler"/> or <paramref name="args"/> is <c>null</c>.</exception>
         public static CommandHandler WithArguments(this CommandHandler handler, IEnumerable<string> args)
