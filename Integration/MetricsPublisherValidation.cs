@@ -27,15 +27,13 @@ namespace GpuImageProcessing.Integration
             var errors = new List<string>();
 
             // Validate that at least one endpoint is registered
-            var endpointCount = GetEndpointCount(value);
-            if (endpointCount == 0)
+            if (value.EndpointCount == 0)
             {
                 errors.Add("MetricsPublisher must have at least one registered endpoint.");
             }
 
             // Validate buffer state
-            var bufferSize = GetBufferSize(value);
-            if (bufferSize <= 0)
+            if (value.BufferSize <= 0)
             {
                 errors.Add("MetricsPublisher buffer size must be positive.");
             }
@@ -48,9 +46,11 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         /// <param name="value">The metrics publisher to check.</param>
         /// <returns>True if valid; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
         public static bool IsValid(this MetricsPublisher value)
         {
-            return value?.Validate().Count == 0;
+            ArgumentNullException.ThrowIfNull(value);
+            return value.Validate().Count == 0;
         }
 
         /// <summary>
@@ -69,35 +69,6 @@ namespace GpuImageProcessing.Integration
                 throw new ArgumentException(
                     $"MetricsPublisher is not valid. Validation errors:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
             }
-        }
-
-        private static int GetEndpointCount(this MetricsPublisher publisher)
-        {
-            var field = typeof(MetricsPublisher).GetField(
-                "_endpoints",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            if (field != null)
-            {
-                var endpoints = field.GetValue(publisher) as System.Collections.ICollection;
-                return endpoints?.Count ?? 0;
-            }
-
-            return 0;
-        }
-
-        private static int GetBufferSize(this MetricsPublisher publisher)
-        {
-            var field = typeof(MetricsPublisher).GetField(
-                "_bufferSize",
-                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-            if (field != null)
-            {
-                return (int?)field.GetValue(publisher) ?? 0;
-            }
-
-            return 0;
         }
     }
 }

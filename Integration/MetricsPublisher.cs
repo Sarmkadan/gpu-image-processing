@@ -32,6 +32,16 @@ namespace GpuImageProcessing.Integration
             _bufferSize = bufferSize;
         }
 
+    /// <summary>
+    /// Gets the number of registered endpoints.
+    /// </summary>
+    public int EndpointCount => _endpoints.Count;
+
+    /// <summary>
+    /// Gets the buffer size.
+    /// </summary>
+    public int BufferSize => _bufferSize;
+
         /// <summary>
         /// Registers a metrics endpoint for publishing
         /// </summary>
