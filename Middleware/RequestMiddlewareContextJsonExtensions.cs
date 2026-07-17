@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =====================================================================
+// ===================================================================
 
 using System;
 using System.Text.Json;
@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 namespace GpuImageProcessing.Middleware
 {
     /// <summary>
-    /// Provides System.Text.Json serialization extensions for RequestMiddlewareContext.
+    /// Provides System.Text.Json serialization extensions for <see cref="RequestMiddlewareContext"/>.
     /// Enables round-trip serialization/deserialization of middleware context objects.
     /// </summary>
     public static class RequestMiddlewareContextJsonExtensions
@@ -25,12 +25,12 @@ namespace GpuImageProcessing.Middleware
         };
 
         /// <summary>
-        /// Serializes the RequestMiddlewareContext to a JSON string.
+        /// Serializes the <see cref="RequestMiddlewareContext"/> to a JSON string.
         /// </summary>
-        /// <param name="value">The context to serialize</param>
-        /// <param name="indented">Whether to format the JSON with indentation</param>
-        /// <returns>A JSON string representation of the context</returns>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
+        /// <param name="value">The context to serialize. Cannot be null.</param>
+        /// <param name="indented">Whether to format the JSON with indentation.</param>
+        /// <returns>A JSON string representation of the context.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
         public static string ToJson(this RequestMiddlewareContext value, bool indented = false)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -46,11 +46,11 @@ namespace GpuImageProcessing.Middleware
         }
 
         /// <summary>
-        /// Deserializes a RequestMiddlewareContext from a JSON string.
+        /// Deserializes a <see cref="RequestMiddlewareContext"/> from a JSON string.
         /// </summary>
-        /// <param name="json">The JSON string to deserialize</param>
-        /// <returns>The deserialized context, or null if JSON is invalid</returns>
-        /// <exception cref="ArgumentException">Thrown when json is null or empty</exception>
+        /// <param name="json">The JSON string to deserialize.</param>
+        /// <returns>The deserialized context, or null if JSON is invalid.</returns>
+        /// <exception cref="ArgumentException"><paramref name="json"/> is null or empty.</exception>
         public static RequestMiddlewareContext? FromJson(string json)
         {
             ArgumentException.ThrowIfNullOrEmpty(json);
@@ -66,12 +66,12 @@ namespace GpuImageProcessing.Middleware
         }
 
         /// <summary>
-        /// Attempts to deserialize a RequestMiddlewareContext from a JSON string.
+        /// Attempts to deserialize a <see cref="RequestMiddlewareContext"/> from a JSON string.
         /// </summary>
-        /// <param name="json">The JSON string to deserialize</param>
-        /// <param name="value">Receives the deserialized context if successful</param>
-        /// <returns>True if deserialization succeeded; otherwise, false</returns>
-        /// <exception cref="ArgumentException">Thrown when json is null or empty</exception>
+        /// <param name="json">The JSON string to deserialize.</param>
+        /// <param name="value">Receives the deserialized context if successful.</param>
+        /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+        /// <exception cref="ArgumentException"><paramref name="json"/> is null or empty.</exception>
         public static bool TryFromJson(string json, out RequestMiddlewareContext? value)
         {
             ArgumentException.ThrowIfNullOrEmpty(json);
