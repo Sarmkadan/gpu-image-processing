@@ -3,7 +3,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
 using System.Collections.Generic;
@@ -19,7 +19,7 @@ public static class SimdCapabilitiesValidation
     /// <summary>
     /// Validates that a <see cref="SimdCapabilities"/> instance contains only valid values.
     /// </summary>
-    /// <param name="value">The instance to validate (must not be null).</param>
+    /// <param name="value">The instance to validate.</param>
     /// <returns>An empty list if the instance is valid; otherwise, a list of human-readable problems.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static IReadOnlyList<string> Validate(this SimdCapabilities value)
@@ -117,25 +117,28 @@ public static class SimdCapabilitiesValidation
             errors.Add("SupportsAvx512F is true but SupportsAvx2 is false.");
         }
 
+        // Validate that if any SIMD feature is supported, at least SSE2 must be available
+        if (value.IsAnySimdAvailable && !value.SupportsSSE2)
+        {
+            errors.Add("IsAnySimdAvailable is true but SupportsSSE2 is false.");
+        }
+
         return errors.AsReadOnly();
     }
 
     /// <summary>
     /// Determines whether a <see cref="SimdCapabilities"/> instance contains only valid values.
     /// </summary>
-    /// <param name="value">The instance to check (must not be null).</param>
+    /// <param name="value">The instance to check.</param>
     /// <returns><see langword="true"/> if the instance is valid; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-    public static bool IsValid(this SimdCapabilities value)
-    {
-        return Validate(value).Count == 0;
-    }
+    public static bool IsValid(this SimdCapabilities value) => Validate(value).Count == 0;
 
     /// <summary>
     /// Ensures that a <see cref="SimdCapabilities"/> instance contains only valid values,
     /// throwing an <see cref="ArgumentException"/> with a detailed message if it does not.
     /// </summary>
-    /// <param name="value">The instance to validate (must not be null).</param>
+    /// <param name="value">The instance to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when the instance contains invalid values.</exception>
     public static void EnsureValid(this SimdCapabilities value)
