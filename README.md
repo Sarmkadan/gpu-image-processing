@@ -20,6 +20,7 @@ The `PerformanceUtilities` class provides high-resolution timing and performance
 
 ### Key Features
 
+
 - High-resolution timing using `Stopwatch`
 - Frame rate calculation and tracking
 - Performance statistics aggregation
@@ -28,15 +29,20 @@ The `PerformanceUtilities` class provides high-resolution timing and performance
 
 ### Usage Examples
 
+
 ```csharp
+
 using GpuImageProcessing.Utilities;
 using System;
 using System.Diagnostics;
 
 class Program
+
 {
     static void Main()
+
     {
+
         // Basic timing example
         var timer = PerformanceUtilities.StartTimer("Image Processing");
         
@@ -72,11 +78,13 @@ class Program
 }
 ```
 
+
 ## MetricsUtilities
 
 The `MetricsUtilities` class provides comprehensive image quality metrics and analysis tools for comparing processed images against reference images. It includes PSNR, SSIM, MSE, and other quality assessment algorithms.
 
 ### Key Features
+
 
 - Peak Signal-to-Noise Ratio (PSNR) calculation
 - Structural Similarity Index (SSIM) calculation
@@ -86,15 +94,20 @@ The `MetricsUtilities` class provides comprehensive image quality metrics and an
 
 ### Usage Examples
 
+
 ```csharp
+
 using GpuImageProcessing.Utilities;
 using System;
 using System.IO;
 
 class Program
+
 {
     static void Main()
+
     {
+
         // Example: Load two images and compare them
         var originalImage = File.ReadAllBytes("original.jpg");
         var processedImage = File.ReadAllBytes("processed.jpg");
@@ -141,6 +154,7 @@ public class ImageQualityResult
 }
 ```
 
+
 ## BatchProcessingUtilities
 
 The `BatchProcessingUtilities` class provides utilities for managing and processing batches of images efficiently. It includes batch splitting, progress tracking, and result aggregation.
@@ -148,6 +162,7 @@ The `BatchProcessingUtilities` class provides utilities for managing and process
 ### Usage Example
 
 ```csharp
+
 using GpuImageProcessing.Utilities;
 using System;
 using System.Collections.Generic;
@@ -155,9 +170,11 @@ using System.IO;
 using System.Threading.Tasks;
 
 class Program
+
 {
     static async Task Main()
     {
+
         var inputFiles = new List<string>();
         for (int i = 0; i < 100; i++)
         {
@@ -186,11 +203,13 @@ class Program
 }
 ```
 
+
 ## DataConversionUtilities
 
 The `DataConversionUtilities` class provides essential data conversion utilities for transforming between different data formats commonly used in GPU image processing. It includes hexadecimal string conversion, byte array manipulation, floating-point data conversion, file size formatting, and tolerance-based comparison operations.
 
 ### Key Features
+
 
 - Convert between hexadecimal strings and byte arrays
 - Transform between byte arrays and floating-point arrays
@@ -201,12 +220,15 @@ The `DataConversionUtilities` class provides essential data conversion utilities
 
 ### Usage Examples
 
+
 ```csharp
+
 using GpuImageProcessing.Utilities;
 using System;
 using System.Linq;
 
 class Program
+
 {
 static void Main()
 {
@@ -266,11 +288,13 @@ Console.WriteLine($"Denormalized: {denormalized:F2}"); // Output: Denormalized: 
 }
 ```
 
+
 ## EnumerableExtensions
 
 The `EnumerableExtensions` class provides a comprehensive set of extension methods for working with `IEnumerable<T>` sequences. These utilities extend LINQ with additional functional programming helpers for filtering, grouping, batching, searching, and aggregation operations that are commonly needed in GPU image processing pipelines.
 
 ### Key Features
+
 
 - Batch processing with fixed-size groups
 - Null filtering and safe conversions
@@ -284,16 +308,21 @@ The `EnumerableExtensions` class provides a comprehensive set of extension metho
 
 ### Usage Examples
 
+
 ```csharp
+
 using GpuImageProcessing.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
 class Program
+
 {
     static void Main()
+
     {
+
         // Batch processing example
         var numbers = Enumerable.Range(1, 20);
         var batches = numbers.Batch(5);
@@ -399,11 +428,13 @@ public class Person
     
     public Person(string name, int age)
     {
+
         Name = name;
         Age = age;
     }
 }
 ```
+
 
 ## Architecture
 
@@ -439,6 +470,7 @@ The `ImageProcessingService` is the main entry point for image processing operat
 ### Usage Example
 
 ```csharp
+
 using GpuImageProcessing.Core.Services;
 using GpuImageProcessing.Core.Models;
 using System;
@@ -446,9 +478,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 
 class Program
+
 {
     static async Task Main()
     {
+
         // Initialize required services (typically via dependency injection in real applications)
         var imageRepository = new ImageRepository();
         var filterRepository = new GenericRepository<Filter>();
@@ -486,6 +520,7 @@ class Program
 }
 ```
 
+
 ## ImageUtilities
 
 The `ImageUtilities` class provides essential image manipulation utilities for format conversion, resizing, cropping, and basic operations. It serves as a convenience layer over the core image processing functionality.
@@ -493,14 +528,18 @@ The `ImageUtilities` class provides essential image manipulation utilities for f
 ### Usage Example
 
 ```csharp
+
 using GpuImageProcessing.Utilities;
 using System;
 using System.IO;
 
 class Program
+
 {
     static void Main()
+
     {
+
         // Load an image
         var imageBytes = File.ReadAllBytes("input.png");
         
@@ -526,6 +565,7 @@ class Program
 }
 ```
 
+
 ## ImageProcessingController
 
 The `ImageProcessingController` provides a REST API controller for image processing operations. It exposes endpoints for uploading images, applying filters, and downloading processed results.
@@ -533,6 +573,7 @@ The `ImageProcessingController` provides a REST API controller for image process
 ### Usage Example
 
 ```csharp
+
 using GpuImageProcessing.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -545,12 +586,14 @@ public class ImageProcessingController : ControllerBase
 
     public ImageProcessingController(ImageProcessingService processingService)
     {
+
         _processingService = processingService;
     }
 
     [HttpPost("upload")]
     public async Task<IActionResult> UploadImage([FromForm] IFormFile file)
     {
+
         using var stream = file.OpenReadStream();
         using var memoryStream = new MemoryStream();
         await stream.CopyToAsync(memoryStream);
@@ -566,6 +609,7 @@ public class ImageProcessingController : ControllerBase
     [HttpPost("{imageId}/process")]
     public async Task<IActionResult> ProcessImage(string imageId, [FromBody] ProcessingRequest request)
     {
+
         var result = await _processingService.ProcessImageAsync(imageId, request.ProfileId);
         return Ok(new { ResultId = result.ResultId, OutputPath = result.OutputPath });
     }
@@ -573,6 +617,7 @@ public class ImageProcessingController : ControllerBase
     [HttpGet("{resultId}/download")]
     public async Task<IActionResult> DownloadResult(string resultId)
     {
+
         var fileBytes = await _processingService.GetResultAsync(resultId);
         return File(fileBytes, "application/octet-stream", "processed.jpg");
     }
@@ -584,6 +629,7 @@ public class ProcessingRequest
 }
 ```
 
+
 ## FileOperationUtilities
 
 The `FileOperationUtilities` class provides safe file system operations with atomic writes, error handling, and cross-platform compatibility. It ensures reliable file operations even in the presence of errors or interruptions.
@@ -591,15 +637,18 @@ The `FileOperationUtilities` class provides safe file system operations with ato
 ### Usage Example
 
 ```csharp
+
 using GpuImageProcessing.Utilities;
 using System;
 using System.IO;
 using System.Threading.Tasks;
 
 class Program
+
 {
     static async Task Main()
     {
+
         string tempDir = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
         Directory.CreateDirectory(tempDir);
         
@@ -620,11 +669,13 @@ class Program
 }
 ```
 
+
 ## MarkdownResultFormatter
 
 The `MarkdownResultFormatter` class formats GPU image processing results, device information, job status, and errors into well-structured Markdown documents. It generates comprehensive reports with tables, statistics, and formatted output suitable for documentation, logging, and reporting purposes.
 
 ### Key Features
+
 
 - Formats processing results into structured Markdown reports
 - Generates summary statistics and performance metrics
@@ -635,16 +686,21 @@ The `MarkdownResultFormatter` class formats GPU image processing results, device
 
 ### Usage Examples
 
+
 ```csharp
+
 using GpuImageProcessing.Formatters;
 using GpuImageProcessing.Core.Models;
 using System;
 using System.Collections.Generic;
 
 class Program
+
 {
     static void Main()
+
     {
+
         var formatter = new MarkdownResultFormatter();
         
         // Format a single processing result
@@ -737,11 +793,13 @@ class Program
 }
 ```
 
+
 ## HtmlResultFormatter
 
 The `HtmlResultFormatter` class formats GPU image processing results, device information, job status, and errors into interactive HTML documents with embedded CSS styling. It generates comprehensive web-ready reports with tables, statistics, and responsive design suitable for web display, dashboards, and reporting purposes.
 
 ### Key Features
+
 
 - Formats processing results into structured HTML reports with embedded CSS
 - Generates interactive tables with hover effects and status indicators
@@ -752,16 +810,21 @@ The `HtmlResultFormatter` class formats GPU image processing results, device inf
 
 ### Usage Examples
 
+
 ```csharp
+
 using GpuImageProcessing.Formatters;
 using GpuImageProcessing.Core.Models;
 using System;
 using System.Collections.Generic;
 
 class Program
+
 {
     static void Main()
+
     {
+
         var formatter = new HtmlResultFormatter();
 
         // Format a single processing result
@@ -855,11 +918,13 @@ class Program
 }
 ```
 
+
 ## JsonResultFormatter
 
 The `JsonResultFormatter` class provides JSON serialization utilities for GPU image processing results, device information, job status, and errors. It formats data into structured JSON output with configurable formatting options, camelCase property naming, and proper null handling.
 
 ### Key Features
+
 
 - Formats processing results, jobs, devices, and errors to JSON
 - Supports pretty-printing with configurable indentation
@@ -869,16 +934,21 @@ The `JsonResultFormatter` class provides JSON serialization utilities for GPU im
 
 ### Usage Examples
 
+
 ```csharp
+
 using GpuImageProcessing.Formatters;
 using GpuImageProcessing.Core.Models;
 using System;
 using System.Collections.Generic;
 
 class Program
+
 {
     static void Main()
+
     {
+
         // Create formatter with pretty printing enabled (default)
         var formatter = new JsonResultFormatter();
 
@@ -995,11 +1065,13 @@ class Program
 }
 ```
 
+
 ## TextResultFormatter
 
 The `TextResultFormatter` class formats GPU image processing results, device information, job status, and errors into plain text format. It generates human-readable console output and log files with consistent formatting and clear separation between different types of information.
 
 ### Key Features
+
 
 - Formats processing results into structured text reports with clear section headers
 - Generates summary statistics and performance metrics in plain text
@@ -1010,16 +1082,21 @@ The `TextResultFormatter` class formats GPU image processing results, device inf
 
 ### Usage Examples
 
+
 ```csharp
+
 using GpuImageProcessing.Formatters;
 using GpuImageProcessing.Core.Models;
 using System;
 using System.Collections.Generic;
 
 class Program
+
 {
     static void Main()
+
     {
+
         var formatter = new TextResultFormatter();
 
         // Format a single processing result
@@ -1130,6 +1207,7 @@ class Program
 }
 ```
 
+
 ## PathUtilities
 
 The `PathUtilities` class provides a comprehensive set of utilities for path manipulation, normalization, and directory management. It handles cross-platform path operations, safe file operations, and directory traversal with robust error handling to ensure reliable file system operations across different operating systems.
@@ -1140,6 +1218,7 @@ The `ValidationUtilities` class provides comprehensive validation utilities for 
 
 ### Key Features
 
+
 - Validates filter parameters for different filter types (Gaussian, Sobel, Median, Canny, Bilateral)
 - Validates image dimensions, rotation angles, and scaling factors
 - Validates batch processing jobs and processing profiles
@@ -1149,15 +1228,20 @@ The `ValidationUtilities` class provides comprehensive validation utilities for 
 
 ### Usage Examples
 
+
 ```csharp
+
 using GpuImageProcessing.Utilities;
 using System;
 using System.Collections.Generic;
 
 class Program
+
 {
     static void Main()
+
     {
+
         // Validate image dimensions
         var dimensionsResult = ValidationUtilities.ValidateImageDimensions(1920, 1080);
         if (!dimensionsResult.IsValid)
@@ -1219,6 +1303,7 @@ class Program
 }
 ```
 
+
 ## ConfigurationValidator
 
 
@@ -1227,14 +1312,18 @@ The `ConfigurationValidator` class provides comprehensive validation utilities f
 ### Usage Example
 
 ```csharp
+
 using GpuImageProcessing.Utilities;
 using System;
 using System.Collections.Generic;
 
 class Program
+
 {
     static void Main()
+
     {
+
         // Example configuration dictionary
         var config = new Dictionary<string, string>
         {
@@ -1360,11 +1449,182 @@ class Program
 }
 ```
 
+
+            Type = "GPU",
+            Vendor = "NVIDIA",
+            MemoryBytes = 24L * 1024 * 1024 * 1024,
+            ComputeUnits = 10496,
+            IsAvailable = true,
+            DriverVersion = "535.86.05",
+            Extensions = new List<string> { "DirectML", "CUDA", "Vulkan" }
+        };
+
+        string deviceXml = formatter.FormatDevice(device);
+        Console.WriteLine(deviceXml);
+
+        // Format an error
+        string errorXml = formatter.FormatError(
+            "Failed to initialize compute shader pipeline",
+            "GPU-001",
+            new InvalidOperationException("Device not available or driver error")
+        );
+        Console.WriteLine(errorXml);
+
+        // Get file extension and MIME type
+        Console.WriteLine($"\nFile extension: {formatter.GetFileExtension()}");
+        Console.WriteLine($"MIME type: {formatter.GetMimeType()}");
+    }
+}
+## XmlResultFormatter
+
+
+The `XmlResultFormatter` class formats GPU image processing results, device information, job status, and errors into structured XML documents. It generates comprehensive reports with proper XML schema, attributes, and nested elements suitable for machine parsing, configuration files, and data exchange purposes.
+
+
+### Key Features
+
+
+- Formats processing results into well-structured XML with proper attributes and nesting
+- Generates XML documents with standardized schema for interoperability
+- Creates device information reports with memory calculations and extensions
+- Handles error reporting with XML-formatted error elements
+- Provides file extension and MIME type information for XML output
+- Supports both single result and batch processing scenarios
+
+### Usage Examples
+
+
+```csharp
+
+using GpuImageProcessing.Formatters;
+using GpuImageProcessing.Core.Models;
+using System;
+using System.Collections.Generic;
+
+class Program
+
+{
+    static void Main()
+
+    {
+
+        var formatter = new XmlResultFormatter();
+
+        // Format a single processing result
+        var result = new ProcessingResult
+        {
+            Id = "result-001",
+            JobId = "job-001",
+            ImageId = "image-001",
+            Status = ProcessingStatus.Completed,
+            StartTime = DateTime.UtcNow.AddMinutes(-5),
+            CompletionTime = DateTime.UtcNow,
+            OutputImagePath = "/output/processed-001.jpg",
+            ProcessedSize = 1024 * 1024,
+            Metadata = new Dictionary<string, object> { { "format", "JPEG" }, { "quality", 95 } }
+        };
+
+        string resultXml = formatter.FormatResult(result);
+        Console.WriteLine(resultXml);
+
+        // Format multiple processing results
+        var results = new List<ProcessingResult>
+        {
+            new ProcessingResult
+            {
+                Id = "result-001",
+                JobId = "job-001",
+                ImageId = "image-001",
+                Status = ProcessingStatus.Completed,
+                StartTime = DateTime.UtcNow.AddMinutes(-5),
+                CompletionTime = DateTime.UtcNow.AddMinutes(-4),
+                OutputImagePath = "/output/processed-001.jpg",
+                ProcessedSize = 1024 * 1024
+            },
+            new ProcessingResult
+            {
+                Id = "result-002",
+                JobId = "job-001",
+                ImageId = "image-002",
+                Status = ProcessingStatus.Failed,
+                StartTime = DateTime.UtcNow.AddMinutes(-3),
+                CompletionTime = DateTime.UtcNow.AddMinutes(-2),
+                ErrorMessage = "Invalid image format: unsupported color space"
+            },
+            new ProcessingResult
+            {
+                Id = "result-003",
+                JobId = "job-001",
+                ImageId = "image-003",
+                Status = ProcessingStatus.Completed,
+                StartTime = DateTime.UtcNow.AddMinutes(-2),
+                CompletionTime = DateTime.UtcNow.AddMinutes(-1),
+                OutputImagePath = "/output/processed-003.png",
+                ProcessedSize = 2 * 1024 * 1024
+            }
+        };
+
+        string resultsXml = formatter.FormatResults(results);
+        Console.WriteLine(resultsXml);
+
+        // Format a processing job
+        var job = new ProcessingJob
+        {
+            Id = "job-001",
+            Name = "Batch Image Processing Job",
+            Status = "Completed",
+            TotalImages = 150,
+            ProcessedImages = 148,
+            FailedImages = 2,
+            CreatedAt = DateTime.UtcNow.AddDays(-1),
+            StartedAt = DateTime.UtcNow.AddDays(-1).AddHours(2),
+            CompletedAt = DateTime.UtcNow,
+            Filters = new List<string> { "GaussianBlur", "EdgeDetection" },
+            Transforms = new List<string> { "Resize", "Crop" }
+        };
+
+        string jobXml = formatter.FormatJob(job);
+        Console.WriteLine(jobXml);
+
+        // Format device information
+        var device = new DeviceInfo
+        {
+            Id = "device-001",
+            Name = "NVIDIA RTX 3090 Ti",
+            Type = "GPU",
+            Vendor = "NVIDIA",
+            MemoryBytes = 24L * 1024 * 1024 * 1024,
+            ComputeUnits = 10496,
+            IsAvailable = true,
+            DriverVersion = "535.86.05",
+            Extensions = new List<string> { "DirectML", "CUDA", "Vulkan" }
+        };
+
+        string deviceXml = formatter.FormatDevice(device);
+        Console.WriteLine(deviceXml);
+
+        // Format an error
+        string errorXml = formatter.FormatError(
+            "Failed to initialize compute shader pipeline",
+            "GPU-001",
+            new InvalidOperationException("Device not available or driver error")
+        );
+        Console.WriteLine(errorXml);
+
+        // Get file extension and MIME type
+        Console.WriteLine($"\nFile extension: {formatter.GetFileExtension()}");
+        Console.WriteLine($"MIME type: {formatter.GetMimeType()}");
+    }
+}
+```
+
+
 ## DeviceUtilities
 
 The `DeviceUtilities` class provides utilities for GPU device discovery, capability detection, and resource management. It helps identify optimal GPU devices for image processing workloads by scoring devices based on memory, compute units, clock frequency, and current utilization. The class also analyzes memory pressure and recommends appropriate batch sizes to prevent out-of-memory errors.
 
 ### Key Features
+
 
 - Device scoring based on memory, compute units, and clock frequency
 - Peak performance calculation in GFLOPS
@@ -1375,14 +1635,19 @@ The `DeviceUtilities` class provides utilities for GPU device discovery, capabil
 
 ### Usage Examples
 
+
 ```csharp
+
 using GpuImageProcessing.Utilities;
 using System;
 
 class Program
+
 {
     static void Main()
+
     {
+
         // Score a GPU device for suitability
         float score = DeviceUtilities.ScoreGpuDevice(
             globalMemoryBytes: 16L * 1024 * 1024 * 1024, // 16GB
@@ -1454,5 +1719,6 @@ class Program
     }
 }
 ```
+
 
 ## ProcessingPipeline
