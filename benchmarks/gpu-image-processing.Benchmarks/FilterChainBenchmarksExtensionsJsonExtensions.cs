@@ -9,7 +9,6 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-
 namespace GpuImageProcessing.Benchmarks;
 
 /// <summary>
@@ -43,24 +42,11 @@ public static class FilterChainBenchmarksExtensionsJsonExtensions
     /// <param name="value">The configuration to serialize. Must not be null.</param>
     /// <param name="indented">Whether to format with indentation.</param>
     /// <returns>JSON string representation.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when value is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static string ToJson(this object value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
-
-        var config = new BenchmarkConfig
-        {
-            FilterCount = 10,
-            EnableValidation = true,
-            EnableCloning = true,
-            MaxParallelSteps = 4
-        };
-
-        var options = indented
-            ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
-            : _jsonOptions;
-
-        return JsonSerializer.Serialize(config, options);
+        return JsonSerializer.Serialize(value, indented ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true } : _jsonOptions);
     }
 
     /// <summary>
@@ -68,7 +54,8 @@ public static class FilterChainBenchmarksExtensionsJsonExtensions
     /// </summary>
     /// <param name="json">JSON string to deserialize.</param>
     /// <returns>Deserialized configuration or null if JSON is empty.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when json is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
     /// <exception cref="JsonException">Thrown when JSON is invalid.</exception>
     public static object? FromJson(string json)
     {
@@ -95,7 +82,7 @@ public static class FilterChainBenchmarksExtensionsJsonExtensions
     /// <param name="json">JSON string to deserialize.</param>
     /// <param name="value">Receives deserialized instance if successful.</param>
     /// <returns>True if successful; otherwise false.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when json is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out object? value)
     {
         ArgumentNullException.ThrowIfNull(json);
@@ -110,7 +97,7 @@ public static class FilterChainBenchmarksExtensionsJsonExtensions
         try
         {
             value = JsonSerializer.Deserialize<BenchmarkConfig>(json, _jsonOptions);
-            return value != null;
+            return value is not null;
         }
         catch (JsonException)
         {
