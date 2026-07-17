@@ -43,6 +43,69 @@ float cpuUsage = PerformanceUtilities.GetCpuUsage();
 Console.WriteLine($"CPU Usage: {cpuUsage:F1}%");
 ```
 
+## MetricsUtilities
+
+The `MetricsUtilities` class provides statistical analysis and performance metrics utilities for GPU-accelerated image processing applications. It includes methods for calculating statistical metrics, creating histograms, detecting anomalies, computing rate of change, moving averages, throughput, and efficiency ratios. The utilities support comprehensive data analysis for performance monitoring and optimization.
+
+### Key Features
+
+- **Statistical Analysis**: Calculate count, min, max, mean, median, percentiles (P95, P99), standard deviation, and sum from performance measurements
+- **Histogram Generation**: Create frequency distributions with customizable bucket counts for visualizing data distributions
+- **Anomaly Detection**: Identify outliers using interquartile range (IQR) method
+- **Time Series Analysis**: Compute rate of change, moving averages, and throughput metrics
+- **Efficiency Calculation**: Determine performance efficiency as percentage of theoretical peak
+
+### Usage Examples
+
+```csharp
+using GPUImageProcessing.Utilities;
+using System.Diagnostics;
+
+// Sample performance data from GPU operations
+var processingTimes = new List<double> { 12.5, 14.2, 13.8, 15.1, 12.9, 25.3, 13.5, 14.7, 15.2, 13.1 };
+
+// Calculate basic statistics
+var stats = MetricsUtilities.CalculateStatistics(processingTimes);
+Console.WriteLine($"Count: {stats.Count}, Min: {stats.Min:F2}ms, Max: {stats.Max:F2}ms");
+Console.WriteLine($"Mean: {stats.Mean:F2}ms, Median: {stats.Median:F2}ms");
+Console.WriteLine($"P95: {stats.P95:F2}ms, P99: {stats.P99:F2}ms, StdDev: {stats.StdDev:F2}ms");
+
+// Create histogram to visualize distribution
+var histogram = MetricsUtilities.CreateHistogram(processingTimes, bucketCount: 10);
+Console.WriteLine($"\nHistogram with {histogram.Buckets.Count} buckets:");
+foreach (var bucket in histogram.Buckets)
+{
+    Console.WriteLine($"  Bucket {bucket.BucketNumber}: {bucket.Min:F1}-{bucket.Max:F1}ms - {bucket.Count} items ({bucket.Percentage:F1}%)");
+}
+
+// Detect anomalies (unusually slow operations)
+var anomalies = MetricsUtilities.DetectAnomalies(processingTimes);
+if (anomalies.Any())
+{
+    Console.WriteLine($"\nDetected {anomalies.Count} anomalies: [{string.Join(", ", anomalies.Select(a => $"{a:F2}ms"))}]");
+}
+
+// Calculate rate of change between measurements
+var roc = MetricsUtilities.CalculateRateOfChange(processingTimes);
+Console.WriteLine($"\nRate of change: [{string.Join(", ", roc.Select(r => $"{r:F2}"))}]");
+
+// Calculate moving average with window size of 3
+var movingAvg = MetricsUtilities.CalculateMovingAverage(processingTimes, windowSize: 3);
+Console.WriteLine($"\nMoving average (window=3): [{string.Join(", ", movingAvg.Select(m => $"{m:F2}"))}]");
+
+// Calculate throughput from operations and duration
+var throughput = MetricsUtilities.CalculateThroughput(itemCount: 5000, duration: TimeSpan.FromSeconds(2.5));
+Console.WriteLine($"\nThroughput: {throughput:F0} items/second");
+
+// Calculate efficiency compared to theoretical peak
+var efficiency = MetricsUtilities.CalculateEfficiency(actualPerformance: 4500f, peakPerformance: 6000f);
+Console.WriteLine($"Efficiency: {efficiency:F1}% of theoretical peak");
+
+// Get specific percentile
+var p90 = MetricsUtilities.GetPercentile(processingTimes.OrderBy(x => x).ToList(), 90);
+Console.WriteLine($"\nP90 percentile: {p90:F2}ms");
+```
+
 ## BatchProcessingUtilities
 
 `BatchProcessingUtilities` provides utilities for managing and optimizing batch processing operations on GPU devices. It includes methods for partitioning work items, calculating optimal batch sizes, scheduling with priority, estimating processing times, tracking progress, and handling retries for failed items. The class is designed to maximize GPU utilization while minimizing memory overhead and provides comprehensive progress tracking for long-running batch operations.
