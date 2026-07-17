@@ -4,6 +4,7 @@
 // CTO & Software Architect
 // =============================================================================
 
+using System;
 using GpuImageProcessing.Domain;
 using GpuImageProcessing.Core;
 
@@ -22,12 +23,13 @@ public static class ImageRepositoryExtensions
     /// <param name="extension">The file extension to filter by (e.g., ".jpg", ".png").</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Collection of images matching the file extension.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when extension is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> or <paramref name="extension"/> is null.</exception>
     public static Task<IReadOnlyList<Image>> GetByFileExtensionAsync(
         this ImageRepository repository,
         string extension,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(repository);
         ArgumentNullException.ThrowIfNull(extension);
 
         return repository.GetByCriteriaAsync(
@@ -43,11 +45,14 @@ public static class ImageRepositoryExtensions
     /// <param name="colorSpace">The color space to filter by.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Collection of images with the specified color space.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null.</exception>
     public static Task<IReadOnlyList<Image>> GetByColorSpaceAsync(
         this ImageRepository repository,
         ColorSpace colorSpace,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(repository);
+
         return repository.GetByCriteriaAsync(
             i => i.ColorSpace == colorSpace,
             cancellationToken
@@ -61,11 +66,14 @@ public static class ImageRepositoryExtensions
     /// <param name="minFileSizeBytes">Minimum file size in bytes to filter by.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Collection of images larger than the specified size.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null.</exception>
     public static Task<IReadOnlyList<Image>> GetLargeImagesAsync(
         this ImageRepository repository,
         long minFileSizeBytes,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(repository);
+
         return repository.GetByCriteriaAsync(
             i => i.FileSizeBytes >= minFileSizeBytes,
             cancellationToken
@@ -80,13 +88,16 @@ public static class ImageRepositoryExtensions
     /// <param name="tolerance">Allowed deviation from target aspect ratio.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Collection of images matching the aspect ratio criteria.</returns>
-    /// <exception cref="ArgumentOutOfRangeException">Thrown when tolerance is negative.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="tolerance"/> is negative.</exception>
     public static Task<IReadOnlyList<Image>> GetByAspectRatioAsync(
         this ImageRepository repository,
         double targetAspectRatio,
         double tolerance = 0.01,
         CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(repository);
+
         if (tolerance < 0)
             throw new ArgumentOutOfRangeException(nameof(tolerance), "Tolerance cannot be negative");
 
