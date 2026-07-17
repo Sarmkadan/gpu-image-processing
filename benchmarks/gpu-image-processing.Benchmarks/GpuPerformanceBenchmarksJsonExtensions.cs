@@ -59,8 +59,15 @@ public static class GpuPerformanceBenchmarksJsonExtensions
     /// Tries to deserialize a JSON string to a <see cref="GpuPerformanceBenchmarks"/>.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The deserialized benchmarks if successful; otherwise null.</param>
-    /// <returns>True if deserialization succeeded; otherwise false.</returns>
+    /// <param name="value">
+    /// When this method returns, contains the deserialized benchmarks if successful;
+    /// otherwise, contains null.
+    /// </param>
+    /// <returns>
+    /// True if the JSON was successfully deserialized; otherwise, false.
+    /// The <paramref name="value"/> parameter supplies the deserialized value.
+    /// </returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null or empty.</exception>
     public static bool TryFromJson(string json, out GpuPerformanceBenchmarks? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
