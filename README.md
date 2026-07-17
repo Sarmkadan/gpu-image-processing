@@ -1201,6 +1201,152 @@ class Program
 
 ```
 
+## ImageProcessingControllerExtensions
+
+The `ImageProcessingControllerExtensions` class provides extension methods for the `ImageProcessingController` that simplify batch image processing operations. It includes convenient methods for registering multiple images, applying filters and transforms to batches, retrieving image information and processing results, and managing batch jobs, making it easier to build scalable image processing pipelines.
+
+### Key Features
+
+- Batch registration of multiple images with `RegisterImagesAsync()`
+- Parallel application of filters to multiple images with `ApplyFilterToImagesAsync()`
+- Parallel application of transforms to multiple images with `ApplyTransformToImagesAsync()`
+- Bulk retrieval of image information with `GetImagesInfoAsync()`
+- Batch retrieval of processing results with `GetProcessingResultsByImageAsync()`
+- Bulk cancellation of batch jobs with `CancelBatchJobsAsync()`
+- Batch retrieval of job statuses with `GetBatchJobsStatusAsync()`
+- Error aggregation and reporting for batch operations
+- Null safety and validation for all public methods
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Api;
+using GpuImageProcessing.Core.Models;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+static async Task Main()
+{
+// Initialize the controller (typically via dependency injection in real applications)
+var controller = new ImageProcessingController(...);
+
+// Register multiple images for batch processing
+var imagePaths = new List<string> {
+"/data/images/photo1.jpg",
+"/data/images/photo2.png",
+"/data/images/photo3.bmp"
+};
+
+var registrationResult = await controller.RegisterImagesAsync(imagePaths, "Vacation photos batch");
+
+if (registrationResult.IsSuccess)
+{
+Console.WriteLine($"Successfully registered {registrationResult.Data?.Count} images");
+foreach (var image in registrationResult.Data ?? new List<ImageMetadata>())
+{
+Console.WriteLine($" - Image ID: {image.Id}, Name: {image.Name}");
+}
+}
+else
+{
+Console.WriteLine($"Registration failed: {registrationResult.Message}");
+}
+
+// Apply the same filter to multiple images in parallel
+var filterId = Guid.Parse("3fa85f64-5717-4562-b3fc-2c963f66afa6");
+var imageIds = registrationResult.Data?.Select(img => img.Id).ToList() ?? new List<Guid>();
+
+var filterResult = await controller.ApplyFilterToImagesAsync(imageIds, filterId);
+
+if (filterResult.IsSuccess)
+{
+Console.WriteLine($"Successfully applied filter to {filterResult.Data?.Count} images");
+foreach (var result in filterResult.Data ?? new List<ProcessingResult>())
+{
+Console.WriteLine($" - Image {result.ImageId}: {result.Status}");
+}
+}
+else
+{
+Console.WriteLine($"Filter application failed: {filterResult.Message}");
+}
+
+// Apply the same transform to multiple images in parallel
+var transformId = Guid.Parse("4fa85f64-5717-4562-b3fc-2c963f66afa7");
+
+var transformResult = await controller.ApplyTransformToImagesAsync(imageIds, transformId);
+
+if (transformResult.IsSuccess)
+{
+Console.WriteLine($"Successfully applied transform to {transformResult.Data?.Count} images");
+foreach (var result in transformResult.Data ?? new List<ProcessingResult>())
+{
+Console.WriteLine($" - Image {result.ImageId}: {result.Status}");
+}
+}
+
+// Get information for multiple images
+var infoResult = await controller.GetImagesInfoAsync(imageIds);
+
+if (infoResult.IsSuccess)
+{
+Console.WriteLine($"Retrieved info for {infoResult.Data?.Count} images");
+foreach (var image in infoResult.Data ?? new List<ImageMetadata>())
+{
+Console.WriteLine($" - {image.Name}: {image.Width}x{image.Height}, {image.Channels} channels");
+}
+}
+
+// Get processing results for multiple images
+var resultsResult = await controller.GetProcessingResultsByImageAsync(imageIds);
+
+if (resultsResult.IsSuccess)
+{
+foreach (var kvp in resultsResult.Data ?? new Dictionary<Guid, List<ProcessingResult>>())
+{
+Console.WriteLine($"Processing results for image {kvp.Key}:");
+foreach (var result in kvp.Value)
+{
+Console.WriteLine($"  - Result {result.Id}: {result.Status}");
+}
+}
+}
+
+// Cancel multiple batch jobs
+var jobIds = new List<Guid> {
+	Guid.Parse("123e4567-e89b-12d3-a456-426614174000"),
+	Guid.Parse("123e4567-e89b-12d3-a456-426614174001")
+};
+
+var cancelResult = await controller.CancelBatchJobsAsync(jobIds);
+
+if (cancelResult.IsSuccess)
+{
+Console.WriteLine($"Successfully cancelled {cancelResult.Data?.Count} jobs");
+}
+else
+{
+Console.WriteLine($"Cancellation failed: {cancelResult.Message}");
+}
+
+// Get status for multiple batch jobs
+var statusResult = await controller.GetBatchJobsStatusAsync(jobIds);
+
+if (statusResult.IsSuccess)
+{
+foreach (var kvp in statusResult.Data ?? new Dictionary<Guid, BatchJobStatus>())
+{
+Console.WriteLine($"Job {kvp.Key} status: {kvp.Value}");
+}
+}
+}
+
+```
+
 ## BatchProcessingUtilities
 
 The `BatchProcessingUtilities` class provides utilities for managing and processing batches of images efficiently. It includes batch splitting, progress tracking, and result aggregation.
