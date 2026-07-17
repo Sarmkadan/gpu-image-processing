@@ -22,7 +22,7 @@ public static class ImageProcessingServiceTestsJsonExtensions
     /// <param name="value">The instance to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representation of the instance.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
     public static string ToJson(this ImageProcessingServiceTests value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -39,7 +39,7 @@ public static class ImageProcessingServiceTestsJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized instance, or null if the JSON is empty.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/> or empty.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static ImageProcessingServiceTests? FromJson(string json)
     {
