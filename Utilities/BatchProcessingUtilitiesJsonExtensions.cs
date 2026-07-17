@@ -48,11 +48,13 @@ namespace GpuImageProcessing.Utilities
         /// Deserializes a batch processing configuration from JSON string.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <returns>A deserialized batch processing configuration, or null if JSON is null or empty.</returns>
+        /// <returns>A deserialized batch processing configuration, or null if JSON is null, empty, or whitespace.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
         public static BatchProcessingConfiguration? FromJson(string json)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
             if (string.IsNullOrWhiteSpace(json))
             {
                 return null;
@@ -70,20 +72,22 @@ namespace GpuImageProcessing.Utilities
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         public static bool TryFromJson(string json, out BatchProcessingConfiguration? value)
         {
-            value = null;
+            ArgumentNullException.ThrowIfNull(json);
 
             if (string.IsNullOrWhiteSpace(json))
             {
+                value = null;
                 return false;
             }
 
             try
             {
                 value = JsonSerializer.Deserialize<BatchProcessingConfiguration>(json, _jsonSerializerOptions);
-                return value != null && value.BatchSize >= 0;
+                return value is not null && value.BatchSize >= 0;
             }
             catch (JsonException)
             {
+                value = null;
                 return false;
             }
         }
@@ -93,7 +97,10 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public sealed class BatchProcessingConfiguration
         {
-            /// <summary>Gets or sets the batch size.</summary>
+            /// <summary>
+            /// Gets or sets the batch size.
+            /// </summary>
+            /// <value>The batch size must be non-negative.</value>
             public int BatchSize { get; set; }
         }
     }
