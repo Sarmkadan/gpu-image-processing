@@ -35,8 +35,8 @@ namespace GpuImageProcessing.Configuration
         public static string GetCachePath(this AppSettings settings)
         {
             ArgumentNullException.ThrowIfNull(settings);
-            ArgumentException.ThrowIfNullOrEmpty(settings.CacheDirectory);
-            ArgumentException.ThrowIfNullOrEmpty(settings.ApplicationName);
+            ArgumentException.ThrowIfNullOrEmpty(settings.CacheDirectory, nameof(settings.CacheDirectory));
+            ArgumentException.ThrowIfNullOrEmpty(settings.ApplicationName, nameof(settings.ApplicationName));
             return Path.Combine(settings.CacheDirectory, settings.ApplicationName);
         }
 
@@ -49,8 +49,7 @@ namespace GpuImageProcessing.Configuration
         public static IReadOnlyList<string> GetSupportedImageFormats(this AppSettings settings)
         {
             ArgumentNullException.ThrowIfNull(settings);
-            // Ensure the list itself is not null; if it is, treat it as empty.
-            return (settings.SupportedImageFormats ?? new List<string>()).AsReadOnly();
+                    return settings.SupportedImageFormats?.AsReadOnly() ?? (IReadOnlyList<string>)Array.Empty<string>();
         }
 
         /// <summary>
@@ -67,12 +66,12 @@ namespace GpuImageProcessing.Configuration
             ArgumentNullException.ThrowIfNull(settings);
 
             // Application name and version are essential for logging and diagnostics.
-            ArgumentException.ThrowIfNullOrEmpty(settings.ApplicationName);
-            ArgumentException.ThrowIfNullOrEmpty(settings.ApplicationVersion);
+            ArgumentException.ThrowIfNullOrEmpty(settings.ApplicationName, nameof(settings.ApplicationName));
+            ArgumentException.ThrowIfNullOrEmpty(settings.ApplicationVersion, nameof(settings.ApplicationVersion));
 
             // Directories must be provided.
-            ArgumentException.ThrowIfNullOrEmpty(settings.OutputDirectory);
-            ArgumentException.ThrowIfNullOrEmpty(settings.CacheDirectory);
+            ArgumentException.ThrowIfNullOrEmpty(settings.OutputDirectory, nameof(settings.OutputDirectory));
+            ArgumentException.ThrowIfNullOrEmpty(settings.CacheDirectory, nameof(settings.CacheDirectory));
 
             // Numeric ranges.
             if (settings.MaxConcurrentOperations <= 0)
