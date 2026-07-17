@@ -4,7 +4,6 @@
 // CTO & Software Architect
 // =====================================================================
 
-using System.Globalization;
 using GpuImageProcessing.Core;
 
 namespace GpuImageProcessing.Domain;
@@ -42,25 +41,25 @@ public static class FilterChainValidation
             problems.Add($"FilterChain.Name exceeds maximum length of {AppConstants.FileSystem.MaxFileNameLength} characters.");
         }
 
-        // Validate Description
-        if (value.Description.Length > AppConstants.FileSystem.MaxFileNameLength * 2)
+        // Validate Description - handle null case first
+        if (string.IsNullOrEmpty(value.Description))
+        {
+            problems.Add("FilterChain.Description cannot be null or empty.");
+        }
+        else if (value.Description.Length > AppConstants.FileSystem.MaxFileNameLength * 2)
         {
             problems.Add($"FilterChain.Description exceeds maximum length of {AppConstants.FileSystem.MaxFileNameLength * 2} characters.");
         }
 
         // Validate Steps
-        if (value.Steps is null)
-        {
-            problems.Add("FilterChain.Steps cannot be null.");
-        }
-        else
-        {
-            if (value.Steps.Count == 0)
-            {
-                problems.Add("FilterChain.Steps cannot be empty.");
-            }
+        ArgumentNullException.ThrowIfNull(value.Steps);
 
-            for (int i = 0; i < value.Steps.Count; i++)
+        if (value.Steps.Count == 0)
+        {
+            problems.Add("FilterChain.Steps cannot be empty.");
+        }
+
+        for (int i = 0; i < value.Steps.Count; i++)
             {
                 var step = value.Steps[i];
                 if (step is null)
@@ -89,7 +88,6 @@ public static class FilterChainValidation
                     problems.Add($"FilterChain.Steps[{i}].StepId cannot be empty (Guid.Empty).");
                 }
             }
-        }
 
         // Validate IsEnabled
         // No specific validation needed beyond being a boolean
@@ -100,10 +98,14 @@ public static class FilterChainValidation
             problems.Add("FilterChain.ExecutionOrder cannot be negative.");
         }
 
-        // Validate CreatedAt
+        // Validate CreatedAt - use UTC comparison for culture-independence
         if (value.CreatedAt == default)
         {
             problems.Add("FilterChain.CreatedAt cannot be default (DateTime.MinValue).");
+        }
+        else if (value.CreatedAt.Kind != DateTimeKind.Utc)
+        {
+            problems.Add("FilterChain.CreatedAt must be in UTC format.");
         }
         else if (value.CreatedAt > DateTime.UtcNow.AddMinutes(5))
         {
@@ -115,6 +117,10 @@ public static class FilterChainValidation
         {
             problems.Add("FilterChain.ModifiedAt cannot be default (DateTime.MinValue).");
         }
+        else if (value.ModifiedAt.Kind != DateTimeKind.Utc)
+        {
+            problems.Add("FilterChain.ModifiedAt must be in UTC format.");
+        }
         else if (value.ModifiedAt > DateTime.UtcNow.AddMinutes(5))
         {
             problems.Add("FilterChain.ModifiedAt cannot be in the future.");
@@ -125,25 +131,19 @@ public static class FilterChainValidation
         }
 
         // Validate ChainOptions
-        if (value.ChainOptions is null)
-        {
-            problems.Add("FilterChain.ChainOptions cannot be null.");
-        }
-        else
-        {
-            foreach (var key in value.ChainOptions.Keys)
-            {
-                if (string.IsNullOrWhiteSpace(key))
-                {
-                    problems.Add("FilterChain.ChainOptions contains a null or whitespace key.");
-                    break;
-                }
+        ArgumentNullException.ThrowIfNull(value.ChainOptions);
 
-                if (key.Length > AppConstants.FileSystem.MaxFileNameLength)
-                {
-                    problems.Add($"FilterChain.ChainOptions key '{key}' exceeds maximum length of {AppConstants.FileSystem.MaxFileNameLength} characters.");
-                    break;
-                }
+        foreach (var key in value.ChainOptions.Keys)
+        {
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                problems.Add("FilterChain.ChainOptions contains a null or whitespace key.");
+                continue;
+            }
+
+            if (key.Length > AppConstants.FileSystem.MaxFileNameLength)
+            {
+                problems.Add($"FilterChain.ChainOptions key '{key}' exceeds maximum length of {AppConstants.FileSystem.MaxFileNameLength} characters.");
             }
         }
 
@@ -178,6 +178,7 @@ public static class FilterChainValidation
     /// </summary>
     /// <param name="value">The filter chain to check.</param>
     /// <returns><see langword="true"/> if the filter chain is valid; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static bool IsValid(this FilterChain? value) => Validate(value).Count == 0;
 
     /// <summary>
