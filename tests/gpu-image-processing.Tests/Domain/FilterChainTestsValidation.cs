@@ -11,6 +11,11 @@ namespace GpuImageProcessing.Tests.Domain
         /// <summary>
         /// Validates the specified <see cref="FilterChainTests"/> instance.
         /// </summary>
+        /// <remarks>
+        /// This method currently returns an empty list as <see cref="FilterChainTests"/> is a test class
+        /// with no validation-worthy properties. The method is retained for API consistency and potential
+        /// future extension.
+        /// </remarks>
         /// <param name="value">The instance to validate.</param>
         /// <returns>A list of validation problems; empty if the instance is valid.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
@@ -18,12 +23,7 @@ namespace GpuImageProcessing.Tests.Domain
         {
             ArgumentNullException.ThrowIfNull(value);
 
-            var errors = new List<string>();
-
-            // FilterChainTests is a test class with no actual properties to validate
-            // The validation simply ensures the test class instance is properly initialized
-
-            return errors.AsReadOnly();
+            return Array.Empty<string>();
         }
 
         /// <summary>
@@ -32,24 +32,16 @@ namespace GpuImageProcessing.Tests.Domain
         /// <param name="value">The instance to check.</param>
         /// <returns><see langword="true"/> if the instance is valid; otherwise, <see langword="false"/>.</returns>
         public static bool IsValid(this FilterChainTests? value)
-            => Validate(value).Count == 0;
+            => value is not null;
 
         /// <summary>
         /// Ensures that the specified <see cref="FilterChainTests"/> instance is valid.
         /// </summary>
         /// <param name="value">The instance to validate.</param>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
-        /// <exception cref="ArgumentException">Thrown if the instance is not valid, containing a list of validation problems.</exception>
         public static void EnsureValid(this FilterChainTests? value)
         {
             ArgumentNullException.ThrowIfNull(value);
-
-            var errors = Validate(value);
-            if (errors.Count > 0)
-            {
-                throw new ArgumentException(
-                    $"FilterChainTests instance is not valid. Problems: {string.Join(", ", errors)}");
-            }
         }
     }
 }
