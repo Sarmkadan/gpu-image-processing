@@ -2362,6 +2362,99 @@ class Program
 
 
 
+## GpuDeviceExtensionsJsonExtensions
+
+The `GpuDeviceExtensionsJsonExtensions` class provides System.Text.Json serialization utilities for GPU device extension configurations. It enables easy serialization and deserialization of device extension settings with support for JSON formatting options and error handling.
+
+### Key Features
+
+- JSON serialization of GPU device extension configurations using camelCase property naming
+- Support for both compact and indented JSON output formats
+- Safe deserialization with null handling and error recovery
+- Configuration validation through JSON parsing
+- Thread-safe serialization with optimized JsonSerializerOptions
+- Boolean flags for memory extensions, color space detection, device type display, and default memory unit configuration
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Domain;
+using System;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a GPU device extensions configuration with custom settings
+        var config = new GpuDeviceExtensionsJsonExtensions.GpuDeviceExtensionsConfig
+        {
+            IsMemoryExtensionsEnabled = true,
+            IsColorSpaceDetectionEnabled = false,
+            IsDeviceTypeDisplayEnabled = true,
+            DefaultMemoryUnit = "GB"
+        };
+
+        // Serialize to compact JSON
+        string compactJson = config.ToJson();
+        Console.WriteLine("Compact JSON configuration:");
+        Console.WriteLine(compactJson);
+        
+        // Serialize to indented JSON for readability
+        string indentedJson = config.ToJson(indented: true);
+        Console.WriteLine("\nIndented JSON configuration:");
+        Console.WriteLine(indentedJson);
+
+        // Deserialize from JSON string
+        string json = @"{ "type": "GpuDeviceExtensions", "isMemoryExtensionsEnabled": false, "isColorSpaceDetectionEnabled": true, "isDeviceTypeDisplayEnabled": false, "defaultMemoryUnit": "KB" }";
+        GpuDeviceExtensionsJsonExtensions.GpuDeviceExtensionsConfig? deserialized = GpuDeviceExtensionsJsonExtensions.FromJson(json);
+
+        if (deserialized is not null)
+        {
+            Console.WriteLine($"\nDeserialized configuration:");
+            Console.WriteLine($"Type: {deserialized.Type}");
+            Console.WriteLine($"IsMemoryExtensionsEnabled: {deserialized.IsMemoryExtensionsEnabled}");
+            Console.WriteLine($"IsColorSpaceDetectionEnabled: {deserialized.IsColorSpaceDetectionEnabled}");
+            Console.WriteLine($"IsDeviceTypeDisplayEnabled: {deserialized.IsDeviceTypeDisplayEnabled}");
+            Console.WriteLine($"DefaultMemoryUnit: {deserialized.DefaultMemoryUnit}");
+        }
+
+        // Try to deserialize with error handling
+        string invalidJson = @"{ invalid json }";
+        bool success = GpuDeviceExtensionsJsonExtensions.TryFromJson(invalidJson, out var result);
+        Console.WriteLine($"\nTryFromJson with invalid JSON: {(success ? "Success" : "Failed (expected)")}");
+
+        // Serialize and deserialize round-trip to verify data integrity
+        string roundTripJson = config.ToJson();
+        GpuDeviceExtensionsJsonExtensions.GpuDeviceExtensionsConfig? roundTripResult = GpuDeviceExtensionsJsonExtensions.FromJson(roundTripJson);
+
+        if (roundTripResult is not null)
+        {
+            bool isValid = roundTripResult.Type == config.Type &&
+                         roundTripResult.IsMemoryExtensionsEnabled == config.IsMemoryExtensionsEnabled &&
+                         roundTripResult.IsColorSpaceDetectionEnabled == config.IsColorSpaceDetectionEnabled &&
+                         roundTripResult.IsDeviceTypeDisplayEnabled == config.IsDeviceTypeDisplayEnabled &&
+                         roundTripResult.DefaultMemoryUnit == config.DefaultMemoryUnit;
+            Console.WriteLine($"\nRound-trip successful: {isValid}");
+        }
+
+        // Create configuration with all properties set to false
+        var disabledConfig = new GpuDeviceExtensionsJsonExtensions.GpuDeviceExtensionsConfig
+        {
+            IsMemoryExtensionsEnabled = false,
+            IsColorSpaceDetectionEnabled = false,
+            IsDeviceTypeDisplayEnabled = false,
+            DefaultMemoryUnit = "B"
+        };
+
+        Console.WriteLine($"\nDisabled configuration:");
+        Console.WriteLine(disabledConfig.ToJson());
+    }
+}
+
+```
+
 ## SimdCapabilitiesExtensionsJsonExtensions
 
 The `SimdCapabilitiesExtensionsJsonExtensions` class provides System.Text.Json serialization utilities for `SimdCapabilitiesExtensions` configurations. It enables easy serialization and deserialization of SIMD capability detection settings with support for JSON formatting options and error handling.
