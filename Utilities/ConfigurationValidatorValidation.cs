@@ -11,8 +11,8 @@ using System.Globalization;
 namespace GpuImageProcessing.Utilities
 {
     /// <summary>
-    /// Validation helpers for ConfigurationValidator operations.
-    /// Provides validation, IsValid, and EnsureValid methods for configuration validation scenarios.
+    /// Validation helpers for configuration validation scenarios.
+    /// Provides validation methods for various configuration types and constraints.
     /// </summary>
     public static class ConfigurationValidatorValidation
     {
@@ -22,20 +22,20 @@ namespace GpuImageProcessing.Utilities
         /// <param name="config">Configuration dictionary to validate</param>
         /// <param name="requiredKeys">Required configuration keys</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if config or requiredKeys is null</exception>
         public static IReadOnlyList<string> Validate(
             Dictionary<string, string> config,
             params string[] requiredKeys)
         {
+            ArgumentNullException.ThrowIfNull(config);
+            ArgumentNullException.ThrowIfNull(requiredKeys);
+
             var problems = new List<string>();
 
-            if (config == null)
-                problems.Add("Configuration dictionary cannot be null");
-            else if (config.Count == 0)
+            if (config.Count == 0)
                 problems.Add("Configuration dictionary cannot be empty");
 
-            if (requiredKeys == null)
-                problems.Add("Required keys array cannot be null");
-            else if (requiredKeys.Length == 0)
+            if (requiredKeys.Length == 0)
                 problems.Add("Required keys array cannot be empty");
 
             return problems.AsReadOnly();
@@ -49,16 +49,21 @@ namespace GpuImageProcessing.Utilities
         /// <param name="maximum">Maximum allowed value</param>
         /// <param name="parameterName">Name of the parameter being validated</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if parameterName is null</exception>
         public static IReadOnlyList<string> Validate(
             string value,
             int minimum,
             int maximum,
             string parameterName)
         {
+            ArgumentNullException.ThrowIfNull(parameterName);
+
             var problems = new List<string>();
 
             if (string.IsNullOrWhiteSpace(value))
                 problems.Add($"{parameterName} cannot be null or whitespace");
+            else if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedValue) || parsedValue < minimum || parsedValue > maximum)
+                problems.Add($"{parameterName} must be an integer between {minimum} and {maximum}");
 
             if (minimum > maximum)
                 problems.Add($"Minimum ({minimum}) cannot be greater than maximum ({maximum}) for {parameterName}");
@@ -74,12 +79,15 @@ namespace GpuImageProcessing.Utilities
         /// <param name="maximum">Maximum allowed timeout</param>
         /// <param name="parameterName">Name of the parameter being validated</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if parameterName is null</exception>
         public static IReadOnlyList<string> Validate(
             TimeSpan timeout,
             TimeSpan minimum,
             TimeSpan maximum,
             string parameterName = "Timeout")
         {
+            ArgumentNullException.ThrowIfNull(parameterName);
+
             var problems = new List<string>();
 
             if (timeout < TimeSpan.Zero)
@@ -94,6 +102,12 @@ namespace GpuImageProcessing.Utilities
             if (minimum > maximum)
                 problems.Add($"Minimum timeout ({minimum.TotalSeconds}s) cannot be greater than maximum timeout ({maximum.TotalSeconds}s)");
 
+            if (timeout < minimum)
+                problems.Add($"{parameterName} ({timeout.TotalSeconds}s) cannot be less than minimum ({minimum.TotalSeconds}s)");
+
+            if (timeout > maximum)
+                problems.Add($"{parameterName} ({timeout.TotalSeconds}s) cannot be greater than maximum ({maximum.TotalSeconds}s)");
+
             return problems.AsReadOnly();
         }
 
@@ -102,6 +116,7 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         /// <param name="batchSize">Batch size to validate</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown if batchSize is less than or equal to 0</exception>
         public static IReadOnlyList<string> Validate(int batchSize)
         {
             var problems = new List<string>();
@@ -113,22 +128,35 @@ namespace GpuImageProcessing.Utilities
         }
 
         /// <summary>
-        /// Validates memory size specification
+        /// Validates memory size specification string and ensures it meets minimum requirement
         /// </summary>
-        /// <param name="sizeSpec">Memory size specification string</param>
+        /// <param name="sizeSpec">Memory size specification string (e.g., "1GB", "512MB", "2048KB")</param>
         /// <param name="minimumBytes">Minimum bytes required</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if sizeSpec is null</exception>
+        /// <exception cref="ArgumentException">Thrown if sizeSpec is empty or whitespace</exception>
         public static IReadOnlyList<string> Validate(
             string sizeSpec,
             long minimumBytes)
         {
-            var problems = new List<string>();
+            ArgumentNullException.ThrowIfNull(sizeSpec);
+            ArgumentException.ThrowIfNullOrEmpty(sizeSpec.Trim(), nameof(sizeSpec));
 
-            if (string.IsNullOrWhiteSpace(sizeSpec))
-                problems.Add("Memory size specification cannot be null or whitespace");
+            var problems = new List<string>();
 
             if (minimumBytes <= 0)
                 problems.Add("Minimum bytes must be positive");
+
+            try
+            {
+                var parsedSize = ParseMemorySize(sizeSpec);
+                if (parsedSize < minimumBytes)
+                    problems.Add($"Memory size ({FormatBytes(parsedSize)}) must be at least {FormatBytes(minimumBytes)}");
+            }
+            catch (FormatException ex)
+            {
+                problems.Add($"Memory size specification '{sizeSpec}' is not in a valid format: {ex.Message}");
+            }
 
             return problems.AsReadOnly();
         }
@@ -138,30 +166,41 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         /// <param name="url">URL to validate</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if url is null</exception>
         public static IReadOnlyList<string> Validate(string url)
         {
+            ArgumentNullException.ThrowIfNull(url);
+
             var problems = new List<string>();
 
             if (string.IsNullOrWhiteSpace(url))
                 problems.Add("URL cannot be null or whitespace");
+            else if (!Uri.TryCreate(url, UriKind.Absolute, out var uriResult) ||
+                    !(uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps))
+                problems.Add("URL must be a valid HTTP or HTTPS URL");
 
             return problems.AsReadOnly();
         }
 
         /// <summary>
-        /// Validates environment variable is set
+        /// Validates environment variable name and checks if it exists when required
         /// </summary>
         /// <param name="variableName">Environment variable name</param>
         /// <param name="required">Whether the variable is required</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if variableName is null</exception>
         public static IReadOnlyList<string> Validate(
             string variableName,
             bool required = true)
         {
+            ArgumentNullException.ThrowIfNull(variableName);
+
             var problems = new List<string>();
 
             if (string.IsNullOrWhiteSpace(variableName))
                 problems.Add("Environment variable name cannot be null or whitespace");
+            else if (required && Environment.GetEnvironmentVariable(variableName) == null)
+                problems.Add($"Required environment variable '{variableName}' is not set");
 
             return problems.AsReadOnly();
         }
@@ -171,41 +210,66 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         /// <param name="config">Configuration dictionary to validate</param>
         /// <returns>List of validation problems, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if config is null</exception>
         public static IReadOnlyList<string> Validate(Dictionary<string, string> config)
         {
-            var problems = new List<string>();
+            ArgumentNullException.ThrowIfNull(config);
 
-            if (config == null)
-                problems.Add("Configuration dictionary cannot be null");
+            var problems = new List<string>();
 
             return problems.AsReadOnly();
         }
 
         /// <summary>
-        /// Validates the ConfigurationValidator static class (no-op since it's static)
+        /// Parses a memory size string into bytes
         /// </summary>
-        /// <returns>List of validation problems, empty if valid</returns>
-        public static IReadOnlyList<string> ValidateConfigurationValidator()
+        /// <param name="sizeSpec">Memory size specification (e.g., "1GB", "512MB", "2048KB", "1024")</param>
+        /// <returns>Size in bytes</returns>
+        /// <exception cref="FormatException">Thrown if the format is invalid</exception>
+        private static long ParseMemorySize(string sizeSpec)
         {
-            return Array.Empty<string>();
+            var spec = sizeSpec.Trim().ToUpperInvariant();
+
+            if (spec.EndsWith("B", StringComparison.Ordinal))
+                spec = spec.Substring(0, spec.Length - 1);
+
+            if (long.TryParse(spec, NumberStyles.Integer, CultureInfo.InvariantCulture, out var bytes))
+                return bytes;
+
+            var suffix = spec[^2..];
+            var numberPart = spec[..^2];
+
+            if (!long.TryParse(numberPart, NumberStyles.Integer, CultureInfo.InvariantCulture, out bytes))
+                throw new FormatException($"Invalid number format in '{sizeSpec}'");
+
+            return suffix switch
+            {
+                "KB" => bytes * 1024L,
+                "MB" => bytes * 1024L * 1024L,
+                "GB" => bytes * 1024L * 1024L * 1024L,
+                "TB" => bytes * 1024L * 1024L * 1024L * 1024L,
+                _ => throw new FormatException($"Unknown size suffix '{suffix}' in '{sizeSpec}'. Use KB, MB, GB, or TB")
+            };
         }
 
         /// <summary>
-        /// Checks if the ConfigurationValidator static class is valid (always true)
+        /// Formats bytes as a human-readable string
         /// </summary>
-        /// <returns>True if valid</returns>
-        public static bool IsValidConfigurationValidator()
+        /// <param name="bytes">Number of bytes</param>
+        /// <returns>Formatted string with appropriate unit</returns>
+        private static string FormatBytes(long bytes)
         {
-            return true;
-        }
+            string[] suffixes = ["B", "KB", "MB", "GB", "TB"];
+            double size = bytes;
+            int suffixIndex = 0;
 
-        /// <summary>
-        /// Ensures the ConfigurationValidator static class is valid, throwing if not
-        /// </summary>
-        /// <exception cref="ArgumentException">Thrown if validation fails</exception>
-        public static void EnsureValidConfigurationValidator()
-        {
-            // Static class has no state to validate
+            while (size >= 1024 && suffixIndex < suffixes.Length - 1)
+            {
+                size /= 1024;
+                suffixIndex++;
+            }
+
+            return $"{size:0.##} {suffixes[suffixIndex]}";
         }
     }
 }
