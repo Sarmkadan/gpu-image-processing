@@ -31,16 +31,24 @@ public sealed record ConcurrencyAndConfigurationTestSettings(
 /// </summary>
 public enum ConcurrencyStrategy
 {
-    /// <summary>Balanced approach with moderate concurrency.</summary>
+    /// <summary>
+    /// Balanced approach with moderate concurrency, suitable for most scenarios.
+    /// </summary>
     Balanced,
 
-    /// <summary>Maximize throughput with high concurrency.</summary>
+    /// <summary>
+    /// Maximize throughput with high concurrency, prioritizing processing speed over resource usage.
+    /// </summary>
     ThroughputMaximized,
 
-    /// <summary>Minimize latency with low concurrency.</summary>
+    /// <summary>
+    /// Minimize latency with low concurrency, prioritizing response time over processing speed.
+    /// </summary>
     LatencyMinimized,
 
-    /// <summary>Optimize for memory efficiency.</summary>
+    /// <summary>
+    /// Optimize for memory efficiency, minimizing memory footprint at the cost of processing speed.
+    /// </summary>
     MemoryOptimized
 }
 
@@ -65,24 +73,19 @@ public static class ConcurrencyAndConfigurationTestsJsonExtensions
     /// <returns>A JSON string representation of the settings.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static string ToJson(this ConcurrencyAndConfigurationTestSettings value, bool indented = false)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-
-        var options = indented
-            ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
-            : _jsonOptions;
-
-        return JsonSerializer.Serialize(value, options);
-    }
+        => JsonSerializer.Serialize(value, indented ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true } : _jsonOptions);
 
     /// <summary>
     /// Deserializes a JSON string to a <see cref="ConcurrencyAndConfigurationTestSettings"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized settings instance, or null if the JSON is empty.</returns>
+    /// <returns>The deserialized settings instance, or null if the JSON is empty or whitespace.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static ConcurrencyAndConfigurationTestSettings? FromJson(string json)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         if (string.IsNullOrWhiteSpace(json))
             return null;
 
@@ -95,20 +98,25 @@ public static class ConcurrencyAndConfigurationTestsJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized settings instance, or null if deserialization fails.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out ConcurrencyAndConfigurationTestSettings? value)
     {
-        value = null;
+        ArgumentNullException.ThrowIfNull(json);
 
         if (string.IsNullOrWhiteSpace(json))
+        {
+            value = null;
             return false;
+        }
 
         try
         {
             value = JsonSerializer.Deserialize<ConcurrencyAndConfigurationTestSettings>(json, _jsonOptions);
-            return true;
+            return value is not null;
         }
         catch (JsonException)
         {
+            value = null;
             return false;
         }
     }
