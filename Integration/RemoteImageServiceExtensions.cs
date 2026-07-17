@@ -1,19 +1,22 @@
-// entire file content ...
-
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Threading.Tasks;
 using GpuImageProcessing.Integration;
 
+/// <summary>
+/// Provides extension methods for <see cref="RemoteImageService"/> to simplify common operations.
+/// </summary>
 public static class RemoteImageServiceExtensions
 {
     /// <summary>
     /// Registers a trusted source with the given URL and API key.
     /// </summary>
-    /// <param name="service">The RemoteImageService instance.</param>
+    /// <param name="service">The <see cref="RemoteImageService"/> instance.</param>
     /// <param name="url">The URL of the trusted source.</param>
     /// <param name="apiKey">The API key of the trusted source.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="service"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="url"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="apiKey"/> is <see langword="null"/>.</exception>
     public static void RegisterTrustedSource(this RemoteImageService service, string url, string apiKey)
     {
         ArgumentNullException.ThrowIfNull(service);
@@ -26,9 +29,11 @@ public static class RemoteImageServiceExtensions
     /// <summary>
     /// Downloads the image at the given URL and returns the result.
     /// </summary>
-    /// <param name="service">The RemoteImageService instance.</param>
+    /// <param name="service">The <see cref="RemoteImageService"/> instance.</param>
     /// <param name="url">The URL of the image to download.</param>
     /// <returns>The result of the download operation.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="service"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="url"/> is <see langword="null"/>.</exception>
     public static async Task<RemoteImageResult> DownloadImageAsync(this RemoteImageService service, string url)
     {
         ArgumentNullException.ThrowIfNull(service);
@@ -40,9 +45,11 @@ public static class RemoteImageServiceExtensions
     /// <summary>
     /// Downloads the images at the given URLs and returns the results.
     /// </summary>
-    /// <param name="service">The RemoteImageService instance.</param>
+    /// <param name="service">The <see cref="RemoteImageService"/> instance.</param>
     /// <param name="urls">The URLs of the images to download.</param>
     /// <returns>The results of the download operations.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="service"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="urls"/> is <see langword="null"/>.</exception>
     public static async Task<List<RemoteImageResult>> DownloadImagesAsync(this RemoteImageService service, IEnumerable<string> urls)
     {
         ArgumentNullException.ThrowIfNull(service);
@@ -54,9 +61,11 @@ public static class RemoteImageServiceExtensions
     /// <summary>
     /// Validates the image data and returns a boolean indicating whether it is valid.
     /// </summary>
-    /// <param name="service">The RemoteImageService instance.</param>
+    /// <param name="service">The <see cref="RemoteImageService"/> instance.</param>
     /// <param name="data">The image data to validate.</param>
     /// <returns>True if the image data is valid, false otherwise.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="service"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="data"/> is <see langword="null"/>.</exception>
     public static bool ValidateImageData(this RemoteImageService service, byte[] data)
     {
         ArgumentNullException.ThrowIfNull(service);
