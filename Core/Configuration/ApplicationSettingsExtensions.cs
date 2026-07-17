@@ -4,7 +4,7 @@ using GpuImageProcessing.Core.Configuration;
 namespace GpuImageProcessing.Core.Configuration
 {
     /// <summary>
-    /// Provides extension methods for <see cref="ApplicationSettings"/>.
+    /// Provides extension methods for <see cref="ApplicationSettings"/> to simplify common configuration checks and validations.
     /// </summary>
     public static class ApplicationSettingsExtensions
     {
@@ -47,6 +47,7 @@ namespace GpuImageProcessing.Core.Configuration
             {
                 throw new ArgumentException("File size cannot be negative", nameof(fileSizeBytes));
             }
+
             return fileSizeBytes <= settings.Processing.MaxImageFileSizeBytes;
         }
     }
