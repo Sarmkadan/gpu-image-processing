@@ -6,8 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using GpuImageProcessing.Core.Constants;
 
 namespace GpuImageProcessing.Core.Models
 {
@@ -21,7 +19,7 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         /// <param name="value">The ProcessingJob to validate</param>
         /// <returns>An empty list if valid, otherwise a list of human-readable error messages</returns>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
         public static IReadOnlyList<string> Validate(this ProcessingJob value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -39,7 +37,11 @@ namespace GpuImageProcessing.Core.Models
             }
 
             // Validate Description
-            if (value.Description.Length > 2000)
+            if (string.IsNullOrWhiteSpace(value.Description))
+            {
+                errors.Add("Description cannot be null or whitespace.");
+            }
+            else if (value.Description.Length > 2000)
             {
                 errors.Add("Description cannot exceed 2000 characters.");
             }
@@ -51,31 +53,22 @@ namespace GpuImageProcessing.Core.Models
             }
 
             // Validate ImageIds collection
-            if (value.ImageIds is null)
-            {
-                errors.Add("ImageIds collection cannot be null.");
-            }
-            else if (value.ImageIds.Count > 10000)
+            ArgumentNullException.ThrowIfNull(value.ImageIds);
+            if (value.ImageIds.Count > 10000)
             {
                 errors.Add("ImageIds cannot contain more than 10000 items.");
             }
 
             // Validate FilterIds collection
-            if (value.FilterIds is null)
-            {
-                errors.Add("FilterIds collection cannot be null.");
-            }
-            else if (value.FilterIds.Count > 1000)
+            ArgumentNullException.ThrowIfNull(value.FilterIds);
+            if (value.FilterIds.Count > 1000)
             {
                 errors.Add("FilterIds cannot contain more than 1000 items.");
             }
 
             // Validate TransformIds collection
-            if (value.TransformIds is null)
-            {
-                errors.Add("TransformIds collection cannot be null.");
-            }
-            else if (value.TransformIds.Count > 1000)
+            ArgumentNullException.ThrowIfNull(value.TransformIds);
+            if (value.TransformIds.Count > 1000)
             {
                 errors.Add("TransformIds cannot contain more than 1000 items.");
             }
@@ -83,7 +76,7 @@ namespace GpuImageProcessing.Core.Models
             // Validate CreatedAt date
             if (value.CreatedAt == default)
             {
-                errors.Add("CreatedAt must be set to a valid DateTime.");
+                errors.Add("CreatedAt must be set to a non-default DateTime.");
             }
             else if (value.CreatedAt > DateTime.UtcNow.AddMinutes(5))
             {
@@ -141,7 +134,7 @@ namespace GpuImageProcessing.Core.Models
             {
                 errors.Add("ProcessedImages cannot be negative.");
             }
-            else if (value.ProcessedImages > value.TotalImages)
+            else if (value.TotalImages >= 0 && value.ProcessedImages > value.TotalImages)
             {
                 errors.Add("ProcessedImages cannot exceed TotalImages.");
             }
@@ -151,7 +144,7 @@ namespace GpuImageProcessing.Core.Models
             {
                 errors.Add("FailedImages cannot be negative.");
             }
-            else if (value.FailedImages > value.TotalImages)
+            else if (value.TotalImages >= 0 && value.FailedImages > value.TotalImages)
             {
                 errors.Add("FailedImages cannot exceed TotalImages.");
             }
@@ -167,23 +160,20 @@ namespace GpuImageProcessing.Core.Models
             }
 
             // Validate JobMetadata collection
-            if (value.JobMetadata is null)
-            {
-                errors.Add("JobMetadata collection cannot be null.");
-            }
-            else if (value.JobMetadata.Count > 1000)
+            ArgumentNullException.ThrowIfNull(value.JobMetadata);
+            if (value.JobMetadata.Count > 1000)
             {
                 errors.Add("JobMetadata cannot contain more than 1000 key-value pairs.");
             }
 
             // Validate ErrorMessage (if set)
-            if (value.ErrorMessage is not null && value.ErrorMessage.Length > 2000)
+            if (!string.IsNullOrWhiteSpace(value.ErrorMessage) && value.ErrorMessage.Length > 2000)
             {
                 errors.Add("ErrorMessage cannot exceed 2000 characters when set.");
             }
 
             // Validate consistency between TotalImages, ProcessedImages, and FailedImages
-            if (value.TotalImages > 0 && value.ProcessedImages + value.FailedImages > value.TotalImages)
+            if (value.TotalImages >= 0 && value.ProcessedImages + value.FailedImages > value.TotalImages)
             {
                 errors.Add("Sum of ProcessedImages and FailedImages cannot exceed TotalImages.");
             }
@@ -220,7 +210,7 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         /// <param name="value">The ProcessingJob to check</param>
         /// <returns>True if valid, otherwise false</returns>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
         public static bool IsValid(this ProcessingJob value)
         {
             return value.Validate().Count == 0;
@@ -230,7 +220,7 @@ namespace GpuImageProcessing.Core.Models
         /// Ensures that a ProcessingJob instance is valid, throwing an exception if not
         /// </summary>
         /// <param name="value">The ProcessingJob to validate</param>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
         /// <exception cref="ArgumentException">Thrown when validation fails, containing error messages</exception>
         public static void EnsureValid(this ProcessingJob value)
         {
