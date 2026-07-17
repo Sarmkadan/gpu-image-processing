@@ -8,21 +8,15 @@ public static class EventPublisherExtensions
     /// <typeparam name="T">The type of event.</typeparam>
     /// <param name="publisher">The event publisher.</param>
     /// <param name="eventType">The event type.</param>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="publisher"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown if <paramref name="eventType"/> is null or empty.</exception>
-    public static void ClearSubscribersForEventType<T>(this EventPublisher publisher, string eventType) 
+    /// <exception cref="ArgumentNullException"><paramref name="publisher"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="eventType"/> is <see langword="null"/>, empty, or whitespace.</exception>
+    public static void ClearSubscribersForEventType<T>(this EventPublisher publisher, string eventType)
         where T : ProcessingEvent
     {
         ArgumentNullException.ThrowIfNull(publisher);
         ArgumentException.ThrowIfNullOrEmpty(eventType);
 
-        foreach (var et in publisher.GetEventTypes())
-        {
-            if (et == eventType)
-            {
-                publisher.Unsubscribe<T>(et, null);
-            }
-        }
+        publisher.ClearSubscribers(eventType);
     }
 
     /// <summary>
@@ -31,24 +25,16 @@ public static class EventPublisherExtensions
     /// <typeparam name="T">The type of event.</typeparam>
     /// <param name="publisher">The event publisher.</param>
     /// <param name="eventType">The event type.</param>
-    /// <returns>The number of subscribers.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="publisher"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown if <paramref name="eventType"/> is null or empty.</exception>
-    public static int GetSubscriberCountForEventType<T>(this EventPublisher publisher, string eventType) 
+    /// <returns>The number of subscribers for the specified event type.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="publisher"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="eventType"/> is <see langword="null"/>, empty, or whitespace.</exception>
+    public static int GetSubscriberCountForEventType<T>(this EventPublisher publisher, string eventType)
         where T : ProcessingEvent
     {
         ArgumentNullException.ThrowIfNull(publisher);
         ArgumentException.ThrowIfNullOrEmpty(eventType);
 
-        var count = 0;
-        foreach (var et in publisher.GetEventTypes())
-        {
-            if (et == eventType)
-            {
-                count += publisher.GetSubscriberCount(et);
-            }
-        }
-        return count;
+        return publisher.GetSubscriberCount(eventType);
     }
 
     /// <summary>
@@ -58,14 +44,14 @@ public static class EventPublisherExtensions
     /// <param name="publisher">The event publisher.</param>
     /// <param name="event">The event to publish.</param>
     /// <returns>The number of subscribers that received the event.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="publisher"/> is null or <paramref name="event"/> is null.</exception>
-    public static async Task<int> PublishAndGetSubscriberCountAsync<T>(this EventPublisher publisher, T @event) 
+    /// <exception cref="ArgumentNullException"><paramref name="publisher"/> or <paramref name="event"/> is <see langword="null"/>.</exception>
+    public static async Task<int> PublishAndGetSubscriberCountAsync<T>(this EventPublisher publisher, T @event)
         where T : ProcessingEvent
     {
         ArgumentNullException.ThrowIfNull(publisher);
         ArgumentNullException.ThrowIfNull(@event);
 
         await publisher.PublishAsync(@event);
-        return publisher.GetSubscriberCount(typeof(T).Name);
+        return publisher.GetSubscriberCount(@event.EventType);
     }
 }
