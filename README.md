@@ -40,6 +40,40 @@ catch (GpuException ex)
 }
 ```
 
+## OpenCLException
+
+The `OpenCLException` is thrown when an OpenCL operation fails during GPU-accelerated image processing. It provides detailed diagnostic information including the OpenCL error code, the name of the device where the error occurred, and comprehensive error messages from the OpenCL runtime. This exception is particularly useful for debugging OpenCL-specific issues such as kernel compilation failures, memory allocation errors, or invalid device contexts.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Exceptions;
+using System;
+
+try
+{
+// Simulate an OpenCL operation failure
+throw new OpenCLException("Failed to compile OpenCL kernel: invalid work group size", -48);
+}
+catch (OpenCLException ex)
+{
+Console.WriteLine($"Exception Message: {ex.Message}");
+Console.WriteLine($"Device Name: {ex.DeviceName ?? "Unknown"}");
+Console.WriteLine($"OpenCL Error Code: {ex.OpenCLErrorCode?.ToString() ?? "N/A"}");
+Console.WriteLine($"Occurred At: {ex.OccurredAt:O}");
+
+// Using the overridden ToString() for detailed logging
+Console.WriteLine($"Full Exception Details:\n{ex}");
+}
+
+// Example with device name
+var deviceException = new OpenCLException(
+    "Memory object allocation failed on device",
+    "AMD Radeon RX 6800 XT",
+    -4);
+Console.WriteLine(deviceException);
+```
+
 ## SimdCapabilities
 
 The `SimdCapabilities` class provides a runtime-detected snapshot of the CPU's SIMD instruction set capabilities. It exposes boolean flags for each supported SIMD level (SSE2, SSE4.1, AVX, AVX2, AVX-512F), the highest available level via `BestAvailableLevel`, and the native vector register width in bytes via `VectorWidthBytes`. Use `Detect()` to probe the current CPU and cache the result per-process; the returned instance is immutable and thread-safe.
