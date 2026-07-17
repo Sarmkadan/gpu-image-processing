@@ -1,4 +1,5 @@
 #nullable enable
+
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -47,16 +48,16 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
         /// <returns>A deserialized <see cref="WebhookHandler"/> instance, or null if the JSON is null or empty.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty.</exception>
         /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
         public static WebhookHandler? FromJson(string json)
         {
-            if (string.IsNullOrEmpty(json))
-            {
-                return null;
-            }
+            ArgumentNullException.ThrowIfNull(json);
 
-            return JsonSerializer.Deserialize<WebhookHandler>(json, _jsonSerializerOptions);
+            return string.IsNullOrEmpty(json)
+                ? null
+                : JsonSerializer.Deserialize<WebhookHandler>(json, _jsonSerializerOptions);
         }
 
         /// <summary>
@@ -65,10 +66,13 @@ namespace GpuImageProcessing.Integration
         /// <param name="json">The JSON string to deserialize.</param>
         /// <param name="value">Receives the deserialized <see cref="WebhookHandler"/> instance if successful.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty.</exception>
         public static bool TryFromJson(string json, out WebhookHandler? value)
         {
             value = null;
+
+            ArgumentNullException.ThrowIfNull(json);
 
             if (string.IsNullOrEmpty(json))
             {
