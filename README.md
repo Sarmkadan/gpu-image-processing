@@ -318,6 +318,88 @@ class Program
 }
 ```
 
+## ApiResponse
+
+The `ApiResponse<T>` class provides a standardized wrapper for API responses, ensuring consistent error handling and data formatting across all endpoints. It supports success/failure states with typed data payloads, comprehensive error reporting through `ApiError` objects, and request metadata via `ApiMetadata`. This response structure is used throughout the REST API facade to maintain a uniform contract between the service layer and clients.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Api;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Successful response with typed data
+        var successResponse = ApiResponse<ImageMetadata>.Success(
+            new ImageMetadata
+            {
+                Id = Guid.NewGuid(),
+                Path = "/images/sample.jpg",
+                Width = 1920,
+                Height = 1080,
+                FileSizeBytes = 2_500_000,
+                Description = "Sample vacation photo"
+            },
+            "Image registered successfully"
+        );
+
+        Console.WriteLine($"Success: {successResponse.IsSuccess}");
+        Console.WriteLine($"Message: {successResponse.Message}");
+        Console.WriteLine($"Data: {successResponse.Data.Path}");
+        Console.WriteLine($"Request ID: {successResponse.Metadata.RequestId}");
+
+        // Failed response with error details
+        var errorResponse = ApiResponse<string>.Failure(
+            "Failed to process image: GPU memory limit exceeded",
+            new List<ApiError>
+            {
+                new ApiError
+                {
+                    Code = "GPU_MEMORY_LIMIT_EXCEEDED",
+                    Message = "Insufficient GPU memory for 4K image processing",
+                    Details = "Requested 24GB, available 16GB"
+                }
+            }
+        );
+
+        Console.WriteLine($"\nFailure: {errorResponse.IsSuccess}");
+        Console.WriteLine($"Message: {errorResponse.Message}");
+        Console.WriteLine($"Error count: {errorResponse.Errors.Count}");
+        Console.WriteLine($"First error: {errorResponse.Errors[0].Message}");
+
+        // Adding additional errors dynamically
+        errorResponse.AddError(
+            "VALIDATION_ERROR",
+            "Image dimensions exceed maximum allowed size",
+            "Maximum: 16384x16384 pixels"
+        );
+
+        Console.WriteLine($"\nAfter adding error - Error count: {errorResponse.Errors.Count}");
+
+        // Pagination wrapper usage
+        var paginatedResponse = new PaginatedResponse<ImageMetadata>
+        {
+            Items = new List<ImageMetadata>
+            {
+                new ImageMetadata { Id = Guid.NewGuid(), Path = "/images/1.jpg", Width = 800, Height = 600 },
+                new ImageMetadata { Id = Guid.NewGuid(), Path = "/images/2.jpg", Width = 1024, Height = 768 }
+            },
+            PageNumber = 1,
+            PageSize = 2,
+            TotalCount = 42
+        };
+
+        Console.WriteLine($"\nPagination - Page {paginatedResponse.PageNumber} of {paginatedResponse.TotalPages}");
+        Console.WriteLine($"Items: {paginatedResponse.Items.Count}/{paginatedResponse.TotalCount}");
+    }
+}
+```
+
 ## ProcessingPipeline
 
 The `ProcessingPipeline` orchestrates the chaining of middleware components for image processing tasks. It manages middleware registration, ordering by priority, and execution flow, allowing for highly flexible and extensible processing workflows.
