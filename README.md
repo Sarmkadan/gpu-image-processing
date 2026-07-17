@@ -2216,6 +2216,76 @@ class Program
 
 ```
 
+## ImageProcessingConfiguration
+
+The `ImageProcessingConfiguration` record serves as a data transfer object for configuring image processing operations. It defines constraints for image dimensions and thresholds for performance monitoring, allowing applications to control processing behavior and detect slow operations.
+
+### Key Features
+
+- Configures minimum and maximum image dimensions (width and height) for validation
+- Sets slow operation threshold to identify performance bottlenecks
+- Provides JSON serialization/deserialization for configuration persistence
+- Uses immutable record pattern with init-only properties for thread safety
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Utilities;
+using System;
+using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a configuration with default values
+        var defaultConfig = new ImageProcessingConfiguration();
+        Console.WriteLine($"Default config - Min: {defaultConfig.MinImageWidth}x{defaultConfig.MinImageHeight}, " +
+                        $"Max: {defaultConfig.MaxImageWidth}x{defaultConfig.MaxImageHeight}, " +
+                        $"Slow threshold: {defaultConfig.SlowOperationThresholdMs}ms");
+        
+        // Create a custom configuration for high-resolution processing
+        var hdConfig = new ImageProcessingConfiguration
+        {
+            MinImageWidth = 64,
+            MinImageHeight = 64,
+            MaxImageWidth = 16384,
+            MaxImageHeight = 16384,
+            SlowOperationThresholdMs = 10000 // 10 seconds
+        };
+        
+        Console.WriteLine($"HD config - Min: {hdConfig.MinImageWidth}x{hdConfig.MinImageHeight}, " +
+                        $"Max: {hdConfig.MaxImageWidth}x{hdConfig.MaxImageHeight}");
+        
+        // Serialize configuration to JSON
+        string json = hdConfig.ToJson();
+        Console.WriteLine("\nSerialized JSON:");
+        Console.WriteLine(json);
+        
+        // Deserialize from JSON
+        var deserializedConfig = ImageProcessingExtensionsJsonExtensions.FromJson(json);
+        Console.WriteLine($"\nDeserialized - Min: {deserializedConfig?.MinImageWidth}x{deserializedConfig?.MinImageHeight}");
+        
+        // Try to deserialize with error handling
+        string invalidJson = "{ invalid json }";
+        bool success = ImageProcessingExtensionsJsonExtensions.TryFromJson(invalidJson, out var result);
+        Console.WriteLine($"\nTryFromJson with invalid JSON: {(success ? "Success" : "Failed (expected)")}");
+        
+        // Save configuration to file
+        string configPath = "image-processing-config.json";
+        File.WriteAllText(configPath, hdConfig.ToJson(indented: true));
+        Console.WriteLine($"\nConfiguration saved to: {configPath}");
+        
+        // Load configuration from file
+        string loadedJson = File.ReadAllText(configPath);
+        var loadedConfig = ImageProcessingExtensionsJsonExtensions.FromJson(loadedJson);
+        Console.WriteLine($"Loaded config - Slow threshold: {loadedConfig?.SlowOperationThresholdMs}ms");
+    }
+}
+
+```
+
 ## BatchItemResult
 
 The `BatchItemResult` record represents the outcome for a single file processed during a batch directory operation. It captures the input file path, optional output file path, success status, and any error message that occurred during processing. This type is returned by `DirectoryBatchProcessor.ProcessDirectoryAsync` as part of the `BatchRunSummary.Items` collection, allowing callers to inspect individual file results and handle failures appropriately.
