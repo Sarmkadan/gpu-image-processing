@@ -1201,6 +1201,102 @@ class Program
 
 ```
 
+## DistributedCacheExtensions
+
+The `DistributedCacheExtensions` class provides extension methods for `DistributedCache` that extend the basic cache operations with higher-level, batch, and metadata operations. It simplifies common caching patterns like cache-aside, bulk operations, and cache statistics monitoring.
+
+
+
+### Key Features
+
+- Cache-aside pattern with `GetOrCreateAsync()` for automatic value computation and caching
+- Batch operations with `GetManyAsync()`, `SetManyAsync()`, and `RemoveManyAsync()` for efficient bulk cache operations
+- Metadata queries with `ContainsKeyAsync()`, `GetExpirationAsync()`, and `GetMetadataAsync()`
+- Cache statistics monitoring with `GetStatsString()` for debugging and logging
+- Null safety and validation for all public methods
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Caching;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize cache (typically via dependency injection in real applications)
+        var cache = new DistributedCache(maxMemoryBytes: 100_000_000);
+
+        // Cache-aside pattern: get or create value
+        var imageData = await cache.GetOrCreateAsync(
+            key: "processed:image:12345",
+            valueFactory: async () => 
+            {
+                // Expensive computation or remote API call
+                Console.WriteLine("Computing expensive value...");
+                await Task.Delay(100); // Simulate work
+                return new byte[] { 0xFF, 0xD8, 0xFF }; // JPEG header
+            },
+            ttl: TimeSpan.FromHours(1) // Cache for 1 hour
+        );
+
+        Console.WriteLine($"Retrieved image data: {imageData.Length} bytes");
+
+        // Batch operations: get multiple values efficiently
+        var keys = new List<string> { "cache:key1", "cache:key2", "cache:key3" };
+        var values = await cache.GetManyAsync<string>(keys);
+        
+        Console.WriteLine($"Found {values.Count} cached values");
+
+        // Batch set: store multiple values in one operation
+        var newValues = new Dictionary<string, string>
+        {
+            { "config:theme", "dark" },
+            { "config:language", "en-US" },
+            { "config:timeout", "30" }
+        };
+        
+        await cache.SetManyAsync(newValues, TimeSpan.FromDays(7));
+        Console.WriteLine("Stored multiple configuration values");
+
+        // Check key existence without retrieving value
+        bool hasKey = await cache.ContainsKeyAsync("config:theme");
+        Console.WriteLine($"Has config:theme: {hasKey}");
+
+        // Get expiration time for a key
+        var expiresAt = await cache.GetExpirationAsync("config:theme");
+        Console.WriteLine($"Expires at: {expiresAt?.ToString("o") ?? "never"}");
+
+        // Get cache entry metadata
+        var metadata = await cache.GetMetadataAsync("config:theme");
+        if (metadata != null)
+        {
+            Console.WriteLine($"Cache entry metadata:");
+            Console.WriteLine($"  Key: {metadata.Key}");
+            Console.WriteLine($"  Size: {metadata.SizeBytes} bytes");
+            Console.WriteLine($"  Created: {metadata.CreatedAt:T}");
+            Console.WriteLine($"  Last accessed: {metadata.LastAccessedAt:T}");
+            Console.WriteLine($"  Access count: {metadata.AccessCount}");
+            Console.WriteLine($"  Expires: {metadata.ExpiresAt?.ToString("T") ?? "never"}");
+        }
+
+        // Remove multiple keys in one operation
+        var keysToRemove = new[] { "cache:key1", "cache:key2" };
+        int removedCount = await cache.RemoveManyAsync(keysToRemove);
+        Console.WriteLine($"Removed {removedCount} keys");
+
+        // Get cache statistics for monitoring
+        string stats = cache.GetStatsString();
+        Console.WriteLine($"\n{stats}");
+    }
+}
+
+```
+
 ## ImageProcessingControllerExtensions
 
 The `ImageProcessingControllerExtensions` class provides extension methods for the `ImageProcessingController` that simplify batch image processing operations. It includes convenient methods for registering multiple images, applying filters and transforms to batches, retrieving image information and processing results, and managing batch jobs, making it easier to build scalable image processing pipelines.
