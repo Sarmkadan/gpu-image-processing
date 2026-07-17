@@ -186,6 +186,86 @@ class Program
 }
 ```
 
+## DataConversionUtilities
+
+The `DataConversionUtilities` class provides essential data conversion utilities for transforming between different data formats commonly used in GPU image processing. It includes hexadecimal string conversion, byte array manipulation, floating-point data conversion, file size formatting, and tolerance-based comparison operations.
+
+### Key Features
+
+- Convert between hexadecimal strings and byte arrays
+- Transform between byte arrays and floating-point arrays
+- Format and parse file sizes with human-readable units
+- Format and parse time spans with human-readable strings
+- Binary string representation of numeric values
+- Tolerance-based floating-point comparison and normalization
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Utilities;
+using System;
+using System.Linq;
+
+class Program
+{
+static void Main()
+{
+// Hexadecimal conversion examples
+byte[] imageData = new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F };
+
+// Convert bytes to hex string
+string hexString = DataConversionUtilities.BytesToHex(imageData);
+Console.WriteLine($"Hex: {hexString}"); // Output: Hex: 48656C6C6F
+
+// Convert hex string back to bytes
+byte[] decodedBytes = DataConversionUtilities.HexToBytes(hexString);
+Console.WriteLine($"Decoded bytes: {string.Join(", ", decodedBytes)}"); // Output: Decoded bytes: 72, 101, 108, 108, 111
+
+// Floating-point conversion examples
+float[] floatArray = new float[] { 1.5f, 2.7f, 3.14f, 42.0f };
+
+// Convert floats to bytes (for GPU buffer operations)
+byte[] floatBytes = DataConversionUtilities.FloatsToBytes(floatArray);
+Console.WriteLine($"Float bytes length: {floatBytes.Length} bytes");
+
+// Convert bytes back to floats
+float[] decodedFloats = DataConversionUtilities.BytesToFloats(floatBytes);
+Console.WriteLine($"Decoded floats: {string.Join(", ", decodedFloats.Select(f => f.ToString("F2")))}");
+
+// File size formatting examples
+string formattedSize = DataConversionUtilities.FormatFileSize(1572864); // 1.5MB
+Console.WriteLine(formattedSize); // Output: 1.50 MB
+
+long parsedSize = DataConversionUtilities.ParseFileSize("2.5 GB");
+Console.WriteLine($"Parsed size: {parsedSize:N0} bytes"); // Output: Parsed size: 2,684,354,560 bytes
+
+// Time span formatting examples
+string formattedTime = DataConversionUtilities.FormatTimeSpan(TimeSpan.FromSeconds(93784));
+Console.WriteLine(formattedTime); // Output: 1 day, 2 hours, 3 minutes, 4 seconds
+
+TimeSpan parsedTime = DataConversionUtilities.ParseDuration("2h 30m 15s");
+Console.WriteLine($"Parsed time: {parsedTime}"); // Output: Parsed time: 02:30:15
+
+// Binary string representation
+string binaryString = DataConversionUtilities.ToBinaryString(42);
+Console.WriteLine($"Binary: {binaryString}"); // Output: Binary: 101010
+
+// Tolerance-based operations
+float value1 = 1.0001f;
+float value2 = 1.0002f;
+bool isSimilar = DataConversionUtilities.IsWithinTolerance(value1, value2, 0.01f);
+Console.WriteLine($"Within tolerance: {isSimilar}"); // Output: Within tolerance: True
+
+// Normalization for GPU operations (0-1 range)
+float normalized = DataConversionUtilities.Normalize(127.5f, 0, 255);
+Console.WriteLine($"Normalized: {normalized:F4}"); // Output: Normalized: 0.5000
+
+float denormalized = DataConversionUtilities.Denormalize(0.5f, 0, 255);
+Console.WriteLine($"Denormalized: {denormalized:F2}"); // Output: Denormalized: 127.50
+}
+}
+```
+
 ## Architecture
 
 The GPU Image Processing library follows a modular architecture with clear separation of concerns:
