@@ -1902,6 +1902,83 @@ class Program
 }
 ```
 
+## Filter
+
+The `Filter` class represents an image filter with configurable parameters for GPU-accelerated image processing. It encapsulates filter metadata including name, type, description, and processing order, along with runtime settings and parameter collections. Filters can be created predefined for common operations like Gaussian blur, bilateral filtering, median filtering, and thresholding, or customized with custom kernel code for specialized processing needs.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Models;
+using GpuImageProcessing.Core.Constants;
+using System;
+using System.Collections.Generic;
+
+// Create a custom filter with specific parameters
+var customFilter = new Filter
+{
+    Name = "CustomEdgeDetection",
+    Type = FilterType.EdgeDetection,
+    Description = "Sobel edge detection filter with configurable threshold",
+    IsActive = true,
+    ProcessingOrder = 1,
+    KernelCode = @"
+    __kernel void EdgeDetection(__global const float4* input, __global float4* output, 
+                             int width, int height, float threshold)
+    {
+        // Edge detection kernel implementation
+    }
+    "
+};
+
+// Add custom parameters
+customFilter.AddParameter(new FilterParameter
+{
+    Name = "Threshold",
+    Value = 0.5f,
+    Min = 0.0f,
+    Max = 1.0f
+});
+
+customFilter.AddParameter(new FilterParameter
+{
+    Name = "EdgeStrength",
+    Value = 1.5f,
+    Min = 0.5f,
+    Max = 3.0f
+});
+
+// Create a predefined Gaussian blur filter
+var gaussianBlur = Filter.CreatePredefined(FilterType.Gaussian);
+Console.WriteLine($"Predefined filter: {gaussianBlur.Name} ({gaussianBlur.Type})");
+Console.WriteLine($"Parameters: {gaussianBlur.Parameters.Count}");
+
+// Get and update a parameter value
+if (gaussianBlur.UpdateParameterValue("Sigma", 2.5f))
+{
+    Console.WriteLine($"Updated Sigma to: {gaussianBlur.GetParameter("Sigma")?.Value}");
+}
+
+// Validate all parameters
+bool isValid = gaussianBlur.ValidateParameters();
+Console.WriteLine($"Parameter validation: {(isValid ? "PASSED" : "FAILED")}");
+
+// Get filter configuration as string
+string config = gaussianBlur.GetConfiguration();
+Console.WriteLine($"Filter configuration: {config}");
+
+// Access applied settings
+var settings = new Dictionary<string, object> 
+{
+    { "Quality", 0.95 },
+    { "PreserveAlpha", true }
+};
+gaussianBlur.AppliedSettings = settings;
+
+Console.WriteLine($"Filter created at: {gaussianBlur.CreatedAt}");
+Console.WriteLine($"Filter ID: {gaussianBlur.Id}");
+```
+
 ## FilterConfiguration
 
 `FilterConfiguration` defines the settings and parameters for a specific image processing filter, including its name, priority, and any custom kernel code or parameter settings. It provides robust validation and cloning capabilities to ensure filter configurations are correctly set up and can be safely reused or modified within processing pipelines.
