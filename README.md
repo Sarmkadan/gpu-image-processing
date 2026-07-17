@@ -807,6 +807,66 @@ class Program
 
 ```
 
+## CliParserExtensions
+
+The `CliParserExtensions` class provides extension methods for the `CliParser` and `ParsedCommand` classes that simplify command-line argument parsing and validation. It includes safe parsing methods that handle errors gracefully, and type-safe option retrieval methods for integers, booleans, doubles, and positional arguments.
+
+### Key Features
+
+- Safe command parsing with `ParseSafely()` that returns an empty result instead of throwing on errors
+- Type-safe option retrieval with `GetIntegerOption()`, `GetBooleanOption()`, and `GetDoubleOption()`
+- Positional argument extraction with `GetPositionalArguments()` and optional count validation
+- Null safety and validation for all public methods
+- Culture-invariant parsing for numeric values
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Cli;
+using System;
+using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        // Create a CLI parser instance
+        var parser = new CliParser();
+        
+        // Parse command-line arguments safely (returns empty on parsing errors)
+        var parsedCommand = parser.ParseSafely(new[] { "--width=800", "--height=600", "--verbose", "input.ppm" });
+        
+        // Get integer option with default value
+        int width = parsedCommand.GetIntegerOption("--width", 1024);
+        Console.WriteLine($"Width: {width}"); // Output: Width: 800
+        
+        // Get boolean option with default value
+        bool verbose = parsedCommand.GetBooleanOption("--verbose", false);
+        Console.WriteLine($"Verbose mode: {verbose}"); // Output: Verbose mode: True
+        
+        // Get double option with default value
+        double scale = parsedCommand.GetDoubleOption("--scale", 1.0);
+        Console.WriteLine($"Scale: {scale:F2}"); // Output: Scale: 1.00
+        
+        // Get positional arguments with count validation
+        var positionalArgs = parsedCommand.GetPositionalArguments(1);
+        string inputFile = positionalArgs.First();
+        Console.WriteLine($"Input file: {inputFile}"); // Output: Input file: input.ppm
+        
+        // Example with various argument formats
+        var testArgs = new[] { "--quality=95", "--force", "--threshold=0.75", "image.png" };
+        var testCommand = parser.ParseSafely(testArgs);
+        
+        Console.WriteLine($"Quality: {testCommand.GetIntegerOption("--quality", 80)}");
+        Console.WriteLine($"Force: {testCommand.GetBooleanOption("--force", false)}");
+        Console.WriteLine($"Threshold: {testCommand.GetDoubleOption("--threshold", 0.5)}");
+        Console.WriteLine($"Positional args: {testCommand.GetPositionalArguments().Count}");
+    }
+}
+
+```
+
 ## BatchProcessingUtilities
 
 The `BatchProcessingUtilities` class provides utilities for managing and processing batches of images efficiently. It includes batch splitting, progress tracking, and result aggregation.
