@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
 using System.Collections.Generic;
@@ -13,16 +13,19 @@ namespace GpuImageProcessing.Utilities
     /// <summary>
     /// Provides validation helpers for <see cref="ConfigurationUtilities"/> configuration values.
     /// </summary>
-    public static class ConfigurationUtilitiesValidation
+    public sealed class ConfigurationUtilitiesValidation
     {
         /// <summary>
         /// Validates all configuration values from ConfigurationUtilities.
         /// Returns a list of human-readable problems found in the configuration.
         /// </summary>
         /// <returns>List of validation problems; empty if all valid</returns>
-        public static IReadOnlyList<string> Validate()
+        /// <exception cref="ArgumentNullException">Thrown if problems is null</exception>
+        public static IReadOnlyList<string> Validate(List<string>? problems = null)
         {
-            var problems = new List<string>();
+            problems ??= new List<string>();
+
+            ArgumentNullException.ThrowIfNull(problems);
 
             ValidateEnvironment(problems);
             ValidateDirectoryPaths(problems);
@@ -46,10 +49,11 @@ namespace GpuImageProcessing.Utilities
         /// <summary>
         /// Ensures all configuration values are valid, throwing an exception with detailed problems if not.
         /// </summary>
-        /// <exception cref="ArgumentException">Thrown if any configuration value is invalid</exception>
+        /// <exception cref="ArgumentException">Thrown if any configuration value is invalid with detailed error message</exception>
         public static void EnsureValid()
         {
-            var problems = Validate();
+            var problems = new List<string>();
+            Validate(problems);
 
             if (problems.Count > 0)
             {
@@ -66,9 +70,7 @@ namespace GpuImageProcessing.Utilities
             {
                 problems.Add("Environment variable 'ENVIRONMENT' is null, empty, or whitespace. Expected values: Development, Production, Testing, etc.");
             }
-            else if (!environment.Equals("Development", StringComparison.OrdinalIgnoreCase) &&
-                    !environment.Equals("Production", StringComparison.OrdinalIgnoreCase) &&
-                    !environment.Equals("Testing", StringComparison.OrdinalIgnoreCase))
+            else if (environment.ToLowerInvariant() is not ("development" or "production" or "testing"))
             {
                 problems.Add($"Environment '{environment}' is not a recognized value. Expected: Development, Production, Testing.");
             }
@@ -169,8 +171,8 @@ namespace GpuImageProcessing.Utilities
                 return;
             }
 
-            string lowerProfile = profile.ToLower(CultureInfo.InvariantCulture);
-            if (lowerProfile != "fast" && lowerProfile != "balanced" && lowerProfile != "quality")
+            string lowerProfile = profile.ToLowerInvariant();
+            if (lowerProfile is not ("fast" or "balanced" or "quality"))
             {
                 problems.Add($"{nameof(ConfigurationUtilities.GetDefaultProfile)} returned '{profile}'. Expected: 'fast', 'balanced', or 'quality'.");
             }
@@ -186,21 +188,15 @@ namespace GpuImageProcessing.Utilities
                 return;
             }
 
-            string[] validLevels = { "Trace", "Debug", "Information", "Warning", "Error", "Critical", "None" };
-            bool isValid = false;
-
-            foreach (string level in validLevels)
+            bool isValid = logLevel.ToLowerInvariant() switch
             {
-                if (logLevel.Equals(level, StringComparison.OrdinalIgnoreCase))
-                {
-                    isValid = true;
-                    break;
-                }
-            }
+                "trace" or "debug" or "information" or "warning" or "error" or "critical" or "none" => true,
+                _ => false
+            };
 
             if (!isValid)
             {
-                problems.Add($"{nameof(ConfigurationUtilities.GetLogLevel)} returned '{logLevel}'. Expected one of: {string.Join(", ", validLevels)}.");
+                problems.Add($"{nameof(ConfigurationUtilities.GetLogLevel)} returned '{logLevel}'. Expected one of: Trace, Debug, Information, Warning, Error, Critical, None.");
             }
         }
     }
