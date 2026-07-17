@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace GpuImageProcessing.Core.Repository
 {
@@ -21,27 +22,26 @@ namespace GpuImageProcessing.Core.Repository
         /// <typeparam name="T">The type of entity</typeparam>
         /// <param name="value">The instance to validate</param>
         /// <returns>A list of human-readable problems</returns>
-        public static IReadOnlyList<string> Validate<T>(this GenericRepository<T>? value) where T : class
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null</exception>
+        public static async Task<IReadOnlyList<string>> ValidateAsync<T>(this GenericRepository<T>? value) where T : class
         {
             ArgumentNullException.ThrowIfNull(value);
 
             var problems = new List<string>();
 
             // Check for invalid state
-            if (value.GetAllAsync().Result == null)
+            var entities = await value.GetAllAsync();
+            if (entities == null)
             {
                 problems.Add("Entities list is null");
             }
             else
             {
-                var entities = value.GetAllAsync().Result.ToList();
                 if (entities.Any(e => e == null))
                 {
                     problems.Add("Entities list contains null items");
                 }
             }
-
-            // No more specific validation rules for GenericRepository
 
             return problems.AsReadOnly();
         }
@@ -52,17 +52,23 @@ namespace GpuImageProcessing.Core.Repository
         /// <typeparam name="T">The type of entity</typeparam>
         /// <param name="value">The instance to check</param>
         /// <returns>True if the instance is valid; otherwise, false</returns>
-        public static bool IsValid<T>(this GenericRepository<T>? value) where T : class => Validate(value).Count == 0;
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null</exception>
+        public static async Task<bool> IsValidAsync<T>(this GenericRepository<T>? value) where T : class
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            return (await ValidateAsync(value)).Count == 0;
+        }
 
         /// <summary>
         /// Ensures a <see cref="GenericRepository{T}"/> instance is valid
         /// </summary>
         /// <typeparam name="T">The type of entity</typeparam>
         /// <param name="value">The instance to ensure</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null</exception>
         /// <exception cref="ArgumentException">If the instance is not valid</exception>
-        public static void EnsureValid<T>(this GenericRepository<T>? value) where T : class
+        public static async Task EnsureValidAsync<T>(this GenericRepository<T>? value) where T : class
         {
-            var problems = Validate(value);
+            var problems = await ValidateAsync(value);
             if (problems.Count > 0)
             {
                 throw new ArgumentException($"Invalid GenericRepository: {string.Join(", ", problems)}");
