@@ -6,7 +6,7 @@ using System.Linq;
 namespace GpuImageProcessing.Benchmarks;
 
 /// <summary>
-/// Provides validation helpers for <see cref="GpuPerformanceBenchmarks"/>.
+/// Provides validation helpers for <see cref="GpuPerformanceBenchmarks"/> benchmark configurations.
 /// </summary>
 public static class GpuPerformanceBenchmarksValidation
 {
@@ -25,7 +25,7 @@ public static class GpuPerformanceBenchmarksValidation
 
         var problems = new List<string>();
 
-        // Image dimensions must be positive.
+        // Image dimensions must be positive integers.
         if (value.ImageWidth <= 0)
         {
             problems.Add(
@@ -47,8 +47,7 @@ public static class GpuPerformanceBenchmarksValidation
     /// <param name="value">The instance to check.</param>
     /// <returns><c>true</c> if the instance has no validation problems; otherwise, <c>false</c>.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
-    public static bool IsValid(this GpuPerformanceBenchmarks value) =>
-        value.Validate().Count == 0;
+    public static bool IsValid(this GpuPerformanceBenchmarks value) => value.Validate().Count == 0;
 
     /// <summary>
     /// Ensures that the supplied <see cref="GpuPerformanceBenchmarks"/> instance is valid.
@@ -56,7 +55,7 @@ public static class GpuPerformanceBenchmarksValidation
     /// <param name="value">The instance to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
     /// <exception cref="ArgumentException">
-    /// Thrown when the instance is invalid. The exception message contains a semicolon‑separated list of problems.
+    /// Thrown when the instance is invalid. The exception message contains a semicolon-separated list of problems.
     /// </exception>
     public static void EnsureValid(this GpuPerformanceBenchmarks value)
     {
