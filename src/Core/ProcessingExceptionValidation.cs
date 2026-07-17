@@ -7,65 +7,62 @@
 namespace GpuImageProcessing.Core;
 
 /// <summary>
-/// Validation helpers for ProcessingException.
+/// Validation helpers for <see cref="ProcessingException"/>.
 /// </summary>
 public static class ProcessingExceptionValidation
 {
     /// <summary>
-    /// Validates the provided ProcessingException instance.
+    /// Validates the provided <see cref="ProcessingException"/> instance.
     /// </summary>
-    /// <param name="value">The ProcessingException instance to validate.</param>
+    /// <param name="value">The <see cref="ProcessingException"/> instance to validate.</param>
     /// <returns>A list of human-readable problems.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/>.</exception>
     public static IReadOnlyList<string> Validate(this ProcessingException value)
     {
         ArgumentNullException.ThrowIfNull(value);
 
         var problems = new List<string>();
 
-        if (value.ImagePath == null)
+        if (string.IsNullOrEmpty(value.ImagePath))
         {
-            problems.Add("ImagePath is null.");
+            problems.Add("ImagePath is null or empty.");
         }
 
-        if (value.FilterName == null)
+        if (string.IsNullOrEmpty(value.FilterName))
         {
-            problems.Add("FilterName is null.");
+            problems.Add("FilterName is null or empty.");
         }
 
-        if (value.AttemptNumber.HasValue && (value.AttemptNumber.Value < 1 || value.AttemptNumber.Value > int.MaxValue))
+        if (value.AttemptNumber.HasValue && value.AttemptNumber.Value < 1)
         {
-            problems.Add("AttemptNumber is out of range.");
+            problems.Add("AttemptNumber must be greater than 0.");
         }
 
         return problems;
     }
 
     /// <summary>
-    /// Checks if the provided ProcessingException instance is valid.
+    /// Checks if the provided <see cref="ProcessingException"/> instance is valid.
     /// </summary>
-    /// <param name="value">The ProcessingException instance to check.</param>
-    /// <returns>True if the instance is valid, false otherwise.</returns>
-    public static bool IsValid(this ProcessingException value)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-
-        return !Validate(value).Any();
-    }
+    /// <param name="value">The <see cref="ProcessingException"/> instance to check.</param>
+    /// <returns>True if the instance is valid; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/>.</exception>
+    public static bool IsValid(this ProcessingException value) => value.Validate().Count == 0;
 
     /// <summary>
-    /// Ensures the provided ProcessingException instance is valid.
+    /// Ensures the provided <see cref="ProcessingException"/> instance is valid.
     /// </summary>
-    /// <param name="value">The ProcessingException instance to ensure.</param>
+    /// <param name="value">The <see cref="ProcessingException"/> instance to ensure.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException">Thrown if the instance is invalid.</exception>
     public static void EnsureValid(this ProcessingException value)
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var problems = Validate(value);
-
-        if (problems.Any())
+        var problems = value.Validate();
+        if (problems.Count > 0)
         {
-            throw new ArgumentException($"The following problems were found: {string.Join(", ", problems)}", nameof(value));
+            throw new ArgumentException($"The ProcessingException instance is invalid: {string.Join(", ", problems)}", nameof(value));
         }
     }
 }
