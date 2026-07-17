@@ -52,8 +52,12 @@ namespace GpuImageProcessing.Formatters
         /// Deserializes a JSON string to a <see cref="XmlResultFormatter"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <returns>The deserialized formatter instance, or null if the JSON is invalid.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+        /// <returns>
+        /// The deserialized formatter instance if the JSON is valid and deserialization succeeds;
+        /// otherwise, <see langword="null"/>.
+        /// </returns>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/> or empty.</exception>
+        /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized to <see cref="XmlResultFormatter"/>.</exception>
         public static XmlResultFormatter? FromJson(string json)
         {
             ArgumentException.ThrowIfNullOrEmpty(json);
@@ -72,9 +76,12 @@ namespace GpuImageProcessing.Formatters
         /// Attempts to deserialize a JSON string to a <see cref="XmlResultFormatter"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <param name="value">Receives the deserialized formatter instance if successful.</param>
-        /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+        /// <param name="value">
+        /// Receives the deserialized formatter instance if deserialization succeeds;
+        /// otherwise, <see langword="null"/>.
+        /// </param>
+        /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/> or empty.</exception>
         public static bool TryFromJson(string json, out XmlResultFormatter? value)
         {
             ArgumentException.ThrowIfNullOrEmpty(json);
