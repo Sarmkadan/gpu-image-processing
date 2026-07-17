@@ -24,28 +24,42 @@ namespace GpuImageProcessing.Core.Exceptions
         {
             ArgumentNullException.ThrowIfNull(exception);
 
-            var deviceInfo = string.IsNullOrEmpty(exception.DeviceName) ? string.Empty : $"Device: {exception.DeviceName}";
-            var errorCodeInfo = exception.OpenCLErrorCode.HasValue ? $"OpenCL Error Code: {exception.OpenCLErrorCode}" : string.Empty;
-            return $"{exception.Message} ({deviceInfo}{(string.IsNullOrEmpty(deviceInfo) ? string.Empty : ", ")}{errorCodeInfo})";
+            var parts = new List<string>();
+            if (!string.IsNullOrEmpty(exception.DeviceName))
+            {
+                parts.Add($"Device: {exception.DeviceName}");
+            }
+
+            if (exception.OpenCLErrorCode.HasValue)
+            {
+                parts.Add($"OpenCL Error Code: {exception.OpenCLErrorCode}");
+            }
+
+            return parts.Count > 0
+                ? $"{exception.Message} ({string.Join(", ", parts)})"
+                : exception.Message;
         }
 
         /// <summary>
         /// Gets a dictionary of structured error details from the exception.
         /// </summary>
         /// <param name="exception">The <see cref="OpenCLException"/> to extract details from.</param>
-        /// <returns>An <see cref="IReadOnlyDictionary{TKey, TValue}"/> containing error details.</returns>
+        /// <returns>An immutable <see cref="IReadOnlyDictionary{TKey, TValue}"/> containing error details.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="exception"/> is null.</exception>
         public static IReadOnlyDictionary<string, object> GetErrorDetails(this OpenCLException exception)
         {
             ArgumentNullException.ThrowIfNull(exception);
 
-            return new Dictionary<string, object>
+            var dictionary = new Dictionary<string, object>
             {
                 { "Message", exception.Message },
-                { "DeviceName", exception.DeviceName },
-                { "OpenCLErrorCode", exception.OpenCLErrorCode },
-                { "IsKernelCompilationError", exception is KernelCompilationException }
+                { "DeviceName", exception.DeviceName ?? string.Empty },
+                { "OpenCLErrorCode", exception.OpenCLErrorCode ?? 0 }
             };
+
+            dictionary.Add("IsKernelCompilationError", exception is KernelCompilationException);
+
+            return dictionary;
         }
 
         /// <summary>
@@ -71,12 +85,11 @@ namespace GpuImageProcessing.Core.Exceptions
         {
             ArgumentNullException.ThrowIfNull(exception);
 
-            if (exception is KernelCompilationException kernelException)
+            return exception switch
             {
-                return kernelException.CompilationLog;
-            }
-
-            return null;
+                KernelCompilationException kernelException => kernelException.CompilationLog,
+                _ => null
+            };
         }
     }
 }
