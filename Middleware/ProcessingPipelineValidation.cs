@@ -23,11 +23,9 @@ namespace GpuImageProcessing.Middleware
 
             // Validate middleware order
             var middlewareOrder = value.GetMiddlewareOrder();
-            if (middlewareOrder == null)
-            {
-                problems.Add("Middleware order cannot be null.");
-            }
-            else if (middlewareOrder.Count == 0)
+            ArgumentNullException.ThrowIfNull(middlewareOrder);
+
+            if (middlewareOrder.Count == 0)
             {
                 problems.Add("At least one middleware must be registered in the pipeline.");
             }
@@ -37,7 +35,8 @@ namespace GpuImageProcessing.Middleware
                 {
                     if (string.IsNullOrWhiteSpace(middlewareOrder[i]))
                     {
-                        problems.Add($"Middleware at position {i} has an invalid name (null, empty, or whitespace).");
+                        problems.Add(string.Format(CultureInfo.InvariantCulture,
+                            "Middleware at position {0} has an invalid name (null, empty, or whitespace).", i));
                     }
                 }
             }
@@ -59,6 +58,7 @@ namespace GpuImageProcessing.Middleware
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
         public static bool IsValid(this ProcessingPipeline value)
         {
+            ArgumentNullException.ThrowIfNull(value);
             return value.Validate().Count == 0;
         }
 
@@ -76,7 +76,10 @@ namespace GpuImageProcessing.Middleware
             if (problems.Count > 0)
             {
                 throw new ArgumentException(
-                    $"ProcessingPipeline is invalid. Problems:\n- {string.Join("\n- ", problems)}");
+                    string.Format(CultureInfo.InvariantCulture,
+                        "ProcessingPipeline is invalid. Problems:{0}{1}",
+                        Environment.NewLine,
+                        string.Join(Environment.NewLine + "- ", problems)));
             }
         }
     }
