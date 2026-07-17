@@ -16,6 +16,11 @@ namespace GpuImageProcessing.Utilities
     /// </summary>
     public static class DataConversionUtilities
     {
+    /// <summary>
+    /// Gets the supported file extensions for data conversion operations.
+    /// </summary>
+    public static string[] SupportedExtensions => [".bin", ".hex"];
+
         /// <summary>
         /// Converts byte array to hexadecimal string
         /// </summary>

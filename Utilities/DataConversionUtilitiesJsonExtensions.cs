@@ -27,11 +27,14 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
         /// <returns>A JSON string representation of the DataConversionUtilities configuration.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="indented"/> parameter is invalid.</exception>
         public static string ToJson(bool indented = false)
         {
+            ArgumentNullException.ThrowIfNull(indented);
+
             var config = new DataConversionUtilitiesConfiguration
             {
-                SupportedExtensions = [".bin", ".hex"]
+                SupportedExtensions = DataConversionUtilities.SupportedExtensions
             };
 
             var options = indented
@@ -48,7 +51,7 @@ namespace GpuImageProcessing.Utilities
         /// <returns>The deserialized DataConversionUtilities configuration, or null if JSON is null or empty.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
-        public static DataConversionUtilitiesConfiguration? FromJson(string json)
+        public static DataConversionUtilitiesConfiguration? FromJson(string? json)
         {
             if (string.IsNullOrEmpty(json))
             {
@@ -65,7 +68,7 @@ namespace GpuImageProcessing.Utilities
         /// <param name="value">Receives the deserialized configuration if successful.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
-        public static bool TryFromJson(string json, out DataConversionUtilitiesConfiguration? value)
+        public static bool TryFromJson(string? json, out DataConversionUtilitiesConfiguration? value)
         {
             value = null;
 
@@ -90,7 +93,9 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public sealed class DataConversionUtilitiesConfiguration
         {
-            /// <summary>Gets or sets the supported data conversion file extensions.</summary>
+            /// <summary>
+            /// Gets or sets the supported data conversion file extensions.
+            /// </summary>
             public string[] SupportedExtensions { get; set; } = Array.Empty<string>();
         }
     }
