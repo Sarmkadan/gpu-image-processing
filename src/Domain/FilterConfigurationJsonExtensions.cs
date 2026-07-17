@@ -29,7 +29,7 @@ public static class FilterConfigurationJsonExtensions
     /// <param name="value">The filter configuration to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representation of the filter configuration.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
     public static string ToJson(this FilterConfiguration value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -45,8 +45,9 @@ public static class FilterConfigurationJsonExtensions
     /// Parses a JSON string into a <see cref="FilterConfiguration"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to parse.</param>
-    /// <returns>The deserialized filter configuration, or null if the JSON is invalid.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+    /// <returns>The deserialized filter configuration, or <see langword="null"/> if the JSON is invalid.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/> or empty.</exception>
+    /// <exception cref="JsonException">Thrown when the JSON is malformed and cannot be parsed.</exception>
     public static FilterConfiguration? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
@@ -66,8 +67,8 @@ public static class FilterConfigurationJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to parse.</param>
     /// <param name="value">Receives the deserialized filter configuration if successful.</param>
-    /// <returns>True if parsing succeeded; otherwise, false.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+    /// <returns><see langword="true"/> if parsing succeeded; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is <see langword="null"/> or empty.</exception>
     public static bool TryFromJson(string json, out FilterConfiguration? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
