@@ -46,15 +46,15 @@ namespace GpuImageProcessing.Caching
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
         /// <returns>The deserialized processing cache, or null if the JSON is null or empty.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
         public static ProcessingCache? FromJson(string json)
         {
-            if (string.IsNullOrEmpty(json))
-            {
-                return null;
-            }
+            ArgumentNullException.ThrowIfNull(json);
 
-            return JsonSerializer.Deserialize<ProcessingCache>(json, _jsonSerializerOptions);
+            return string.IsNullOrEmpty(json)
+                ? null
+                : JsonSerializer.Deserialize<ProcessingCache>(json, _jsonSerializerOptions);
         }
 
         /// <summary>
@@ -63,8 +63,11 @@ namespace GpuImageProcessing.Caching
         /// <param name="json">The JSON string to deserialize.</param>
         /// <param name="value">Receives the deserialized processing cache if successful.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         public static bool TryFromJson(string json, out ProcessingCache? value)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
             value = null;
 
             if (string.IsNullOrEmpty(json))
