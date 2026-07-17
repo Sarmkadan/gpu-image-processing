@@ -1,6 +1,6 @@
 #nullable enable
 
-using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
 
 namespace GpuImageProcessing.Tests.Integration;
 
@@ -10,22 +10,18 @@ namespace GpuImageProcessing.Tests.Integration;
 public static class EndToEndProcessingTestsValidation
 {
     /// <summary>
-    /// Validates all public members of an <see cref="EndToEndProcessingTests"/> instance.
+    /// Validates that an <see cref="EndToEndProcessingTests"/> instance is properly initialized.
+    /// Since the constructor initializes all dependencies, this simply verifies the instance exists.
     /// </summary>
     /// <param name="value">The instance to validate.</param>
     /// <returns>A list of human-readable validation problems, or an empty list if valid.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
+    [SuppressMessage("Design", "CA1062:Validate arguments of public methods", Justification = "Null check is present")]
     public static IReadOnlyList<string> Validate(this EndToEndProcessingTests value)
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var problems = new List<string>();
-
-        // Validate private fields indirectly through public API
-        // Since this is a test class with only private fields, we validate through constructor behavior
-        // which would throw if dependencies were invalid
-
-        return problems.AsReadOnly();
+        return Array.Empty<string>();
     }
 
     /// <summary>
@@ -33,12 +29,15 @@ public static class EndToEndProcessingTestsValidation
     /// </summary>
     /// <param name="value">The instance to check.</param>
     /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
-    public static bool IsValid(this EndToEndProcessingTests value)
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
+    public static bool IsValid([NotNullWhen(true)] this EndToEndProcessingTests? value)
     {
+        ArgumentNullException.ThrowIfNull(value);
+
         try
         {
-            _ = Validate(value);
-            return true;
+            var problems = Validate(value);
+            return problems.Count == 0;
         }
         catch
         {
