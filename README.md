@@ -220,6 +220,65 @@ class Program
 }
 ```
 
+
+## FileOperationUtilities
+
+The `FileOperationUtilities` class provides a comprehensive set of utilities for file operations including checksum calculation, integrity verification, safe file copying and deletion, directory management, and file metadata retrieval. It ensures robust file handling with atomic operations and path validation to prevent security issues like directory traversal attacks.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Utilities;
+using System;
+using System.IO;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        var fileUtils = new FileOperationUtilities();
+
+        // Get file metadata
+        var metadata = fileUtils.GetFileMetadata("/path/to/image.jpg");
+        Console.WriteLine($"File: {metadata.Name}, Size: {metadata.SizeFormatted}, Extension: {metadata.Extension}");
+
+        // Calculate SHA256 hash
+        var hash = await fileUtils.CalculateFileHashAsync("/path/to/image.jpg");
+        Console.WriteLine($"SHA256: {hash}");
+
+        // Verify file integrity
+        bool isValid = await fileUtils.VerifyFileHashAsync("/path/to/image.jpg", hash);
+        Console.WriteLine($"Integrity check: {(isValid ? "PASS" : "FAIL")}");
+
+        // Safely copy file with verification
+        string backupPath = "/path/to/image_backup.jpg";
+        bool copySuccess = await fileUtils.SafeCopyFileAsync(
+            "/path/to/image.jpg", 
+            backupPath,
+            overwrite: true,
+            verifyHash: true
+        );
+        Console.WriteLine($"Copy successful: {copySuccess}");
+
+        // Get unique filename
+        string uniquePath = fileUtils.GetUniqueFileName("/path/to/image.jpg");
+        Console.WriteLine($"Unique filename: {Path.GetFileName(uniquePath)}");
+
+        // Ensure directory exists
+        var dirInfo = fileUtils.EnsureDirectoryExists("/path/to/output");
+        Console.WriteLine($"Directory created: {dirInfo.FullName}");
+
+        // Read and write files atomically
+        string content = await fileUtils.ReadFileAsync("/path/to/data.txt");
+        await fileUtils.WriteFileAtomicAsync("/path/to/output.txt", content);
+
+        // Safe file deletion
+        await fileUtils.SafeDeleteFileAsync("/path/to/temp.jpg");
+    }
+}
+```
+
 ## ProcessingPipeline
 
 ```csharp
