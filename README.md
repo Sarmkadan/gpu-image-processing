@@ -4996,6 +4996,79 @@ class Program
 }
 ```
 
+## AuthorizationMiddleware
+
+The `AuthorizationMiddleware` provides request authorization functionality for validating API keys, user permissions, and scope-based access control. It supports role-based access control (RBAC) with predefined roles (Viewer, Editor, Admin) and enables fine-grained permission management for API endpoints and operations. The middleware validates API keys against registered scopes, checks user roles against required permissions, and provides administrative functions for managing keys and user roles.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Middleware;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize authorization middleware
+        var authMiddleware = new AuthorizationMiddleware();
+        
+        // Register API keys with different scopes
+        authMiddleware.RegisterApiKey("sk_live_abc123def456ghi789", "user-001", 
+            "image:read", "image:write", "filter:read");
+        authMiddleware.RegisterApiKey("sk_live_xyz789uvw654rst321", "user-002",
+            "image:read", "profile:read");
+        
+        // Register users with roles
+        authMiddleware.RegisterUser("user-001", UserRole.Admin);
+        authMiddleware.RegisterUser("user-002", UserRole.Editor);
+        authMiddleware.RegisterUser("user-003", UserRole.Viewer);
+        
+        // Create middleware context for a request
+        var context = new RequestMiddlewareContext
+        {
+            ApiKey = "sk_live_abc123def456ghi789",
+            UserId = null,
+            Operation = "image:write",
+            Scopes = new List<string> { "image:write" }
+        };
+        
+        // Process the request through authorization middleware
+        var result = await authMiddleware.ProcessAsync(context);
+        
+        if (result.IsSuccess)
+        {
+            Console.WriteLine("Authorization successful!");
+            Console.WriteLine($"User ID: {context.UserId}");
+            Console.WriteLine($"User Role: {context.UserRole}");
+        }
+        else
+        {
+            Console.WriteLine($"Authorization failed: {result.ErrorMessage}");
+        }
+        
+        // List active API keys for a user
+        var activeKeys = authMiddleware.ListActiveKeys("user-001");
+        Console.WriteLine($"\nActive keys for user-001: {activeKeys.Count}");
+        foreach (var keyInfo in activeKeys)
+        {
+            Console.WriteLine($" - Key: {keyInfo.KeyPreview}, Created: {keyInfo.CreatedAt}");
+            Console.WriteLine($"   Scopes: {string.Join(", ", keyInfo.Scopes)}");
+        }
+        
+        // Revoke an API key
+        authMiddleware.RevokeApiKey("sk_live_abc123def456ghi789");
+        Console.WriteLine("\nAPI key revoked successfully");
+        
+        // Verify revocation
+        var revokedKeys = authMiddleware.ListActiveKeys("user-001");
+        Console.WriteLine($"Active keys after revocation: {revokedKeys.Count}");
+    }
+}
+```
+
 ## BatchProcessingPipelineTests
 
 The `BatchProcessingPipelineTests` class provides comprehensive unit tests for the `BatchProcessingPipeline` class, validating batch image processing pipeline functionality. It tests error handling scenarios (null batches, invalid batches), success scenarios (all images succeed, all images fail, partial failures), progress reporting, retry logic, constructor validation, and output directory creation. Each test uses mock dependencies to isolate the pipeline behavior and verify correct behavior under various conditions.
