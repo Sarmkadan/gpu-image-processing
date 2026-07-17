@@ -351,6 +351,69 @@ Console.WriteLine($"Test failed: {ex.Message}");
 
 ```
 
+## MetricsPublisherJsonExtensions
+
+The `MetricsPublisherJsonExtensions` class provides System.Text.Json serialization utilities for the `MetricsPublisher` class. It enables serialization and deserialization of metrics publisher configurations with support for both compact and indented JSON output formats, safe error handling, and thread-safe serialization with optimized JsonSerializerOptions.
+
+### Key Features
+
+- JSON serialization of `MetricsPublisher` instances using camelCase property naming
+- Support for both compact and indented JSON output formats
+- Safe deserialization with null handling and error recovery
+- Configuration state management for metrics publishing
+- Thread-safe serialization with optimized JsonSerializerOptions
+- Configurable buffer size and endpoint count properties
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Integration;
+using System;
+using System.Text.Json;
+
+class Program
+{
+  static void Main()
+  {
+    // Create a metrics publisher with buffer size
+    var publisher = new MetricsPublisher(bufferSize: 1024);
+
+    // Serialize to compact JSON
+    string compactJson = publisher.ToJson();
+    Console.WriteLine("Compact JSON configuration:");
+    Console.WriteLine(compactJson);
+
+    // Serialize to indented JSON for readability
+    string indentedJson = publisher.ToJson(indented: true);
+    Console.WriteLine("\nIndented JSON configuration:");
+    Console.WriteLine(indentedJson);
+
+    // Deserialize from JSON string
+    string json = @"{ "bufferSize": 2048, "endpointCount": 3 }";
+    var deserialized = MetricsPublisherJsonExtensions.FromJson(json);
+
+    if (deserialized != null)
+    {
+      Console.WriteLine($"\nDeserialized configuration:");
+      Console.WriteLine($"BufferSize: {deserialized.BufferSize}");
+      Console.WriteLine($"EndpointCount: {deserialized.EndpointCount}");
+    }
+
+    // Try to deserialize with error handling
+    string invalidJson = @"{ invalid json }";
+    bool success = MetricsPublisherJsonExtensions.TryFromJson(invalidJson, out var result);
+    Console.WriteLine($"\nTryFromJson with invalid JSON: {(success ? "Success" : "Failed (expected)")}");
+
+    // Serialize and deserialize round-trip to verify data integrity
+    string roundTripJson = publisher.ToJson();
+    var roundTripResult = MetricsPublisherJsonExtensions.FromJson(roundTripJson);
+    Console.WriteLine($"\nRound-trip successful: {roundTripResult != null}");
+  }
+}
+
+```
+
 ## HttpImageClientValidation
 
 The `HttpImageClientValidation` class provides comprehensive validation utilities for `HttpImageClient` instances and related HTTP image operations. It includes validation methods for URLs, file paths, directory existence, HTTP status codes, timeouts, and retry configurations, ensuring robust error handling for HTTP-based image processing workflows.
