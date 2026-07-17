@@ -1,6 +1,84 @@
 # GPU Image Processing
 
-GPU-accelerated image processing in C# using OpenCL (Silk.NET) - filters, transforms,
+GPU-accelerated image processing in C# using OpenCL (Silk.NET) - filters, transforms, batch operations, with a byte-exact CPU fallback that keeps everything usable on machines without a GPU.
+
+## BatchProcessingUtilities
+
+`BatchProcessingUtilities` provides utilities for managing and optimizing batch processing operations on GPU devices. It includes methods for partitioning work items, calculating optimal batch sizes, scheduling with priority, estimating processing times, tracking progress, and handling retries for failed items. The class is designed to maximize GPU utilization while minimizing memory overhead and provides comprehensive progress tracking for long-running batch operations.
+
+### Usage Example
+
+```csharp
+using GPUImageProcessing.Utilities;
+using System.Diagnostics;
+
+// Create a list of images to process
+var images = new List<ImageData>();
+for (int i = 0; i < 1000; i++)
+{
+    images.Add(new ImageData
+    {
+        Id = i,
+        Width = 1920,
+        Height = 1080,
+        Format = ImageFormat.Rgba32,
+        Data = new byte[1920 * 1080 * 4]
+    });
+}
+
+// Schedule batch processing with priority
+var batchItems = BatchProcessingUtilities.ScheduleWithPriority(
+    images,
+    item => item.Width * item.Height, // Priority based on image size
+    TimeSpan.FromSeconds(30)
+);
+
+// Calculate optimal batch size for current GPU
+int optimalBatchSize = BatchProcessingUtilities.CalculateOptimalBatchSize(
+    batchItems.Count,
+    maxBatchSize: 256,
+    memoryConstraintMb: 512
+);
+
+// Partition items for GPU processing
+var partitions = BatchProcessingUtilities.PartitionForGpu(batchItems, optimalBatchSize);
+
+// Process each partition
+foreach (var partition in partitions)
+{
+    var progress = BatchProcessingUtilities.CalculateProgress(
+        processedCount: partition.Count(i => i.ProcessedAt.HasValue),
+        totalCount: partition.Count,
+        startTime: Stopwatch.GetElapsedTime(0)
+    );
+    
+    Console.WriteLine($"Processing batch: {progress.PercentComplete:P0} complete, " +
+                     $"{progress.ItemsPerSecond:F2} items/sec, " +
+                     $"elapsed: {progress.ElapsedTime.TotalSeconds:F1}s");
+    
+    // Process images...
+    foreach (var item in partition)
+    {
+        // GPU processing logic here
+        item.ProcessedAt = DateTime.UtcNow;
+    }
+}
+
+// Evaluate if throttling is needed
+await BatchProcessingUtilities.RetryFailedItemsAsync(batchItems);
+
+var throttleNeeded = BatchProcessingUtilities.EvaluateThrottleNeeded(
+    currentItemsPerSecond: 1250.5,
+    targetItemsPerSecond: 2000.0,
+    gpuUtilization: 0.85
+);
+
+if (throttleNeeded.Recommendation == ThrottleRecommendation.Increase)
+{
+    Console.WriteLine($"Increase processing rate. Current: {throttleNeeded.CurrentRate:F1} ips, " +
+                     $"Target: {throttleNeeded.TargetRate:F1} ips");
+}
+```
 batch operations, with a byte-exact CPU fallback that keeps everything usable on
 machines without a GPU.
 
