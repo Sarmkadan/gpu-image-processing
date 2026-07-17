@@ -22,6 +22,7 @@ public static class ImageExtensions
     /// <param name="image">The image instance.</param>
     /// <returns>The file extension including the dot (e.g., ".jpg", ".png").</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="image"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when <paramref name="image.Format"/> is <see cref="ImageFormat.Unknown"/>.</exception>
     public static string GetFileExtension(this Image image)
     {
         ArgumentNullException.ThrowIfNull(image);
@@ -34,7 +35,7 @@ public static class ImageExtensions
             ImageFormat.Tiff => ".tiff",
             ImageFormat.WebP => ".webp",
             ImageFormat.Raw => ".raw",
-            _ => ".bin"
+            _ => throw new InvalidOperationException($"Unknown image format: {image.Format}")
         };
     }
 
@@ -44,9 +45,11 @@ public static class ImageExtensions
     /// <param name="image">The image instance.</param>
     /// <returns>A formatted string representing the file size.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="image"/> is null.</exception>
+    /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="image.FileSizeBytes"/> is negative.</exception>
     public static string GetFormattedFileSize(this Image image)
     {
         ArgumentNullException.ThrowIfNull(image);
+        ArgumentOutOfRangeException.ThrowIfNegative(image.FileSizeBytes);
 
         return FormatFileSize(image.FileSizeBytes);
     }
@@ -57,9 +60,13 @@ public static class ImageExtensions
     /// <param name="image">The image instance.</param>
     /// <returns>The size in megabytes (MB) as a double.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="image"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when image dimensions or bits per pixel are invalid.</exception>
     public static double GetPixelDataSizeInMegabytes(this Image image)
     {
         ArgumentNullException.ThrowIfNull(image);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(image.Width);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(image.Height);
+        ArgumentOutOfRangeException.ThrowIfNegative(image.BitsPerPixel);
 
         var bytes = image.CalculatePixelDataSize();
         return Math.Round(bytes / (1024.0 * 1024.0), 2);
@@ -71,11 +78,17 @@ public static class ImageExtensions
     /// <param name="image">The image instance.</param>
     /// <returns>True if the image uses a grayscale color space; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="image"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when <paramref name="image.ColorSpace"/> is <see cref="ColorSpace.Unknown"/>.</exception>
     public static bool IsGrayscale(this Image image)
     {
         ArgumentNullException.ThrowIfNull(image);
 
-        return image.ColorSpace is ColorSpace.Grayscale or ColorSpace.Ycbcr;
+        return image.ColorSpace switch
+        {
+            ColorSpace.Grayscale or ColorSpace.Ycbcr => true,
+            ColorSpace.Unknown => throw new InvalidOperationException("Cannot determine grayscale status for unknown color space"),
+            _ => false
+        };
     }
 
     /// <summary>
@@ -85,6 +98,8 @@ public static class ImageExtensions
     /// <returns>A formatted string with appropriate unit.</returns>
     private static string FormatFileSize(long bytes)
     {
+        ArgumentOutOfRangeException.ThrowIfNegative(bytes);
+
         string[] suffixes = { "B", "KB", "MB", "GB", "TB" };
         int counter = 0;
         double size = bytes;
