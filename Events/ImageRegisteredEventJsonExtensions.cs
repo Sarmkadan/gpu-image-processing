@@ -30,7 +30,7 @@ namespace GpuImageProcessing.Events
         /// <param name="value">The event to serialize.</param>
         /// <param name="indented">Whether to format the JSON with indentation.</param>
         /// <returns>JSON string representation of the event.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
         public static string ToJson(this ImageRegisteredEvent value, bool indented = false)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -47,20 +47,17 @@ namespace GpuImageProcessing.Events
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
         /// <returns>The deserialized event.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/> or empty.</exception>
         /// <exception cref="JsonException">Thrown when JSON parsing fails.</exception>
-        public static ImageRegisteredEvent? FromJson(string json)
-        {
-            ArgumentException.ThrowIfNullOrEmpty(json);
-            return JsonSerializer.Deserialize<ImageRegisteredEvent>(json, JsonSerializerOptions);
-        }
+        public static ImageRegisteredEvent? FromJson(string json) =>
+            JsonSerializer.Deserialize<ImageRegisteredEvent>(json, JsonSerializerOptions);
 
         /// <summary>
         /// Tries to deserialize a JSON string to an <see cref="ImageRegisteredEvent"/>.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <param name="value">The deserialized event if successful; otherwise null.</param>
-        /// <returns>True if deserialization succeeded; otherwise false.</returns>
+        /// <param name="value">The deserialized event if successful; otherwise <see langword="null"/>.</param>
+        /// <returns><see langword="true"/> if deserialization succeeded; otherwise <see langword="false"/>.</returns>
         public static bool TryFromJson(string json, out ImageRegisteredEvent? value)
         {
             ArgumentException.ThrowIfNullOrEmpty(json);
