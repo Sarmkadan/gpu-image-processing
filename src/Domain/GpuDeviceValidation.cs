@@ -4,8 +4,6 @@
 // CTO & Software Architect
 // =============================================================================
 
-using System.Globalization;
-
 namespace GpuImageProcessing.Domain;
 
 /// <summary>
@@ -274,7 +272,7 @@ public static class GpuDeviceValidation
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static bool IsValid(this GpuDevice? value)
     {
-        return value is not null && (value.ValidateDevice()).Count == 0;
+        return value is not null && value.ValidateDevice().Count == 0;
     }
 
     /// <summary>
