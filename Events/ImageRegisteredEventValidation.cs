@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 
 namespace GpuImageProcessing.Events
 {
@@ -19,7 +20,7 @@ namespace GpuImageProcessing.Events
         /// </summary>
         /// <param name="value">The image registered event to validate.</param>
         /// <returns>An empty list if valid, otherwise a list of validation error messages.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when value is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
         public static IReadOnlyList<string> Validate(this ImageRegisteredEvent? value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -37,9 +38,13 @@ namespace GpuImageProcessing.Events
             {
                 errors.Add("ImagePath must not be null or whitespace.");
             }
-            else if (!System.IO.Path.IsPathRooted(value.ImagePath) && !value.ImagePath.StartsWith(".") && !value.ImagePath.StartsWith("/") && !value.ImagePath.StartsWith("\\"))
+            else if (!Path.IsPathRooted(value.ImagePath))
             {
-                errors.Add("ImagePath must be an absolute path or a valid relative path.");
+                var firstChar = value.ImagePath[0];
+                if (firstChar != '.' && firstChar != '/' && firstChar != '\\')
+                {
+                    errors.Add("ImagePath must be an absolute path or a valid relative path starting with '.', '/', or '\\'.");
+                }
             }
 
             // Validate Width
@@ -68,18 +73,16 @@ namespace GpuImageProcessing.Events
         /// </summary>
         /// <param name="value">The image registered event to check.</param>
         /// <returns>True if the event is valid; otherwise, false.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when value is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
         public static bool IsValid(this ImageRegisteredEvent? value)
-        {
-            return value?.Validate().Count == 0;
-        }
+            => value is not null && value.Validate().Count == 0;
 
         /// <summary>
         /// Ensures that the specified image registered event is valid, throwing an exception if it is not.
         /// </summary>
         /// <param name="value">The image registered event to validate.</param>
         /// <exception cref="ArgumentException">Thrown when the event is invalid, with a detailed message listing all validation problems.</exception>
-        /// <exception cref="ArgumentNullException">Thrown when value is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
         public static void EnsureValid(this ImageRegisteredEvent? value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -88,7 +91,8 @@ namespace GpuImageProcessing.Events
             if (errors.Count > 0)
             {
                 throw new ArgumentException(
-                    $"ImageRegisteredEvent validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
+                    $"ImageRegisteredEvent validation failed:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}",
+                    nameof(value));
             }
         }
     }
