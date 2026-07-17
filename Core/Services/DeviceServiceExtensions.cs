@@ -54,10 +54,14 @@ namespace GpuImageProcessing.Core.Services
                 throw new ArgumentOutOfRangeException(nameof(requiredMemoryBytes), "Value must be greater than zero.");
 
             var allDevices = await deviceService.GetAllDevicesAsync();
-            return allDevices
+            foreach (var device in allDevices
                 .Where(d => d.IsAvailable && d.SupportsDoublePrecision)
-                .OrderByDescending(d => d.GetCapabilityScore())
-                .FirstOrDefault(d => deviceService.HasSufficientMemoryAsync(d.Id, requiredMemoryBytes).Result);
+                .OrderByDescending(d => d.GetCapabilityScore()))
+            {
+                if (await deviceService.HasSufficientMemoryAsync(device.Id, requiredMemoryBytes))
+                    return device;
+            }
+            return null;
         }
 
         /// <summary>
