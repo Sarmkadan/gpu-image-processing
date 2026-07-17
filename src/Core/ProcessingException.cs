@@ -34,20 +34,20 @@ public class ProcessingException : Exception
 /// <summary>
 /// Exception thrown when filter configuration is invalid.
 /// </summary>
-public class InvalidFilterException : Exception
+public class InvalidFilterException : ProcessingException
 {
     public string? FilterType { get; }
     public string[]? InvalidParameters { get; }
 
-    public InvalidFilterException(string message, string? filterType = null, string[]? invalidParameters = null)
-        : base(message)
+    public InvalidFilterException(string message, string? filterType = null, string[]? invalidParameters = null, string? imagePath = null, int? attemptNumber = null)
+        : base(message, imagePath, filterType, attemptNumber)
     {
         FilterType = filterType;
         InvalidParameters = invalidParameters;
     }
 
-    public InvalidFilterException(string message, Exception innerException, string? filterType = null)
-        : base(message, innerException)
+    public InvalidFilterException(string message, Exception innerException, string? filterType = null, string? imagePath = null)
+        : base(message, innerException, imagePath, filterType)
     {
         FilterType = filterType;
     }
@@ -56,18 +56,21 @@ public class InvalidFilterException : Exception
 /// <summary>
 /// Exception thrown when image is invalid or corrupted.
 /// </summary>
-public class InvalidImageException : Exception
+public class InvalidImageException : ProcessingException
 {
     public string? ImagePath { get; }
     public string? ImageFormat { get; }
 
-    public InvalidImageException(string message, string? imagePath = null, string? imageFormat = null)
-        : base(message)
+    public InvalidImageException(string message, string? imagePath = null, string? imageFormat = null, string? filterName = null, int? attemptNumber = null)
+        : base(message, imagePath, filterName, attemptNumber)
     {
         ImagePath = imagePath;
         ImageFormat = imageFormat;
     }
 
-    public InvalidImageException(string message, Exception innerException)
-        : base(message, innerException) { }
+    public InvalidImageException(string message, Exception innerException, string? imagePath = null)
+        : base(message, innerException, imagePath, null)
+    {
+        ImagePath = imagePath;
+    }
 }
