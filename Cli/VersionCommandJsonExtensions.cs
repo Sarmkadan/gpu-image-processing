@@ -31,15 +31,9 @@ namespace GpuImageProcessing.Cli
         /// <returns>A JSON string representation of the version command.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
         public static string ToJson(this VersionCommand value, bool indented = false)
-        {
-            ArgumentNullException.ThrowIfNull(value);
-
-            var options = indented
+            => JsonSerializer.Serialize(value, indented
                 ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
-                : _jsonOptions;
-
-            return JsonSerializer.Serialize(value, options);
-        }
+                : _jsonOptions);
 
         /// <summary>
         /// Deserializes a JSON string to a <see cref="VersionCommand"/> instance.
@@ -47,18 +41,12 @@ namespace GpuImageProcessing.Cli
         /// <param name="json">The JSON string to deserialize.</param>
         /// <returns>The deserialized <see cref="VersionCommand"/> instance, or null if the JSON is invalid.</returns>
         /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+        /// <exception cref="JsonException">Thrown when the JSON is malformed or cannot be deserialized.</exception>
         public static VersionCommand? FromJson(string json)
         {
             ArgumentException.ThrowIfNullOrEmpty(json);
 
-            try
-            {
-                return JsonSerializer.Deserialize<VersionCommand>(json, _jsonOptions);
-            }
-            catch (JsonException)
-            {
-                return null;
-            }
+            return JsonSerializer.Deserialize<VersionCommand>(json, _jsonOptions);
         }
 
         /// <summary>
@@ -68,6 +56,7 @@ namespace GpuImageProcessing.Cli
         /// <param name="value">Receives the deserialized instance if successful.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
         /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+        /// <exception cref="JsonException">Thrown when the JSON is malformed or cannot be deserialized.</exception>
         public static bool TryFromJson(string json, out VersionCommand? value)
         {
             ArgumentException.ThrowIfNullOrEmpty(json);
