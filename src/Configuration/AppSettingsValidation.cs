@@ -102,7 +102,8 @@ public static class AppSettingsValidation
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
     public static bool IsValid(this AppSettings value)
     {
-        return AppSettingsValidation.Validate(value).Count == 0;
+        ArgumentNullException.ThrowIfNull(value);
+        return Validate(value).Count == 0;
     }
 
     /// <summary>
@@ -116,7 +117,7 @@ public static class AppSettingsValidation
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var problems = AppSettingsValidation.Validate(value);
+        var problems = Validate(value);
 
         if (problems.Count > 0)
         {
