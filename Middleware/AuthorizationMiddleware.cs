@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
 using System.Collections.Generic;
@@ -30,9 +30,9 @@ namespace GpuImageProcessing.Middleware
         {
             _validKeys.Add(new ApiKey
             {
-                Key = key,
-                UserId = userId,
-                Scopes = new List<string>(scopes),
+                Key = key ?? throw new ArgumentNullException(nameof(key)),
+                UserId = userId ?? throw new ArgumentNullException(nameof(userId)),
+                Scopes = new List<string>(scopes ?? Array.Empty<string>()),
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true
             });
@@ -40,11 +40,14 @@ namespace GpuImageProcessing.Middleware
 
         public void RegisterUser(string userId, UserRole role)
         {
+            ArgumentNullException.ThrowIfNull(userId);
             _userRoles[userId] = role;
         }
 
         public async Task<RequestMiddlewareResult> ProcessAsync(RequestMiddlewareContext context)
         {
+            ArgumentNullException.ThrowIfNull(context);
+
             // Validate API key if provided
             if (!string.IsNullOrEmpty(context.ApiKey))
             {
@@ -93,12 +96,20 @@ namespace GpuImageProcessing.Middleware
 
         public void RevokeApiKey(string key)
         {
+            ArgumentNullException.ThrowIfNull(key);
             var apiKey = _validKeys.FirstOrDefault(k => k.Key == key);
             if (apiKey != null)
+            {
                 apiKey.IsActive = false;
+            }
         }
 
-        public List<ApiKeyInfo> ListActiveKeys(string userId = null)
+        /// <summary>
+        /// Lists all active API keys, optionally filtered by user.
+        /// </summary>
+        /// <param name="userId">Optional user ID to filter keys by. If null, returns all active keys.</param>
+        /// <returns>A list of <see cref="ApiKeyInfo"/> objects representing active API keys.</returns>
+        public List<ApiKeyInfo> ListActiveKeys(string? userId = null)
         {
             return _validKeys
                 .Where(k => k.IsActive && (userId == null || k.UserId == userId))
@@ -106,28 +117,38 @@ namespace GpuImageProcessing.Middleware
                 {
                     UserId = k.UserId,
                     CreatedAt = k.CreatedAt,
-                    Scopes = new List<string>(k.Scopes),
-                    KeyPreview = k.Key.Substring(0, 8) + "..."
+                    Scopes = k.Scopes?.ToList() ?? new List<string>(),
+                    KeyPreview = k.Key?.Length > 8 ? k.Key.Substring(0, 8) + "..." : k.Key
                 })
                 .ToList();
         }
 
-        private class ApiKey
+        private sealed class ApiKey
         {
-            public string Key { get; set; }
-            public string UserId { get; set; }
-            public List<string> Scopes { get; set; }
+            public string Key { get; set; } = string.Empty;
+            public string UserId { get; set; } = string.Empty;
+            public List<string> Scopes { get; set; } = new();
             public DateTime CreatedAt { get; set; }
             public bool IsActive { get; set; }
         }
     }
 
-    public class ApiKeyInfo
+    /// <summary>
+    /// Contains information about an API key without exposing the full key value.
+    /// </summary>
+    public sealed class ApiKeyInfo
     {
-        public string UserId { get; set; }
+        /// <summary>Gets the user identifier associated with this API key.</summary>
+        public string UserId { get; set; } = string.Empty;
+
+        /// <summary>Gets the creation timestamp of this API key.</summary>
         public DateTime CreatedAt { get; set; }
-        public List<string> Scopes { get; set; }
-        public string KeyPreview { get; set; }
+
+        /// <summary>Gets the list of scopes granted to this API key.</summary>
+        public List<string> Scopes { get; set; } = new();
+
+        /// <summary>Gets a preview of the API key (first 8 characters followed by ellipsis).</summary>
+        public string KeyPreview { get; set; } = string.Empty;
     }
 
     public enum UserRole
