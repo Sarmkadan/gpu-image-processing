@@ -6,21 +6,20 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace GpuImageProcessing.Core.Models
 {
     /// <summary>
-    /// Provides validation helpers for ProcessingProfile instances
+    /// Provides validation helpers for <see cref="ProcessingProfile"/> instances
     /// </summary>
     public static class ProcessingProfileValidation
     {
         /// <summary>
-        /// Validates a ProcessingProfile instance and returns a list of human-readable validation errors
+        /// Validates a <see cref="ProcessingProfile"/> instance and returns a list of human-readable validation errors
         /// </summary>
         /// <param name="value">The profile to validate</param>
         /// <returns>An empty list if valid, otherwise a list of validation error messages</returns>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
         public static IReadOnlyList<string> Validate(this ProcessingProfile? value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -37,18 +36,24 @@ namespace GpuImageProcessing.Core.Models
                 errors.Add("Name cannot exceed 256 characters");
             }
 
-            if (value.Description.Length > 4000)
+            if (string.IsNullOrWhiteSpace(value.Description))
+            {
+                errors.Add("Description cannot be null or whitespace");
+            }
+            else if (value.Description.Length > 4000)
             {
                 errors.Add("Description cannot exceed 4000 characters");
             }
 
-            if (value.PrecisionFormat.Length > 20)
+            if (string.IsNullOrWhiteSpace(value.PrecisionFormat))
+            {
+                errors.Add("PrecisionFormat cannot be null or whitespace");
+            }
+            else if (value.PrecisionFormat.Length > 20)
             {
                 errors.Add("PrecisionFormat cannot exceed 20 characters");
             }
-            else if (!string.IsNullOrEmpty(value.PrecisionFormat) &&
-                   value.PrecisionFormat != "float32" &&
-                   value.PrecisionFormat != "float16")
+            else if (value.PrecisionFormat is not ("float32" or "float16"))
             {
                 errors.Add("PrecisionFormat must be either 'float32' or 'float16'");
             }
@@ -112,30 +117,25 @@ namespace GpuImageProcessing.Core.Models
             {
                 errors.Add("ModifiedAt cannot be in the future");
             }
-            else if (value.ModifiedAt < value.CreatedAt)
+            else if (value.CreatedAt != default && value.ModifiedAt < value.CreatedAt)
             {
                 errors.Add("ModifiedAt cannot be earlier than CreatedAt");
             }
 
             // Validate optimization settings
-            if (value.OptimizationSettings == null)
-            {
-                errors.Add("OptimizationSettings cannot be null");
-            }
-            else
-            {
-                foreach (var kvp in value.OptimizationSettings)
-                {
-                    if (string.IsNullOrWhiteSpace(kvp.Key))
-                    {
-                        errors.Add("OptimizationSettings contains an entry with null or empty key");
-                        break;
-                    }
+            ArgumentNullException.ThrowIfNull(value.OptimizationSettings);
 
-                    if (kvp.Value < 0.1f || kvp.Value > 10.0f)
-                    {
-                        errors.Add($"OptimizationSettings['{kvp.Key}'] value {kvp.Value} is out of range (0.1 to 10.0)");
-                    }
+            foreach (var kvp in value.OptimizationSettings)
+            {
+                if (string.IsNullOrWhiteSpace(kvp.Key))
+                {
+                    errors.Add("OptimizationSettings contains an entry with null or empty key");
+                    break;
+                }
+
+                if (kvp.Value < 0.1f || kvp.Value > 10.0f)
+                {
+                    errors.Add($"OptimizationSettings['{kvp.Key}'] value {kvp.Value} is out of range (0.1 to 10.0)");
                 }
             }
 
@@ -143,21 +143,18 @@ namespace GpuImageProcessing.Core.Models
         }
 
         /// <summary>
-        /// Determines whether a ProcessingProfile instance is valid
+        /// Determines whether a <see cref="ProcessingProfile"/> instance is valid
         /// </summary>
         /// <param name="value">The profile to check</param>
         /// <returns>True if valid, false otherwise</returns>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
-        public static bool IsValid(this ProcessingProfile? value)
-        {
-            return Validate(value).Count == 0;
-        }
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
+        public static bool IsValid(this ProcessingProfile? value) => Validate(value).Count == 0;
 
         /// <summary>
-        /// Ensures that a ProcessingProfile instance is valid, throwing an exception if not
+        /// Ensures that a <see cref="ProcessingProfile"/> instance is valid, throwing an exception if not
         /// </summary>
         /// <param name="value">The profile to validate</param>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
         /// <exception cref="ArgumentException">Thrown when the profile is invalid, containing validation errors</exception>
         public static void EnsureValid(this ProcessingProfile? value)
         {
@@ -169,7 +166,7 @@ namespace GpuImageProcessing.Core.Models
             {
                 throw new ArgumentException(
                     $"ProcessingProfile validation failed:{Environment.NewLine}- {
-                        string.Join($"{Environment.NewLine}- ", errors)}");
+                    string.Join($"{Environment.NewLine}- ", errors)}");
             }
         }
     }
