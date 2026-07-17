@@ -20,7 +20,7 @@ namespace GpuImageProcessing.Core.Exceptions
         /// </summary>
         /// <param name="value">The exception to validate</param>
         /// <returns>A list of validation problems; empty list if valid</returns>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
         public static IReadOnlyList<string> Validate(this ImageProcessingException value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -53,7 +53,7 @@ namespace GpuImageProcessing.Core.Exceptions
         /// </summary>
         /// <param name="value">The exception to check</param>
         /// <returns>True if valid; otherwise false</returns>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
         public static bool IsValid(this ImageProcessingException value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -64,8 +64,8 @@ namespace GpuImageProcessing.Core.Exceptions
         /// Ensures that an <see cref="ImageProcessingException"/> instance is valid
         /// </summary>
         /// <param name="value">The exception to validate</param>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
-        /// <exception cref="ArgumentException">Thrown when value is not valid, containing the validation problems</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="value"/> is not valid, containing the validation problems</exception>
         public static void EnsureValid(this ImageProcessingException value)
         {
             ArgumentNullException.ThrowIfNull(value);
