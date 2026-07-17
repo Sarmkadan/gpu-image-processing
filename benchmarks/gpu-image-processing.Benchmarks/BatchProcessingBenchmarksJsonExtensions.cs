@@ -6,6 +6,7 @@
 // =====================================================================
 
 using System;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -16,11 +17,17 @@ namespace GpuImageProcessing.Benchmarks;
 /// </summary>
 public static class BatchProcessingBenchmarksJsonExtensions
 {
+    /// <summary>
+    /// Gets the JSON serialization options used by the extension methods.
+    /// Uses invariant culture for consistent serialization behavior across different environments.
+    /// </summary>
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        PropertyNameCaseInsensitive = true,
+        NumberHandling = JsonNumberHandling.AllowReadingFromString | JsonNumberHandling.WriteAsString
     };
 
     /// <summary>
@@ -45,19 +52,16 @@ public static class BatchProcessingBenchmarksJsonExtensions
     /// Deserializes a JSON string to a <see cref="BatchProcessingBenchmarks"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized benchmarks instance, or null if the JSON is empty.</returns>
+    /// <returns>The deserialized benchmarks instance, or null if the JSON is empty or whitespace.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static BatchProcessingBenchmarks? FromJson(string json)
     {
         ArgumentNullException.ThrowIfNull(json);
 
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return null;
-        }
-
-        return JsonSerializer.Deserialize<BatchProcessingBenchmarks>(json, _jsonOptions);
+        return string.IsNullOrWhiteSpace(json)
+            ? null
+            : JsonSerializer.Deserialize<BatchProcessingBenchmarks>(json, _jsonOptions);
     }
 
     /// <summary>
