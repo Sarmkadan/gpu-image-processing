@@ -15,7 +15,7 @@ namespace GpuImageProcessing.Integration
     /// </summary>
     public static class HttpImageClientJsonExtensions
     {
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
@@ -35,10 +35,7 @@ namespace GpuImageProcessing.Integration
             ArgumentNullException.ThrowIfNull(value);
 
             var options = indented
-                ? new JsonSerializerOptions(_jsonSerializerOptions)
-                {
-                    WriteIndented = true
-                }
+                ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
                 : _jsonSerializerOptions;
 
             return JsonSerializer.Serialize(value, options);
@@ -53,10 +50,7 @@ namespace GpuImageProcessing.Integration
         /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or whitespace.</exception>
         public static HttpImageClient? FromJson(string json)
         {
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return null;
-            }
+            ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
             return JsonSerializer.Deserialize<HttpImageClient>(json, _jsonSerializerOptions);
         }
