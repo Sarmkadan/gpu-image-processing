@@ -16,7 +16,7 @@ namespace GpuImageProcessing.Core.Repository
     using ProcessingStatus = GpuImageProcessing.Core.Constants.ProcessingStatus;
 
     /// <summary>
-    /// Extension methods for JobRepository providing additional query capabilities
+    /// Extension methods for <see cref="JobRepository"/> providing additional query capabilities
     /// </summary>
     public static class JobRepositoryExtensions
     {
@@ -26,13 +26,13 @@ namespace GpuImageProcessing.Core.Repository
         /// <param name="repository">The job repository</param>
         /// <param name="status">The status to filter by</param>
         /// <returns>Collection of jobs with the specified status</returns>
-        /// <exception cref="ArgumentNullException">Thrown when repository is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null</exception>
         public static async Task<IReadOnlyList<ProcessingJob>> GetByStatusAsync(this JobRepository repository, ProcessingStatus status)
         {
             ArgumentNullException.ThrowIfNull(repository);
 
             var jobs = await repository.GetByStatusAsync(status);
-            return jobs.ToList().AsReadOnly();
+            return (await Task.FromResult(jobs.ToList())).AsReadOnly();
         }
 
         /// <summary>
@@ -40,7 +40,7 @@ namespace GpuImageProcessing.Core.Repository
         /// </summary>
         /// <param name="repository">The job repository</param>
         /// <returns>Collection of active jobs ordered by creation time</returns>
-        /// <exception cref="ArgumentNullException">Thrown when repository is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null</exception>
         public static async Task<IReadOnlyList<ProcessingJob>> GetActiveJobsAsync(this JobRepository repository)
         {
             ArgumentNullException.ThrowIfNull(repository);
@@ -59,8 +59,8 @@ namespace GpuImageProcessing.Core.Repository
         /// <param name="repository">The job repository</param>
         /// <param name="minProgressPercentage">Minimum progress percentage (0-100)</param>
         /// <returns>Collection of jobs with progress above threshold</returns>
-        /// <exception cref="ArgumentNullException">Thrown when repository is null</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when minProgressPercentage is outside valid range</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="minProgressPercentage"/> is outside valid range</exception>
         public static async Task<IReadOnlyList<ProcessingJob>> GetJobsAboveProgressAsync(this JobRepository repository, float minProgressPercentage = 75f)
         {
             ArgumentNullException.ThrowIfNull(repository);
@@ -84,8 +84,8 @@ namespace GpuImageProcessing.Core.Repository
         /// <param name="startDate">Start date of the range (inclusive)</param>
         /// <param name="endDate">End date of the range (inclusive)</param>
         /// <returns>Collection of jobs created within the specified time range</returns>
-        /// <exception cref="ArgumentNullException">Thrown when repository is null</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when startDate is after endDate</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="startDate"/> is after <paramref name="endDate"/></exception>
         public static async Task<IReadOnlyList<ProcessingJob>> GetJobsCreatedBetweenAsync(this JobRepository repository, DateTime startDate, DateTime endDate)
         {
             ArgumentNullException.ThrowIfNull(repository);
@@ -108,8 +108,8 @@ namespace GpuImageProcessing.Core.Repository
         /// <param name="repository">The job repository</param>
         /// <param name="count">Number of jobs to return</param>
         /// <returns>Collection of the most recent completed jobs</returns>
-        /// <exception cref="ArgumentNullException">Thrown when repository is null</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when count is less than 1</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="count"/> is less than 1</exception>
         public static async Task<IReadOnlyList<ProcessingJob>> GetMostRecentCompletedAsync(this JobRepository repository, int count = 10)
         {
             ArgumentNullException.ThrowIfNull(repository);
@@ -134,8 +134,8 @@ namespace GpuImageProcessing.Core.Repository
         /// <param name="searchTerm">Term to search for in name or description</param>
         /// <param name="caseSensitive">Whether the search should be case sensitive</param>
         /// <returns>Collection of jobs matching the search criteria</returns>
-        /// <exception cref="ArgumentNullException">Thrown when repository is null</exception>
-        /// <exception cref="ArgumentNullException">Thrown when searchTerm is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="searchTerm"/> is null</exception>
         public static async Task<IReadOnlyList<ProcessingJob>> SearchByNameOrDescriptionAsync(this JobRepository repository, string searchTerm, bool caseSensitive = false)
         {
             ArgumentNullException.ThrowIfNull(repository);
@@ -145,7 +145,7 @@ namespace GpuImageProcessing.Core.Repository
             var comparison = caseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
             var filteredJobs = jobs.Where(j => j.Name.Contains(searchTerm, comparison) ||
-                                               j.Description.Contains(searchTerm, comparison))
+                j.Description.Contains(searchTerm, comparison))
                 .OrderByDescending(j => j.CreatedAt)
                 .ToList();
 
@@ -158,7 +158,7 @@ namespace GpuImageProcessing.Core.Repository
         /// <param name="repository">The job repository</param>
         /// <param name="status">The status to filter by</param>
         /// <returns>Statistics for jobs with the specified status</returns>
-        /// <exception cref="ArgumentNullException">Thrown when repository is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null</exception>
         public static async Task<JobStatistics> GetStatisticsByStatusAsync(this JobRepository repository, ProcessingStatus status)
         {
             ArgumentNullException.ThrowIfNull(repository);
@@ -193,8 +193,8 @@ namespace GpuImageProcessing.Core.Repository
         /// <param name="repository">The job repository</param>
         /// <param name="minDuration">Minimum duration in seconds</param>
         /// <returns>Collection of jobs running longer than the specified duration</returns>
-        /// <exception cref="ArgumentNullException">Thrown when repository is null</exception>
-        /// <exception cref="ArgumentOutOfRangeException">Thrown when minDuration is negative</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null</exception>
+        /// <exception cref="ArgumentOutOfRangeException">Thrown when <paramref name="minDuration"/> is negative</exception>
         public static async Task<IReadOnlyList<ProcessingJob>> GetLongRunningJobsAsync(this JobRepository repository, double minDuration = 3600)
         {
             ArgumentNullException.ThrowIfNull(repository);
@@ -218,7 +218,7 @@ namespace GpuImageProcessing.Core.Repository
         /// </summary>
         /// <param name="repository">The job repository</param>
         /// <returns>Total job count</returns>
-        /// <exception cref="ArgumentNullException">Thrown when repository is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="repository"/> is null</exception>
         public static async Task<int> GetTotalJobsCountAsync(this JobRepository repository)
         {
             ArgumentNullException.ThrowIfNull(repository);
