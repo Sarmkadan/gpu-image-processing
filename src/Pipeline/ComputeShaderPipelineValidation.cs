@@ -3,12 +3,11 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+using GpuImageProcessing.Domain;
 
 namespace GpuImageProcessing.Pipeline;
 
@@ -23,66 +22,75 @@ public static class ComputeShaderPipelineValidation
     /// <param name="value">The pipeline instance to validate.</param>
     /// <returns>A list of human-readable validation problems; empty if valid.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when reflection fails to access pipeline members.</exception>
     public static IReadOnlyList<string> Validate(this ComputeShaderPipeline? value)
     {
         ArgumentNullException.ThrowIfNull(value);
 
         var problems = new List<string>();
 
-        // Validate constructor dependencies (these are private fields but we can infer their validity)
-        // The constructor throws ArgumentNullException for null dependencies, so we assume they're valid if pipeline exists
-
-        // Validate statistics fields
-        if (value.GetType().GetField("_totalExecutions", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(value) is long totalExecutions && totalExecutions < 0)
-        {
-            problems.Add("Total executions count cannot be negative.");
-        }
-
-        if (value.GetType().GetField("_totalPassesExecuted", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(value) is long totalPassesExecuted && totalPassesExecuted < 0)
-        {
-            problems.Add("Total passes executed count cannot be negative.");
-        }
-
-        if (value.GetType().GetField("_totalPassesFailed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(value) is long totalPassesFailed && totalPassesFailed < 0)
-        {
-            problems.Add("Total passes failed count cannot be negative.");
-        }
-
-        if (value.GetType().GetField("_totalPixelsProcessed", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(value) is long totalPixelsProcessed && totalPixelsProcessed < 0)
-        {
-            problems.Add("Total pixels processed count cannot be negative.");
-        }
-
-        if (value.GetType().GetField("_totalProcessingMs", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(value) is double totalProcessingMs && totalProcessingMs < 0)
-        {
-            problems.Add("Total processing time cannot be negative.");
-        }
-
-        if (value.GetType().GetField("_totalOccupancySum", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(value) is double totalOccupancySum && totalOccupancySum < 0)
-        {
-            problems.Add("Total occupancy sum cannot be negative.");
-        }
-
-        if (value.GetType().GetField("_totalOccupancySamples", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?.GetValue(value) is long totalOccupancySamples && totalOccupancySamples < 0)
-        {
-            problems.Add("Total occupancy samples count cannot be negative.");
-        }
-
-        // Validate that the pipeline is in a usable state
-        // Since we can't access private fields directly, we'll check if the object is properly initialized
-        // by attempting to verify its internal consistency through public methods
         try
         {
-            // This will throw if the pipeline is in an invalid state
-            _ = value.GetType().GetMethod("GetStatisticsAsync", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)?.Invoke(value, new object[] { default(System.Threading.CancellationToken) });
+            // Use public API to validate pipeline state instead of fragile reflection
+            PipelineStatistics stats = value.GetStatisticsAsync().GetAwaiter().GetResult();
+
+            // Validate statistics values
+            if (stats.TotalExecutions < 0)
+            {
+                problems.Add("Total executions count cannot be negative.");
+            }
+
+            if (stats.TotalPassesExecuted < 0)
+            {
+                problems.Add("Total passes executed count cannot be negative.");
+            }
+
+            if (stats.TotalPassesFailed < 0)
+            {
+                problems.Add("Total passes failed count cannot be negative.");
+            }
+
+            if (stats.TotalPixelsProcessed < 0)
+            {
+                problems.Add("Total pixels processed count cannot be negative.");
+            }
+
+            if (stats.TotalProcessingTime < TimeSpan.Zero)
+            {
+                problems.Add("Total processing time cannot be negative.");
+            }
+
+            if (stats.AveragePassDurationMs < 0)
+            {
+                problems.Add("Average pass duration cannot be negative.");
+            }
+
+            if (stats.AverageOccupancy < 0)
+            {
+                problems.Add("Average occupancy cannot be negative.");
+            }
+
+            if (stats.SuccessRate < 0 || stats.SuccessRate > 1)
+            {
+                problems.Add("Success rate must be between 0 and 1.");
+            }
+
+            if (stats.CollectedAt == default)
+            {
+                problems.Add("Statistics collection timestamp cannot be default.");
+            }
+            else if (stats.CollectedAt.Kind != DateTimeKind.Utc)
+            {
+                problems.Add("Statistics timestamp must be in UTC.");
+            }
+            else if (stats.CollectedAt > DateTime.UtcNow.AddMinutes(5))
+            {
+                problems.Add("Statistics timestamp cannot be in the future.");
+            }
         }
-        catch (Exception ex) when (ex is not System.Reflection.TargetInvocationException)
+        catch (Exception ex) when (ex is not InvalidOperationException)
         {
             problems.Add($"Pipeline internal state is invalid: {ex.Message}");
-        }
-        catch
-        {
-            // TargetInvocationException wraps the actual exception, which is expected
         }
 
         return problems.AsReadOnly();
@@ -101,6 +109,7 @@ public static class ComputeShaderPipelineValidation
     /// <param name="value">The pipeline instance to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when the pipeline is invalid, containing a list of validation problems.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the pipeline cannot be validated due to internal errors.</exception>
     public static void EnsureValid(this ComputeShaderPipeline? value)
     {
         ArgumentNullException.ThrowIfNull(value);
