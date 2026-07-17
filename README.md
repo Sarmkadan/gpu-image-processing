@@ -5238,3 +5238,75 @@ class Program
   }
 }
 ```
+
+## MetricsAggregationWorker
+
+The `MetricsAggregationWorker` is a background service that continuously collects system metrics and generates performance summaries at regular intervals. It tracks memory usage, thread count, operation success rates, and processing latency, maintaining a rolling window of snapshots for trend analysis. The worker provides aggregated metrics summaries that help monitor system health and performance over time.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.BackgroundWorkers;
+using GpuImageProcessing.Services;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize required services (typically via dependency injection in real applications)
+        var telemetryService = new TelemetryService();
+        var logger = new ConsoleLogger<MetricsAggregationWorker>();
+        
+        // Create metrics aggregation worker with custom interval (default: 1 minute)
+        var worker = new MetricsAggregationWorker(
+            telemetryService: telemetryService,
+            aggregationInterval: TimeSpan.FromMinutes(2) // Custom interval
+        );
+
+        // Subscribe to worker events for monitoring
+        worker.StatusChanged += (sender, args) => 
+            Console.WriteLine($"[{args.Timestamp:T}] Status: {args.Status}");
+        
+        worker.ProgressUpdated += (sender, args) => 
+            Console.WriteLine($"[{args.Timestamp:T}] {args.Message}");
+            
+        worker.ErrorOccurred += (sender, args) => 
+            Console.WriteLine($"[{args.Timestamp:T}] ERROR: {args.Message}");
+
+        // Start the worker asynchronously
+        var cts = new CancellationTokenSource();
+        var workerTask = worker.StartAsync(cts.Token);
+        Console.WriteLine("Metrics aggregation worker started...");
+        Console.WriteLine("Press Ctrl+C to stop the worker.");
+
+        // Keep the worker running for a while
+        await Task.Delay(TimeSpan.FromMinutes(5));
+
+        // Gracefully stop the worker
+        cts.Cancel();
+        worker.Stop();
+        
+        // Get metrics summary for the last 10 minutes
+        var summary = worker.GetMetricsSummary(lastMinutes: 10);
+        
+        if (summary != null)
+        {
+            Console.WriteLine($"\nMetrics Summary (Last {summary.PeriodMinutes} minutes):");
+            Console.WriteLine($" Snapshots: {summary.SnapshotCount}");
+            Console.WriteLine($" Average Memory: {summary.AvgMemoryMb:F2} MB");
+            Console.WriteLine($" Max Memory: {summary.MaxMemoryMb:F2} MB");
+            Console.WriteLine($" Average Latency: {summary.AvgLatencyMs:F2} ms");
+            Console.WriteLine($" Max Latency: {summary.MaxLatencyMs:F2} ms");
+            Console.WriteLine($" Average Success Rate: {summary.AvgSuccessRate:F1}%");
+            Console.WriteLine($" Period: {summary.StartTime:T} - {summary.EndTime:T}");
+        }
+        else
+        {
+            Console.WriteLine("No metrics available for the specified period.");
+        }
+    }
+}
+```
