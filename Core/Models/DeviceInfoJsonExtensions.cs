@@ -68,10 +68,25 @@ namespace GpuImageProcessing.Core.Models
         /// Attempts to deserialize a JSON string to a <see cref="DeviceInfo"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <param name="value">Receives the deserialized device info if successful.</param>
+        /// <param name="value">Receives the deserialized device info if successful; otherwise, null.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         public static bool TryFromJson(string json, out DeviceInfo? value)
+            => TryFromJson(json, out value, out _);
+
+        /// <summary>
+        /// Attempts to deserialize a JSON string to a <see cref="DeviceInfo"/> instance.
+        /// </summary>
+        /// <param name="json">The JSON string to deserialize.</param>
+        /// <param name="value">Receives the deserialized device info if successful; otherwise, null.</param>
+        /// <param name="exception">Receives the <see cref="JsonException"/> if deserialization failed; otherwise, null.</param>
+        /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+        private static bool TryFromJson(string json, out DeviceInfo? value, out JsonException? exception)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
+            exception = null;
             value = null;
 
             if (string.IsNullOrEmpty(json))
@@ -84,8 +99,9 @@ namespace GpuImageProcessing.Core.Models
                 value = JsonSerializer.Deserialize<DeviceInfo>(json, _jsonSerializerOptions);
                 return true;
             }
-            catch (JsonException)
+            catch (JsonException ex)
             {
+                exception = ex;
                 return false;
             }
         }
