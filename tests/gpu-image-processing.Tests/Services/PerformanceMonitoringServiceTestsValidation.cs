@@ -4,8 +4,13 @@ using System.Collections.Generic;
 namespace GpuImageProcessing.Tests.Services
 {
     /// <summary>
-    /// Validation helpers for <see cref="PerformanceMonitoringServiceTests"/>.
+    /// Provides validation methods for <see cref="PerformanceMonitoringServiceTests"/> instances.
     /// </summary>
+    /// <remarks>
+    /// This static class contains extension methods that validate the state of test fixture instances.
+    /// Since <see cref="PerformanceMonitoringServiceTests"/> is a test class with no mutable public state,
+    /// the validation methods always return an empty list of problems.
+    /// </remarks>
     public static class PerformanceMonitoringServiceTestsValidation
     {
         /// <summary>
