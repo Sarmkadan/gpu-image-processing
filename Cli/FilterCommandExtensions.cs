@@ -34,20 +34,21 @@ namespace GpuImageProcessing.Cli
         }
 
         /// <summary>
-        /// Executes the filter command asynchronously and returns the result as a string.
+        /// Executes the filter command asynchronously and returns a human-readable result message.
         /// </summary>
         /// <param name="command">The filter command instance.</param>
-        /// <returns>A string representation of the result of the filter command execution.</returns>
+        /// <returns>A formatted string describing the execution result.</returns>
         /// <exception cref="ArgumentNullException">Thrown if <paramref name="command"/> is null.</exception>
         public static async Task<string> ExecuteAndResultToStringAsync(this FilterCommand command)
         {
             ArgumentNullException.ThrowIfNull(command);
-            var result = await command.ExecuteAsync();
-            return result switch
+
+            var exitCode = await command.ExecuteAsync();
+            return exitCode switch
             {
-                0 => "Success",
-                1 => "Failure",
-                _ => $"Unknown result: {result}"
+                0 => "Filter command completed successfully",
+                1 => "Filter command failed",
+                _ => $"Filter command completed with unexpected exit code: {exitCode}"
             };
         }
     }
