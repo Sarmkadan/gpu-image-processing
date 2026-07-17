@@ -21,7 +21,7 @@ namespace GpuImageProcessing.Core.Models
         /// <param name="left">The first transform to compare.</param>
         /// <param name="right">The second transform to compare.</param>
         /// <returns><see langword="true"/> if both transforms have the same parameters; otherwise, <see langword="false"/>.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="left"/> or <paramref name="right"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="left"/> or <paramref name="right"/> is null.</exception>
         public static bool AreParametersEqual(this Transform left, Transform right)
         {
             ArgumentNullException.ThrowIfNull(left);
@@ -32,7 +32,7 @@ namespace GpuImageProcessing.Core.Models
 
             foreach (var kvp in left.Parameters)
             {
-                if (!right.Parameters.TryGetValue(kvp.Key, out var rightValue) || 
+                if (!right.Parameters.TryGetValue(kvp.Key, out var rightValue) ||
                     !kvp.Value.Equals(rightValue))
                 {
                     return false;
@@ -47,7 +47,7 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         /// <param name="transform">The transform to validate.</param>
         /// <returns><see langword="true"/> if all required parameters are present; otherwise, <see langword="false"/>.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="transform"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="transform"/> is null.</exception>
         public static bool HasAllRequiredParameters(this Transform transform)
         {
             ArgumentNullException.ThrowIfNull(transform);
@@ -71,7 +71,7 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         /// <param name="target">The transform to receive merged parameters.</param>
         /// <param name="source">The transform to copy parameters from.</param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="target"/> or <paramref name="source"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="target"/> or <paramref name="source"/> is null.</exception>
         public static void MergeParameters(this Transform target, Transform source)
         {
             ArgumentNullException.ThrowIfNull(target);
@@ -88,12 +88,12 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         /// <param name="transform">The transform to summarize.</param>
         /// <returns>A string containing parameter names and values.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="transform"/> is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="transform"/> is null.</exception>
         public static string GetParameterSummary(this Transform transform)
         {
             ArgumentNullException.ThrowIfNull(transform);
 
-            return string.Join(", ", transform.Parameters.Select(kvp => 
+            return string.Join(", ", transform.Parameters.Select(kvp =>
                 $"{kvp.Key}={kvp.Value.ToString(CultureInfo.InvariantCulture)}"));
         }
     }
