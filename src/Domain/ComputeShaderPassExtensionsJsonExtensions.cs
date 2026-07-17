@@ -6,21 +6,19 @@ using System.Text.Json.Serialization;
 namespace GpuImageProcessing.Domain;
 
 /// <summary>
-/// Provides JSON serialization helpers for <see cref="ComputeShaderPass"/>.
+/// Provides JSON serialization and deserialization extensions for <see cref="ComputeShaderPass"/>.
 /// </summary>
 public static class ComputeShaderPassExtensionsJsonExtensions
 {
     /// <summary>
-    /// Configures JSON serialization options with camelCase naming policy.
+    /// Gets the shared JSON serialization options configured for <see cref="ComputeShaderPass"/>.
+    /// Uses camelCase property naming and includes <see cref="JsonStringEnumConverter"/>.
     /// </summary>
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
-        Converters =
-        {
-            new JsonStringEnumConverter()
-        }
+        Converters = { new JsonStringEnumConverter() }
     };
 
     /// <summary>
@@ -29,7 +27,7 @@ public static class ComputeShaderPassExtensionsJsonExtensions
     /// <param name="value">The <see cref="ComputeShaderPass"/> to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation.</param>
     /// <returns>A JSON string representation of the object.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
     public static string ToJson(this ComputeShaderPass value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -42,31 +40,32 @@ public static class ComputeShaderPassExtensionsJsonExtensions
     /// Deserializes a <see cref="ComputeShaderPass"/> instance from a JSON string.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>A <see cref="ComputeShaderPass"/> instance.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
-    /// <exception cref="JsonException">Thrown when JSON parsing fails.</exception>
+    /// <returns>A <see cref="ComputeShaderPass"/> instance, or <see langword="null"/> if the JSON represents a null value.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="json"/> is empty or consists only of whitespace.</exception>
+    /// <exception cref="JsonException">JSON parsing fails or the JSON does not represent a valid <see cref="ComputeShaderPass"/>.</exception>
     public static ComputeShaderPass? FromJson(string json)
     {
-        ArgumentException.ThrowIfNullOrEmpty(json);
+        ArgumentException.ThrowIfNullOrEmpty(json.Trim());
 
         return JsonSerializer.Deserialize<ComputeShaderPass>(json, JsonOptions);
     }
 
     /// <summary>
-    /// Tries to deserialize a <see cref="ComputeShaderPass"/> instance from a JSON string.
+    /// Attempts to deserialize a <see cref="ComputeShaderPass"/> instance from a JSON string.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The deserialized <see cref="ComputeShaderPass"/> if successful.</param>
-    /// <returns>True if deserialization succeeded; otherwise false.</returns>
+    /// <param name="value">When this method returns, contains the deserialized <see cref="ComputeShaderPass"/> if successful; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
     public static bool TryFromJson(string json, out ComputeShaderPass? value)
     {
+        ArgumentException.ThrowIfNullOrEmpty(json);
+
         try
         {
-            ArgumentException.ThrowIfNullOrEmpty(json);
-
-            value = JsonSerializer.Deserialize<ComputeShaderPass>(json, JsonOptions);
-            return value is not null;
+            value = JsonSerializer.Deserialize<ComputeShaderPass>(json.Trim(), JsonOptions);
+            return true;
         }
         catch (JsonException)
         {
