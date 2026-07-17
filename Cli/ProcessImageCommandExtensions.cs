@@ -32,7 +32,10 @@ namespace GpuImageProcessing.Cli
             }
 
             var extension = Path.GetExtension(inputPath)[1..].ToLowerInvariant();
-            var supportedExtensions = new[] { "jpg", "jpeg", "png", "bmp", "tiff", "webp" };
+            var supportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+{
+    "jpg", "jpeg", "png", "bmp", "tiff", "webp"
+};
 
             if (!supportedExtensions.Contains(extension))
             {
@@ -114,7 +117,7 @@ namespace GpuImageProcessing.Cli
 
             if (widthArg is not null)
             {
-                if (!int.TryParse(widthArg["--width=".Length..], CultureInfo.InvariantCulture, out var w) || w <= 0)
+                if (!int.TryParse(widthArg.AsSpan("--width=".Length), CultureInfo.InvariantCulture, out var w) || w <= 0)
                 {
                     Console.Error.WriteLine("Invalid width parameter. Must be a positive integer.");
                     return false;
@@ -124,7 +127,7 @@ namespace GpuImageProcessing.Cli
 
             if (heightArg is not null)
             {
-                if (!int.TryParse(heightArg["--height=".Length..], CultureInfo.InvariantCulture, out var h) || h <= 0)
+                if (!int.TryParse(heightArg.AsSpan("--height=".Length), CultureInfo.InvariantCulture, out var h) || h <= 0)
                 {
                     Console.Error.WriteLine("Invalid height parameter. Must be a positive integer.");
                     return false;
@@ -134,7 +137,7 @@ namespace GpuImageProcessing.Cli
 
             if (qualityArg is not null)
             {
-                if (!int.TryParse(qualityArg["--quality=".Length..], CultureInfo.InvariantCulture, out var q) || q is < 1 or > 100)
+                if (!int.TryParse(qualityArg.AsSpan("--quality=".Length), CultureInfo.InvariantCulture, out var q) || q is < 1 or > 100)
                 {
                     Console.Error.WriteLine("Invalid quality parameter. Must be an integer between 1 and 100.");
                     return false;
@@ -190,7 +193,7 @@ namespace GpuImageProcessing.Cli
             }
 
             var paramSuffix = parameters.Count > 0 ? $"_{string.Join("_", parameters)}" : string.Empty;
-            var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture);
+            var timestamp = DateTime.UtcNow.ToString("yyyyMMddHHmmssfff", CultureInfo.InvariantCulture);
 
             return Path.Combine(outputDir, $"{fileName}{paramSuffix}_{timestamp}{extension}");
         }
