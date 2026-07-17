@@ -1438,6 +1438,68 @@ string profileSummary = balancedProfile.GetProfileSummary();
 Console.WriteLine(profileSummary);
 ```
 
+## ConfigurationUtilities
+
+The `ConfigurationUtilities` class provides utility methods for configuration management and application settings. It offers a centralized way to access configuration values from environment variables with sensible defaults and environment-specific overrides. This utility is particularly useful for managing application settings across different environments (Development, Production, Testing) and provides methods for both simple configuration values and complex configuration dictionaries.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Utilities;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        // Get configuration values with defaults
+        string environment = ConfigurationUtilities.GetEnvironment();
+        Console.WriteLine($"Current environment: {environment}");
+        Console.WriteLine($"Is development: {ConfigurationUtilities.IsDevelopment()}");
+        Console.WriteLine($"Is production: {ConfigurationUtilities.IsProduction()}");
+
+        // Get directory paths
+        string dataDir = ConfigurationUtilities.GetDataDirectory();
+        string logDir = ConfigurationUtilities.GetLogDirectory();
+        string tempDir = ConfigurationUtilities.GetTempDirectory();
+        Console.WriteLine($"Data directory: {dataDir}");
+        Console.WriteLine($"Log directory: {logDir}");
+        Console.WriteLine($"Temp directory: {tempDir}");
+
+        // Get numeric configuration values
+        int maxConcurrentOps = ConfigurationUtilities.GetMaxConcurrentOperations();
+        int operationTimeout = ConfigurationUtilities.GetOperationTimeoutSeconds();
+        int preferredDeviceId = ConfigurationUtilities.GetPreferredDeviceId();
+        int cacheSizeMb = ConfigurationUtilities.GetCacheSizeMb();
+        Console.WriteLine($"Max concurrent operations: {maxConcurrentOps}");
+        Console.WriteLine($"Operation timeout: {operationTimeout}s");
+        Console.WriteLine($"Preferred device ID: {preferredDeviceId}");
+        Console.WriteLine($"Cache size: {cacheSizeMb}MB");
+
+        // Get boolean configuration values
+        bool useGpu = ConfigurationUtilities.GetUseGpuAcceleration();
+        bool enablePerformanceLogging = ConfigurationUtilities.GetEnablePerformanceLogging();
+        bool enableDebugLogging = ConfigurationUtilities.GetEnableDebugLogging();
+        Console.WriteLine($"Use GPU acceleration: {useGpu}");
+        Console.WriteLine($"Enable performance logging: {enablePerformanceLogging}");
+        Console.WriteLine($"Enable debug logging: {enableDebugLogging}");
+
+        // Get string configuration values
+        string logLevel = ConfigurationUtilities.GetLogLevel();
+        string defaultProfile = ConfigurationUtilities.GetDefaultProfile();
+        Console.WriteLine($"Log level: {logLevel}");
+        Console.WriteLine($"Default profile: {defaultProfile}");
+
+        // Build configuration dictionary from IConfiguration
+        // var configuration = new ConfigurationBuilder()
+        //     .AddEnvironmentVariables()
+        //     .Build();
+        // var configDict = ConfigurationUtilities.BuildConfigurationDictionary(configuration);
+        // Console.WriteLine($"Configuration entries: {configDict.Count}");
+    }
+}
+```
+
 ## ApplicationSettings
 
 The `ApplicationSettings` class provides centralized configuration for the GPU Image Processing application. It consolidates all runtime parameters into a single, strongly-typed object that can be loaded from configuration files, environment variables, or constructed programmatically. The settings control OpenCL device selection, processing behavior, storage locations, performance tuning, and logging configuration, enabling consistent behavior across different environments (development, staging, production).
