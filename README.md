@@ -1475,8 +1475,152 @@ class Program
         Console.WriteLine($"MIME type: {formatter.GetMimeType()}");
     }
 }
-## XmlResultFormatter
+## CsvResultFormatter
 
+The `CsvResultFormatter` class formats GPU image processing results, device information, job status, errors, and statistics into CSV (comma-separated values) format. It generates structured tabular data that is ideal for importing into spreadsheet applications, data analysis tools, and reporting systems.
+
+### Key Features
+
+- Formats processing results into CSV with proper escaping and quoting
+- Generates device information reports with memory calculations
+- Creates job summary tables with completion percentages
+- Handles error reporting in CSV format
+- Provides statistics summaries in key-value pairs
+- Supports both single result and batch processing scenarios
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Formatters;
+using GpuImageProcessing.Core.Models;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var formatter = new CsvResultFormatter();
+
+        // Format a single processing result
+        var result = new ProcessingResult
+        {
+            Id = "result-001",
+            JobId = "job-001",
+            ImageId = "image-001",
+            Status = ProcessingStatus.Completed,
+            StartTime = DateTime.UtcNow.AddMinutes(-5),
+            CompletionTime = DateTime.UtcNow,
+            OutputImagePath = "/output/processed-001.jpg",
+            ProcessedSize = 1024 * 1024 // 1MB
+        };
+
+        string resultCsv = formatter.FormatResult(result);
+        Console.WriteLine(resultCsv);
+
+        // Format multiple processing results
+        var results = new List<ProcessingResult>
+        {
+            new ProcessingResult
+            {
+                Id = "result-001",
+                JobId = "job-001",
+                ImageId = "image-001",
+                Status = ProcessingStatus.Completed,
+                StartTime = DateTime.UtcNow.AddMinutes(-5),
+                CompletionTime = DateTime.UtcNow.AddMinutes(-4),
+                OutputImagePath = "/output/processed-001.jpg",
+                ProcessedSize = 1024 * 1024
+            },
+            new ProcessingResult
+            {
+                Id = "result-002",
+                JobId = "job-001",
+                ImageId = "image-002",
+                Status = ProcessingStatus.Failed,
+                StartTime = DateTime.UtcNow.AddMinutes(-3),
+                CompletionTime = DateTime.UtcNow.AddMinutes(-2),
+                ErrorMessage = "Invalid image format: unsupported color space"
+            },
+            new ProcessingResult
+            {
+                Id = "result-003",
+                JobId = "job-001",
+                ImageId = "image-003",
+                Status = ProcessingStatus.Completed,
+                StartTime = DateTime.UtcNow.AddMinutes(-2),
+                CompletionTime = DateTime.UtcNow.AddMinutes(-1),
+                OutputImagePath = "/output/processed-003.png",
+                ProcessedSize = 2 * 1024 * 1024
+            }
+        };
+
+        string resultsCsv = formatter.FormatResults(results);
+        Console.WriteLine(resultsCsv);
+
+        // Format a processing job
+        var job = new ProcessingJob
+        {
+            Id = "job-001",
+            Name = "Batch Image Processing Job",
+            Status = "Completed",
+            TotalImages = 150,
+            ProcessedImages = 148,
+            FailedImages = 2,
+            CreatedAt = DateTime.UtcNow.AddDays(-1),
+            StartedAt = DateTime.UtcNow.AddDays(-1).AddHours(2),
+            CompletedAt = DateTime.UtcNow
+        };
+
+        string jobCsv = formatter.FormatJob(job);
+        Console.WriteLine(jobCsv);
+
+        // Format device information
+        var device = new DeviceInfo
+        {
+            Id = "device-001",
+            Name = "NVIDIA RTX 3090 Ti",
+            Type = "GPU",
+            Vendor = "NVIDIA",
+            MemoryBytes = 24L * 1024 * 1024 * 1024, // 24GB
+            ComputeUnits = 10496,
+            IsAvailable = true,
+            DriverVersion = "535.86.05"
+        };
+
+        string deviceCsv = formatter.FormatDevice(device);
+        Console.WriteLine(deviceCsv);
+
+        // Format an error
+        string errorCsv = formatter.FormatError(
+            "Failed to initialize compute shader pipeline",
+            "GPU-001",
+            new InvalidOperationException("Device not available or driver error")
+        );
+        Console.WriteLine(errorCsv);
+
+        // Format statistics
+        var stats = new Dictionary<string, object>
+        {
+            {"TotalImages", 150},
+            {"ProcessedImages", 148},
+            {"FailedImages", 2},
+            {"AverageProcessingTimeMs", 150.5},
+            {"TotalProcessingTimeMs", 22575.0}
+        };
+
+        string statsCsv = formatter.FormatStatistics(stats);
+        Console.WriteLine(statsCsv);
+
+        // Get file extension and MIME type
+        Console.WriteLine($"\nFile extension: {formatter.GetFileExtension()}");
+        Console.WriteLine($"MIME type: {formatter.GetMimeType()}");
+    }
+}
+```
+
+## XmlResultFormatter
 
 The `XmlResultFormatter` class formats GPU image processing results, device information, job status, and errors into structured XML documents. It generates comprehensive reports with proper XML schema, attributes, and nested elements suitable for machine parsing, configuration files, and data exchange purposes.
 
