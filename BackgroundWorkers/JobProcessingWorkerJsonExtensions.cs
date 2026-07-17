@@ -16,10 +16,11 @@ namespace GpuImageProcessing.BackgroundWorkers
     /// </summary>
     public static class JobProcessingWorkerJsonExtensions
     {
-        private static readonly JsonSerializerOptions s_jsonOptions = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions s_jsonOptions = new()
         {
             PropertyNameCaseInsensitive = true,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = false
         };
 
         /// <summary>
@@ -28,29 +29,20 @@ namespace GpuImageProcessing.BackgroundWorkers
         /// <param name="value">The <see cref="JobProcessingWorker"/> to convert.</param>
         /// <param name="indented">Whether to format the JSON with indentation.</param>
         /// <returns>The JSON string representation of the <see cref="JobProcessingWorker"/>.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
-        public static string ToJson(this JobProcessingWorker value, bool indented = false)
-        {
-            ArgumentNullException.ThrowIfNull(value);
-
-            if (indented)
-            {
-                s_jsonOptions.WriteIndented = true;
-            }
-
-            return JsonSerializer.Serialize(value, s_jsonOptions);
-        }
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
+        public static string ToJson(this JobProcessingWorker value, bool indented = false) =>
+            JsonSerializer.Serialize(value, indented ? GetIndentedOptions() : s_jsonOptions);
 
         /// <summary>
         /// Deserializes a JSON string to a <see cref="JobProcessingWorker"/>.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <returns>The deserialized <see cref="JobProcessingWorker"/> or null if the JSON is invalid.</returns>
-        /// <exception cref="ArgumentException">Thrown if <paramref name="json"/> is null or empty.</exception>
+        /// <returns>The deserialized <see cref="JobProcessingWorker"/> or <see langword="null"/> if the JSON is invalid.</returns>
+        /// <exception cref="ArgumentException"><paramref name="json"/> is <see langword="null"/>, empty, or whitespace.</exception>
+        /// <exception cref="JsonException">The JSON is invalid or cannot be deserialized.</exception>
         public static JobProcessingWorker? FromJson(string json)
         {
-            ArgumentException.ThrowIfNullOrEmpty(json);
-
+            ArgumentException.ThrowIfNullOrWhiteSpace(json);
             return JsonSerializer.Deserialize<JobProcessingWorker>(json, s_jsonOptions);
         }
 
@@ -58,23 +50,32 @@ namespace GpuImageProcessing.BackgroundWorkers
         /// Tries to deserialize a JSON string to a <see cref="JobProcessingWorker"/>.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <param name="value">The deserialized <see cref="JobProcessingWorker"/> or null if the JSON is invalid.</param>
-        /// <returns>true if the deserialization was successful; otherwise, false.</returns>
-        /// <exception cref="ArgumentException">Thrown if <paramref name="json"/> is null or empty.</exception>
+        /// <param name="value">The deserialized <see cref="JobProcessingWorker"/> or <see langword="null"/> if the JSON is invalid.</param>
+        /// <returns><see langword="true"/> if the deserialization was successful; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentException"><paramref name="json"/> is <see langword="null"/>, empty, or whitespace.</exception>
         public static bool TryFromJson(string json, out JobProcessingWorker? value)
         {
-            ArgumentException.ThrowIfNullOrEmpty(json);
+            ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
             try
             {
                 value = JsonSerializer.Deserialize<JobProcessingWorker>(json, s_jsonOptions);
-                return value != null;
+                return value is not null;
             }
             catch (JsonException)
             {
                 value = null;
                 return false;
             }
+        }
+
+        private static JsonSerializerOptions GetIndentedOptions()
+        {
+            var options = new JsonSerializerOptions(s_jsonOptions)
+            {
+                WriteIndented = true
+            };
+            return options;
         }
     }
 }
