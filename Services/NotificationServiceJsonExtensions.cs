@@ -49,7 +49,7 @@ namespace GpuImageProcessing.Services
         /// Deserializes a JSON string to a <see cref="NotificationService"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <returns>The deserialized notification service instance, or null if the JSON is invalid.</returns>
+        /// <returns>The deserialized notification service instance if successful; otherwise, null.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null or empty.</exception>
         public static NotificationService? FromJson(string json)
         {
@@ -79,7 +79,7 @@ namespace GpuImageProcessing.Services
             try
             {
                 value = JsonSerializer.Deserialize<NotificationService>(json, _jsonOptions);
-                return true;
+                return value is not null;
             }
             catch (JsonException)
             {
