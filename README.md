@@ -203,6 +203,89 @@ public class ImageQualityResult
 }
 ```
 
+## DeviceUtilitiesJsonExtensions
+
+The `DeviceUtilitiesJsonExtensions` class provides System.Text.Json serialization utilities for `DeviceConfiguration` instances. It enables serialization and deserialization of GPU device configurations with support for both compact and indented JSON output formats, safe error handling, and thread-safe serialization with optimized JsonSerializerOptions.
+
+### Key Features
+
+- JSON serialization of `DeviceConfiguration` instances using camelCase property naming
+- Support for both compact and indented JSON output formats
+- Safe deserialization with null handling and error recovery
+- Configuration state management for device configurations
+- Thread-safe serialization with optimized JsonSerializerOptions
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Utilities;
+using System;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a device configuration
+        var deviceConfig = new DeviceConfiguration
+        {
+            DeviceName = "NVIDIA RTX 3090",
+            GlobalMemoryBytes = 24 * 1024 * 1024 * 1024L, // 24GB
+            ComputeUnits = 82,
+            MaxClockFrequency = 1695,
+            ComputeCapability = "8.6",
+            MemoryPressureLevel = MemoryPressureLevel.Normal,
+            RecommendedBatchSize = 32
+        };
+
+        // Serialize to compact JSON
+        string compactJson = deviceConfig.ToJson();
+        Console.WriteLine("Compact JSON configuration:");
+        Console.WriteLine(compactJson);
+
+        // Serialize to indented JSON for readability
+        string indentedJson = deviceConfig.ToJson(indented: true);
+        Console.WriteLine("\nIndented JSON configuration:");
+        Console.WriteLine(indentedJson);
+
+        // Deserialize from JSON string
+        string json = @"{
+            "deviceName": "AMD Radeon RX 6800",
+            "globalMemoryBytes": 16133422080,
+            "computeUnits": 60,
+            "maxClockFrequency": 2250,
+            "computeCapability": "8.6",
+            "memoryPressureLevel": "High",
+            "recommendedBatchSize": 16
+        }";
+        var deserialized = DeviceUtilitiesJsonExtensions.FromJson(json);
+
+        if (deserialized != null)
+        {
+            Console.WriteLine($"\nDeserialized configuration:");
+            Console.WriteLine($"Device: {deserialized.DeviceName}");
+            Console.WriteLine($"Memory: {deserialized.GlobalMemoryBytes / (1024.0 * 1024 * 1024):F2} GB");
+            Console.WriteLine($"Compute Units: {deserialized.ComputeUnits}");
+            Console.WriteLine($"Clock: {deserialized.MaxClockFrequency} MHz");
+            Console.WriteLine($"Compute Capability: {deserialized.ComputeCapability}");
+            Console.WriteLine($"Memory Pressure: {deserialized.MemoryPressureLevel}");
+            Console.WriteLine($"Recommended Batch Size: {deserialized.RecommendedBatchSize}");
+        }
+
+        // Try to deserialize with error handling
+        string invalidJson = @"{ invalid json }";
+        bool success = DeviceUtilitiesJsonExtensions.TryFromJson(invalidJson, out var result);
+        Console.WriteLine($"\nTryFromJson with invalid JSON: {(success ? "Success" : "Failed (expected)")}");
+
+        // Serialize and deserialize round-trip to verify data integrity
+        string roundTripJson = deviceConfig.ToJson();
+        var roundTripResult = DeviceUtilitiesJsonExtensions.FromJson(roundTripJson);
+        Console.WriteLine($"\nRound-trip successful: {roundTripResult != null}");
+    }
+}
+
+```
+
 
 ## CpuFallbackPathTests
 
