@@ -53,9 +53,11 @@ namespace GpuImageProcessing.Core.Exceptions
         /// </summary>
         /// <param name="value">The exception to check</param>
         /// <returns><see langword="true"/> if the exception is valid; otherwise, <see langword="false"/></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null</exception>
         public static bool IsValid(this OpenCLException value)
         {
-            return value?.Validate().Count == 0;
+            ArgumentNullException.ThrowIfNull(value);
+            return value.Validate().Count == 0;
         }
 
         /// <summary>
@@ -105,9 +107,11 @@ namespace GpuImageProcessing.Core.Exceptions
         /// </summary>
         /// <param name="value">The exception to check</param>
         /// <returns><see langword="true"/> if the exception is valid; otherwise, <see langword="false"/></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null</exception>
         public static bool IsValid(this DeviceInitializationException value)
         {
-            return value?.Validate().Count == 0;
+            ArgumentNullException.ThrowIfNull(value);
+            return value.Validate().Count == 0;
         }
 
         /// <summary>
@@ -162,9 +166,11 @@ namespace GpuImageProcessing.Core.Exceptions
         /// </summary>
         /// <param name="value">The exception to check</param>
         /// <returns><see langword="true"/> if the exception is valid; otherwise, <see langword="false"/></returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null</exception>
         public static bool IsValid(this KernelCompilationException value)
         {
-            return value?.Validate().Count == 0;
+            ArgumentNullException.ThrowIfNull(value);
+            return value.Validate().Count == 0;
         }
 
         /// <summary>
