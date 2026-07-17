@@ -2,11 +2,10 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace GpuImageProcessing.Formatters
 {
@@ -27,24 +26,31 @@ namespace GpuImageProcessing.Formatters
 
             var errors = new List<string>();
 
-            // Validate all public methods return non-null strings
-            ValidateMethod(value.GetFileExtension, nameof(value.GetFileExtension), errors);
-            ValidateMethod(value.GetMimeType, nameof(value.GetMimeType), errors);
-            ValidateMethod(() => value.FormatResult(new()), nameof(value.FormatResult), errors);
-            ValidateMethod(() => value.FormatResults(new()), nameof(value.FormatResults), errors);
-            ValidateMethod(() => value.FormatJob(new()), nameof(value.FormatJob), errors);
-            ValidateMethod(() => value.FormatDevice(new()), nameof(value.FormatDevice), errors);
-            ValidateMethod(() => value.FormatError("test"), nameof(value.FormatError), errors);
-            ValidateMethod(() => value.FormatStatistics(new()), nameof(value.FormatStatistics), errors);
+            // Validate all public methods return non-null strings and handle null inputs correctly
+            ValidateMethod(() => value.GetFileExtension(), nameof(value.GetFileExtension), errors);
+            ValidateMethod(() => value.GetMimeType(), nameof(value.GetMimeType), errors);
+            ValidateMethod(() => value.FormatResult(null), nameof(value.FormatResult), errors);
+            ValidateMethod(() => value.FormatResults(null), nameof(value.FormatResults), errors);
+            ValidateMethod(() => value.FormatJob(null), nameof(value.FormatJob), errors);
+            ValidateMethod(() => value.FormatDevice(null), nameof(value.FormatDevice), errors);
+            ValidateMethod(() => value.FormatError(null), nameof(value.FormatError), errors);
+            ValidateMethod(() => value.FormatStatistics(null), nameof(value.FormatStatistics), errors);
+            ValidateMethod(() => value.FormatStatistics(new Dictionary<string, object>()), nameof(value.FormatStatistics), errors);
 
             return errors.AsReadOnly();
         }
 
         /// <summary>
-        /// Validates that a method returns a non-null string.
+        /// Validates that a parameterless method returns a non-null string.
         /// </summary>
+        /// <param name="method">The method to validate.</param>
+        /// <param name="methodName">Name of the method for error reporting.</param>
+        /// <param name="errors">List to accumulate validation errors.</param>
         private static void ValidateMethod(Func<string> method, string methodName, List<string> errors)
         {
+            ArgumentNullException.ThrowIfNull(method);
+            ArgumentException.ThrowIfNullOrEmpty(methodName);
+
             try
             {
                 string result = method();
@@ -60,14 +66,20 @@ namespace GpuImageProcessing.Formatters
         }
 
         /// <summary>
-        /// Validates that a method with parameters returns a non-null string.
+        /// Validates that a method with a single parameter returns a non-null string.
         /// </summary>
+        /// <typeparam name="T">Type of the parameter.</typeparam>
+        /// <param name="method">The method to validate.</param>
+        /// <param name="methodName">Name of the method for error reporting.</param>
+        /// <param name="errors">List to accumulate validation errors.</param>
         private static void ValidateMethod<T>(Func<T, string> method, string methodName, List<string> errors)
-            where T : class
         {
+            ArgumentNullException.ThrowIfNull(method);
+            ArgumentException.ThrowIfNullOrEmpty(methodName);
+
             try
             {
-                string result = method(null);
+                string result = method(default);
                 if (result == null)
                 {
                     errors.Add($"{methodName} returned null when passed null parameter");
@@ -80,15 +92,21 @@ namespace GpuImageProcessing.Formatters
         }
 
         /// <summary>
-        /// Validates that a method with multiple parameters returns a non-null string.
+        /// Validates that a method with two parameters returns a non-null string.
         /// </summary>
+        /// <typeparam name="T1">Type of the first parameter.</typeparam>
+        /// <typeparam name="T2">Type of the second parameter.</typeparam>
+        /// <param name="method">The method to validate.</param>
+        /// <param name="methodName">Name of the method for error reporting.</param>
+        /// <param name="errors">List to accumulate validation errors.</param>
         private static void ValidateMethod<T1, T2>(Func<T1, T2, string> method, string methodName, List<string> errors)
-            where T1 : class
-            where T2 : class
         {
+            ArgumentNullException.ThrowIfNull(method);
+            ArgumentException.ThrowIfNullOrEmpty(methodName);
+
             try
             {
-                string result = method(null, null);
+                string result = method(default, default);
                 if (result == null)
                 {
                     errors.Add($"{methodName} returned null when passed null parameters");
@@ -101,33 +119,11 @@ namespace GpuImageProcessing.Formatters
         }
 
         /// <summary>
-        /// Validates that a method with a dictionary parameter returns a non-null string.
-        /// </summary>
-        private static void ValidateMethod(Func<Dictionary<string, object>, string> method, string methodName, List<string> errors)
-        {
-            try
-            {
-                string result = method(null);
-                if (result == null)
-                {
-                    errors.Add($"{methodName} returned null when passed null dictionary");
-                }
-            }
-            catch (Exception ex)
-            {
-                errors.Add($"{methodName} threw an exception with null dictionary: {ex.Message}");
-            }
-        }
-
-        /// <summary>
         /// Determines whether the specified <see cref="CsvResultFormatter"/> instance is valid.
         /// </summary>
         /// <param name="value">The formatter instance to check.</param>
         /// <returns><see langword="true"/> if the instance is valid; otherwise, <see langword="false"/>.</returns>
-        public static bool IsValid(this CsvResultFormatter value)
-        {
-            return value.Validate().Count == 0;
-        }
+        public static bool IsValid(this CsvResultFormatter value) => value.Validate().Count == 0;
 
         /// <summary>
         /// Ensures that the specified <see cref="CsvResultFormatter"/> instance is valid.
