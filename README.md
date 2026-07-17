@@ -737,6 +737,146 @@ class Program
 }
 ```
 
+## JsonResultFormatter
+
+The `JsonResultFormatter` class provides JSON serialization utilities for GPU image processing results, device information, job status, and errors. It formats data into structured JSON output with configurable formatting options, camelCase property naming, and proper null handling.
+
+### Key Features
+
+- Formats processing results, jobs, devices, and errors to JSON
+- Supports pretty-printing with configurable indentation
+- Uses camelCase property naming for JSON output
+- Handles null values gracefully with default serialization options
+- Provides file extension and MIME type information
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Formatters;
+using GpuImageProcessing.Core.Models;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        // Create formatter with pretty printing enabled (default)
+        var formatter = new JsonResultFormatter();
+
+        // Format a single processing result
+        var result = new ProcessingResult
+        {
+            Id = "result-001",
+            JobId = "job-001",
+            ImageId = "image-001",
+            Status = ProcessingStatus.Completed,
+            StartTime = DateTime.UtcNow.AddMinutes(-5),
+            CompletionTime = DateTime.UtcNow,
+            OutputImagePath = "/output/processed-001.jpg",
+            ProcessedSize = 1024 * 1024,
+            Metadata = new Dictionary<string, object> { { "format", "JPEG" }, { "quality", 95 } }
+        };
+
+        string resultJson = formatter.FormatResult(result);
+        Console.WriteLine("Single result:");
+        Console.WriteLine(resultJson);
+
+        // Format multiple processing results
+        var results = new List<ProcessingResult>
+        {
+            new ProcessingResult
+            {
+                Id = "result-001",
+                JobId = "job-001",
+                ImageId = "image-001",
+                Status = ProcessingStatus.Completed,
+                StartTime = DateTime.UtcNow.AddMinutes(-5),
+                CompletionTime = DateTime.UtcNow.AddMinutes(-4),
+                OutputImagePath = "/output/processed-001.jpg",
+                ProcessedSize = 1024 * 1024
+            },
+            new ProcessingResult
+            {
+                Id = "result-002",
+                JobId = "job-001",
+                ImageId = "image-002",
+                Status = ProcessingStatus.Failed,
+                StartTime = DateTime.UtcNow.AddMinutes(-3),
+                CompletionTime = DateTime.UtcNow.AddMinutes(-2),
+                ErrorMessage = "Invalid image format: unsupported color space"
+            },
+            new ProcessingResult
+            {
+                Id = "result-003",
+                JobId = "job-001",
+                ImageId = "image-003",
+                Status = ProcessingStatus.Completed,
+                StartTime = DateTime.UtcNow.AddMinutes(-2),
+                CompletionTime = DateTime.UtcNow.AddMinutes(-1),
+                OutputImagePath = "/output/processed-003.png",
+                ProcessedSize = 2 * 1024 * 1024
+            }
+        };
+
+        string resultsJson = formatter.FormatResults(results);
+        Console.WriteLine("\nBatch results:");
+        Console.WriteLine(resultsJson);
+
+        // Format a processing job
+        var job = new ProcessingJob
+        {
+            Id = "job-001",
+            Name = "Batch Image Processing Job",
+            Status = "Completed",
+            TotalImages = 150,
+            ProcessedImages = 148,
+            FailedImages = 2,
+            CreatedAt = DateTime.UtcNow.AddDays(-1),
+            StartedAt = DateTime.UtcNow.AddDays(-1).AddHours(2),
+            CompletedAt = DateTime.UtcNow,
+            Filters = new List<string> { "GaussianBlur", "EdgeDetection" },
+            Transforms = new List<string> { "Resize", "Crop" }
+        };
+
+        string jobJson = formatter.FormatJob(job);
+        Console.WriteLine("\nJob information:");
+        Console.WriteLine(jobJson);
+
+        // Format device information
+        var device = new DeviceInfo
+        {
+            Id = "device-001",
+            Name = "NVIDIA RTX 3090 Ti",
+            Type = "GPU",
+            Vendor = "NVIDIA",
+            MemoryBytes = 24L * 1024 * 1024 * 1024,
+            ComputeUnits = 10496,
+            IsAvailable = true,
+            DriverVersion = "535.86.05",
+            Extensions = new List<string> { "DirectML", "CUDA", "Vulkan" }
+        };
+
+        string deviceJson = formatter.FormatDevice(device);
+        Console.WriteLine("\nDevice information:");
+        Console.WriteLine(deviceJson);
+
+        // Format an error
+        string errorJson = formatter.FormatError(
+            "Failed to initialize compute shader pipeline",
+            "GPU-001",
+            new InvalidOperationException("Device not available or driver error")
+        );
+        Console.WriteLine("\nError information:");
+        Console.WriteLine(errorJson);
+
+        // Get file extension and MIME type
+        Console.WriteLine($"\nFile extension: {formatter.GetFileExtension()}");
+        Console.WriteLine($"MIME type: {formatter.GetMimeType()}");
+    }
+}
+```
+
 ## PathUtilities
 
 The `PathUtilities` class provides a comprehensive set of utilities for path manipulation, normalization, and directory management. It handles cross-platform path operations, safe file operations, and directory traversal with robust error handling to ensure reliable file system operations across different operating systems.
