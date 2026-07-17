@@ -1853,8 +1853,189 @@ class Program
     }
 }
 ```
+Console.WriteLine("Batch processing completed!");
+}
+}
+```
 
+## BatchProcessingUtilitiesValidation
 
+The `BatchProcessingUtilitiesValidation` class provides comprehensive validation utilities for batch processing operations. It validates `BatchItem<T>`, `BatchProgress`, and `ThrottleRecommendation` instances with detailed error messages through `Validate()` methods, ensuring that batch configurations, progress tracking, and performance recommendations are valid and safe for processing. This validation layer helps prevent runtime errors and provides detailed error messages for debugging batch operations.
+
+### Key Features
+
+- Validates `BatchItem<T>` instances including sequence numbers, priorities, scheduling, retry counts, and error handling
+- Validates `BatchProgress` instances including processed/total counts, error counts, percentage completion, timing metrics, and estimated completion times
+- Validates `ThrottleRecommendation` instances including throttle levels, reasons collection, and consistency checks
+- Returns detailed error messages through `Validate()` methods for debugging and validation scenarios
+- Provides convenience methods like `IsValid()` and `EnsureValid()` for fluent validation patterns
+- Ensures proper relationships between processed/total counts, error counts, and timing values
+- Validates scheduling constraints (e.g., scheduled times within 24 hours, processed times not in the future)
+- Throws descriptive exceptions when validation fails
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Utilities;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+
+static void Main()
+{
+
+// Create a valid BatchItem for image processing
+var batchItem = new BatchItem<string>
+{
+SequenceNumber = 1,
+Priority = 5,
+Item = "/data/images/photo.jpg",
+ScheduledAt = DateTime.UtcNow,
+RetryCount = 0,
+LastError = null
+};
+
+// Validate the batch item
+var itemErrors = batchItem.Validate();
+Console.WriteLine($"BatchItem validation: {(itemErrors.Count == 0 ? "Valid" : string.Join(", ", itemErrors))}");
+
+// Check if valid using convenience method
+bool isItemValid = batchItem.IsValid();
+Console.WriteLine($"Is BatchItem valid: {isItemValid}");
+
+// Create a valid BatchProgress instance
+var batchProgress = new BatchProgress
+{
+ProcessedCount = 45,
+TotalCount = 100,
+ErrorCount = 2,
+PercentComplete = 45.0,
+ItemsPerSecond = 12.5,
+ElapsedTime = TimeSpan.FromSeconds(3600),
+EstimatedTimeRemaining = TimeSpan.FromSeconds(4320),
+CompletionTime = DateTime.UtcNow.AddMinutes(30)
+};
+
+// Validate the batch progress
+var progressErrors = batchProgress.Validate();
+Console.WriteLine($"\nBatchProgress validation: {(progressErrors.Count == 0 ? "Valid" : string.Join(", ", progressErrors))}");
+
+// Check if valid using convenience method
+bool isProgressValid = batchProgress.IsValid();
+Console.WriteLine($"Is BatchProgress valid: {isProgressValid}");
+
+// Create a valid ThrottleRecommendation instance
+var throttleRecommendation = new ThrottleRecommendation
+{
+ShouldThrottle = true,
+ThrottleLevel = 0.75f,
+Reasons = new List<string> { "High GPU memory usage", "Multiple concurrent batch jobs" }
+};
+
+// Validate the throttle recommendation
+var throttleErrors = throttleRecommendation.Validate();
+Console.WriteLine($"\nThrottleRecommendation validation: {(throttleErrors.Count == 0 ? "Valid" : string.Join(", ", throttleErrors))}");
+
+// Check if valid using convenience method
+bool isThrottleValid = throttleRecommendation.IsValid();
+Console.WriteLine($"Is ThrottleRecommendation valid: {isThrottleValid}");
+
+// Use EnsureValid() to throw exception on invalid batch item
+try
+{
+var invalidItem = new BatchItem<string>
+{
+SequenceNumber = -1, // Invalid - negative sequence number
+Priority = 5,
+Item = "/data/images/photo.jpg"
+};
+invalidItem.EnsureValid();
+}
+catch (ArgumentException ex)
+{
+Console.WriteLine($"\nEnsureValid caught error: {ex.Message}");
+}
+
+// Use EnsureValid() on batch progress
+try
+{
+var invalidProgress = new BatchProgress
+{
+ProcessedCount = 150, // Invalid - exceeds total count
+TotalCount = 100,
+ErrorCount = 2,
+PercentComplete = 150.0 // Invalid - exceeds 100%
+};
+invalidProgress.EnsureValid();
+}
+catch (ArgumentException ex)
+{
+Console.WriteLine($"EnsureValid on BatchProgress caught error: {ex.Message}");
+}
+
+// Use EnsureValid() on throttle recommendation
+try
+{
+var invalidThrottle = new ThrottleRecommendation
+{
+ShouldThrottle = true,
+ThrottleLevel = -0.5f, // Invalid - negative throttle level
+Reasons = null
+};
+invalidThrottle.EnsureValid();
+}
+catch (ArgumentException ex)
+{
+Console.WriteLine($"EnsureValid on ThrottleRecommendation caught error: {ex.Message}");
+}
+
+// Example with actual batch processing workflow
+Console.WriteLine("\n--- Batch Processing Workflow Example ---");
+var batchItems = new List<BatchItem<string>>
+{
+new BatchItem<string> { SequenceNumber = 1, Priority = 3, Item = "/data/images/image1.jpg", ScheduledAt = DateTime.UtcNow },
+new BatchItem<string> { SequenceNumber = 2, Priority = 1, Item = "/data/images/image2.jpg", ScheduledAt = DateTime.UtcNow.AddMinutes(-5) },
+new BatchItem<string> { SequenceNumber = 3, Priority = 2, Item = "/data/images/image3.jpg", ScheduledAt = DateTime.UtcNow.AddMinutes(-10) }
+};
+
+// Validate all items before processing
+foreach (var item in batchItems)
+{
+if (item.IsValid())
+{
+Console.WriteLine($"Valid batch item: Sequence {item.SequenceNumber}, Priority {item.Priority}, Item {Path.GetFileName(item.Item)}");
+}
+else
+{
+Console.WriteLine($"Invalid batch item: Sequence {item.SequenceNumber}");
+}
+}
+
+// Calculate progress after processing some items
+var progress = new BatchProgress
+{
+ProcessedCount = 75,
+TotalCount = 100,
+ErrorCount = 1,
+PercentComplete = 75.0,
+ItemsPerSecond = 25.0,
+ElapsedTime = TimeSpan.FromSeconds(300)
+};
+
+if (progress.IsValid())
+{
+Console.WriteLine($"\nProcessing progress: {progress.PercentComplete}% complete");
+Console.WriteLine($"Rate: {progress.ItemsPerSecond} items/second");
+Console.WriteLine($"Time elapsed: {progress.ElapsedTime.TotalSeconds:F0} seconds");
+}
+}
+
+}
+
+```
 ## BatchProcessingServiceTestsExtensionsJsonExtensions
 
 The `BatchProcessingServiceTestsExtensionsJsonExtensions` class provides System.Text.Json serialization utilities for the `BatchProcessingServiceTestsExtensions` configuration in batch processing test scenarios. It enables serialization and deserialization of test configurations with support for customizable batch sizes, filter counts, and verbose output settings, making it easier to configure and share test scenarios.
