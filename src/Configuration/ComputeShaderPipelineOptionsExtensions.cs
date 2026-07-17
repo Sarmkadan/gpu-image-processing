@@ -104,11 +104,7 @@ public static class ComputeShaderPipelineOptionsExtensions
     public static int GetClampedLocalMemoryPerThreadBytes(this ComputeShaderPipelineOptions options)
     {
         ArgumentNullException.ThrowIfNull(options);
-
-        // Typical GPU architectures support up to 32KB per thread group total,
-        // and with 64 threads per workgroup, that's ~512 bytes per thread max
-        const int MaxReasonableLocalMemory = 512;
-        return Math.Min(options.DefaultLocalMemoryPerThreadBytes, MaxReasonableLocalMemory);
+        return Math.Min(options.DefaultLocalMemoryPerThreadBytes, 512);
     }
 
     /// <summary>
@@ -124,13 +120,13 @@ public static class ComputeShaderPipelineOptionsExtensions
 
         return new Dictionary<string, string>(StringComparer.Ordinal)
         {
-            [nameof(options.DefaultStrategy)] = options.DefaultStrategy.ToString(),
-            [nameof(options.MaxWorkgroupDimension)] = options.MaxWorkgroupDimension.ToString(CultureInfo.InvariantCulture),
-            [nameof(options.BenchmarkGuidedOptimization)] = options.BenchmarkGuidedOptimization.ToString(),
-            [nameof(options.EnableProfiling)] = options.EnableProfiling.ToString(),
-            [nameof(options.MaxPipelineDepth)] = options.MaxPipelineDepth.ToString(CultureInfo.InvariantCulture),
-            [nameof(options.DefaultLocalMemoryPerThreadBytes)] = options.DefaultLocalMemoryPerThreadBytes.ToString(CultureInfo.InvariantCulture),
-            [nameof(options.OccupancyWarningThreshold)] = options.OccupancyWarningThreshold.ToString(CultureInfo.InvariantCulture)
+            [nameof(ComputeShaderPipelineOptions.DefaultStrategy)] = options.DefaultStrategy.ToString(),
+            [nameof(ComputeShaderPipelineOptions.MaxWorkgroupDimension)] = options.MaxWorkgroupDimension.ToString(CultureInfo.InvariantCulture),
+            [nameof(ComputeShaderPipelineOptions.BenchmarkGuidedOptimization)] = options.BenchmarkGuidedOptimization.ToString(),
+            [nameof(ComputeShaderPipelineOptions.EnableProfiling)] = options.EnableProfiling.ToString(),
+            [nameof(ComputeShaderPipelineOptions.MaxPipelineDepth)] = options.MaxPipelineDepth.ToString(CultureInfo.InvariantCulture),
+            [nameof(ComputeShaderPipelineOptions.DefaultLocalMemoryPerThreadBytes)] = options.DefaultLocalMemoryPerThreadBytes.ToString(CultureInfo.InvariantCulture),
+            [nameof(ComputeShaderPipelineOptions.OccupancyWarningThreshold)] = options.OccupancyWarningThreshold.ToString(CultureInfo.InvariantCulture)
         };
     }
 }
