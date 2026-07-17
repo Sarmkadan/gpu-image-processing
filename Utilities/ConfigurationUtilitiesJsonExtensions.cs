@@ -47,10 +47,7 @@ namespace GpuImageProcessing.Utilities
             };
 
             var options = indented
-                ? new JsonSerializerOptions(_jsonSerializerOptions)
-                {
-                    WriteIndented = true
-                }
+                ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
                 : _jsonSerializerOptions;
 
             return JsonSerializer.Serialize(configState, options);
@@ -67,63 +64,43 @@ namespace GpuImageProcessing.Utilities
             ArgumentNullException.ThrowIfNull(json);
 
             var configState = JsonSerializer.Deserialize<ConfigurationState>(json, _jsonSerializerOptions)
-                           ?? throw new JsonException("Configuration state cannot be null");
+                ?? throw new JsonException("Configuration state cannot be null");
 
             // Apply the configuration state by setting environment variables
-            if (configState.Environment != null)
-            {
+            if (configState.Environment is not null)
                 Environment.SetEnvironmentVariable("ENVIRONMENT", configState.Environment);
-            }
 
-            if (configState.DataDirectory != null)
-            {
+            if (configState.DataDirectory is not null)
                 Environment.SetEnvironmentVariable("DATA_DIRECTORY", configState.DataDirectory);
-            }
 
-            if (configState.LogDirectory != null)
-            {
+            if (configState.LogDirectory is not null)
                 Environment.SetEnvironmentVariable("LOG_DIRECTORY", configState.LogDirectory);
-            }
 
-            if (configState.TempDirectory != null)
-            {
+            if (configState.TempDirectory is not null)
                 Environment.SetEnvironmentVariable("TEMP_DIRECTORY", configState.TempDirectory);
-            }
 
             if (configState.MaxConcurrentOperations >= 0)
-            {
                 Environment.SetEnvironmentVariable("MAX_CONCURRENT_OPS", configState.MaxConcurrentOperations.ToString());
-            }
 
             if (configState.OperationTimeoutSeconds >= 0)
-            {
                 Environment.SetEnvironmentVariable("OPERATION_TIMEOUT", configState.OperationTimeoutSeconds.ToString());
-            }
 
             if (configState.PreferredDeviceId >= -1)
-            {
                 Environment.SetEnvironmentVariable("OPENCL_DEVICE_ID", configState.PreferredDeviceId.ToString());
-            }
 
-            if (configState.LogLevel != null)
-            {
+            if (configState.LogLevel is not null)
                 Environment.SetEnvironmentVariable("LOG_LEVEL", configState.LogLevel);
-            }
 
             Environment.SetEnvironmentVariable("ENABLE_PERF_LOGGING", configState.EnablePerformanceLogging ? "true" : "false");
             Environment.SetEnvironmentVariable("ENABLE_DEBUG_LOGGING", configState.EnableDebugLogging ? "true" : "false");
 
             if (configState.CacheSizeMb >= 0)
-            {
                 Environment.SetEnvironmentVariable("CACHE_SIZE_MB", configState.CacheSizeMb.ToString());
-            }
 
             Environment.SetEnvironmentVariable("USE_GPU", configState.UseGpuAcceleration ? "true" : "false");
 
-            if (configState.DefaultProfile != null)
-            {
+            if (configState.DefaultProfile is not null)
                 Environment.SetEnvironmentVariable("DEFAULT_PROFILE", configState.DefaultProfile);
-            }
         }
 
         /// <summary>
@@ -133,6 +110,7 @@ namespace GpuImageProcessing.Utilities
         /// <param name="success">Receives true if deserialization succeeded; otherwise, false.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="success"/> is null.</exception>
         public static bool TryFromJson(string json, out bool success)
         {
             ArgumentNullException.ThrowIfNull(json);
@@ -147,60 +125,40 @@ namespace GpuImageProcessing.Utilities
                 }
 
                 // Apply the configuration state
-                if (configState.Environment != null)
-                {
+                if (configState.Environment is not null)
                     Environment.SetEnvironmentVariable("ENVIRONMENT", configState.Environment);
-                }
 
-                if (configState.DataDirectory != null)
-                {
+                if (configState.DataDirectory is not null)
                     Environment.SetEnvironmentVariable("DATA_DIRECTORY", configState.DataDirectory);
-                }
 
-                if (configState.LogDirectory != null)
-                {
+                if (configState.LogDirectory is not null)
                     Environment.SetEnvironmentVariable("LOG_DIRECTORY", configState.LogDirectory);
-                }
 
-                if (configState.TempDirectory != null)
-                {
+                if (configState.TempDirectory is not null)
                     Environment.SetEnvironmentVariable("TEMP_DIRECTORY", configState.TempDirectory);
-                }
 
                 if (configState.MaxConcurrentOperations >= 0)
-                {
                     Environment.SetEnvironmentVariable("MAX_CONCURRENT_OPS", configState.MaxConcurrentOperations.ToString());
-                }
 
                 if (configState.OperationTimeoutSeconds >= 0)
-                {
                     Environment.SetEnvironmentVariable("OPERATION_TIMEOUT", configState.OperationTimeoutSeconds.ToString());
-                }
 
                 if (configState.PreferredDeviceId >= -1)
-                {
                     Environment.SetEnvironmentVariable("OPENCL_DEVICE_ID", configState.PreferredDeviceId.ToString());
-                }
 
-                if (configState.LogLevel != null)
-                {
+                if (configState.LogLevel is not null)
                     Environment.SetEnvironmentVariable("LOG_LEVEL", configState.LogLevel);
-                }
 
                 Environment.SetEnvironmentVariable("ENABLE_PERF_LOGGING", configState.EnablePerformanceLogging ? "true" : "false");
                 Environment.SetEnvironmentVariable("ENABLE_DEBUG_LOGGING", configState.EnableDebugLogging ? "true" : "false");
 
                 if (configState.CacheSizeMb >= 0)
-                {
                     Environment.SetEnvironmentVariable("CACHE_SIZE_MB", configState.CacheSizeMb.ToString());
-                }
 
                 Environment.SetEnvironmentVariable("USE_GPU", configState.UseGpuAcceleration ? "true" : "false");
 
-                if (configState.DefaultProfile != null)
-                {
+                if (configState.DefaultProfile is not null)
                     Environment.SetEnvironmentVariable("DEFAULT_PROFILE", configState.DefaultProfile);
-                }
 
                 success = true;
                 return true;
@@ -217,18 +175,43 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         private sealed class ConfigurationState
         {
+            /// <summary>Gets or sets the environment name.</summary>
             public string? Environment { get; set; }
+
+            /// <summary>Gets or sets the data directory path.</summary>
             public string? DataDirectory { get; set; }
+
+            /// <summary>Gets or sets the log directory path.</summary>
             public string? LogDirectory { get; set; }
+
+            /// <summary>Gets or sets the temporary directory path.</summary>
             public string? TempDirectory { get; set; }
+
+            /// <summary>Gets or sets the maximum concurrent operations count. Defaults to -1.</summary>
             public int MaxConcurrentOperations { get; set; } = -1;
+
+            /// <summary>Gets or sets the operation timeout in seconds. Defaults to -1.</summary>
             public int OperationTimeoutSeconds { get; set; } = -1;
+
+            /// <summary>Gets or sets the preferred device ID. Defaults to -2.</summary>
             public int PreferredDeviceId { get; set; } = -2;
+
+            /// <summary>Gets or sets the log level.</summary>
             public string? LogLevel { get; set; }
+
+            /// <summary>Gets or sets whether performance logging is enabled.</summary>
             public bool EnablePerformanceLogging { get; set; }
+
+            /// <summary>Gets or sets whether debug logging is enabled.</summary>
             public bool EnableDebugLogging { get; set; }
+
+            /// <summary>Gets or sets the cache size in MB. Defaults to -1.</summary>
             public int CacheSizeMb { get; set; } = -1;
+
+            /// <summary>Gets or sets whether GPU acceleration is enabled.</summary>
             public bool UseGpuAcceleration { get; set; }
+
+            /// <summary>Gets or sets the default profile name.</summary>
             public string? DefaultProfile { get; set; }
         }
     }
