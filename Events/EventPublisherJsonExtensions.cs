@@ -16,7 +16,7 @@ namespace GpuImageProcessing.Events
     /// </summary>
     public static class EventPublisherJsonExtensions
     {
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new JsonSerializerOptions
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = false,
@@ -37,10 +37,7 @@ namespace GpuImageProcessing.Events
             ArgumentNullException.ThrowIfNull(value);
 
             var options = indented
-                ? new JsonSerializerOptions(_jsonSerializerOptions)
-                {
-                    WriteIndented = true
-                }
+                ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
                 : _jsonSerializerOptions;
 
             return JsonSerializer.Serialize(value, options);
