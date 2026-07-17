@@ -812,6 +812,112 @@ Console.WriteLine($"\nComplete result validation: {completeErrors.Count} errors"
 
 ```
 
+## HealthCheckServiceValidation
+
+The `HealthCheckServiceValidation` class provides validation helpers for health monitoring types in the GPU Image Processing library. It validates `ComponentHealth` and `HealthCheckResult` instances with comprehensive validation rules, returning detailed error messages through `Validate()` methods. This ensures that health monitoring data contains valid, well-formed information suitable for system monitoring and alerting scenarios.
+
+### Key Features
+
+- Validates `ComponentHealth` instances with comprehensive property validation (status, message, timestamp, details)
+- Validates `HealthCheckResult` instances including status, timestamp, components collection, and summary
+- Validates `MemoryHealthCheck` and `ResponseTimeHealthCheck` instances with basic null checks
+- Returns detailed error messages through `Validate()` methods for debugging and validation scenarios
+- Provides convenience methods like `IsValid()` and `EnsureValid()` for fluent validation patterns
+- Ensures proper relationships between health status values and required fields
+- Validates component collection keys and nested component health values
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Monitoring;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a valid ComponentHealth instance
+        var validComponentHealth = new ComponentHealth
+        {
+            Status = HealthStatus.Healthy,
+            Message = "GPU device is operational",
+            CheckedAt = DateTime.UtcNow,
+            Details = new Dictionary<string, string> { { "device", "NVIDIA RTX 3090" } }
+        };
+
+        // Validate the component health
+        var componentErrors = validComponentHealth.Validate();
+        Console.WriteLine($"Valid component has {componentErrors.Count} errors"); // Output: 0
+
+        // Check if valid using convenience method
+        bool isComponentValid = validComponentHealth.IsValid();
+        Console.WriteLine($"Component is valid: {isComponentValid}"); // Output: True
+
+        // Create an invalid ComponentHealth (missing required fields)
+        var invalidComponentHealth = new ComponentHealth
+        {
+            Status = HealthStatus.Unknown, // Invalid - must be a valid status other than Unknown
+            Message = null, // Invalid - must not be null or empty
+            CheckedAt = default, // Invalid - must be set to a valid DateTime
+            Details = null // Invalid - must not be null
+        };
+
+        // Validate and get detailed errors
+        var errors = invalidComponentHealth.Validate();
+        Console.WriteLine("Component validation errors:");
+        foreach (var error in errors)
+        {
+            Console.WriteLine($"- {error}");
+        }
+        /* Output:
+        - ComponentHealth.Status must be set to a valid HealthStatus value other than Unknown
+        - ComponentHealth.Message cannot be null or empty
+        - ComponentHealth.CheckedAt must be set to a valid DateTime
+        - ComponentHealth.Details cannot be null
+        */
+
+        // Create a valid HealthCheckResult instance
+        var validResult = new HealthCheckResult
+        {
+            Status = HealthStatus.Healthy,
+            Timestamp = DateTime.UtcNow,
+            Summary = "All systems operational",
+            Components = new Dictionary<string, ComponentHealth>
+            {
+                { "gpu", new ComponentHealth { Status = HealthStatus.Healthy, Message = "GPU device operational", CheckedAt = DateTime.UtcNow, Details = new Dictionary<string, string> { { "device", "NVIDIA RTX 3090" } } } },
+                { "memory", new ComponentHealth { Status = HealthStatus.Healthy, Message = "Memory usage within limits", CheckedAt = DateTime.UtcNow, Details = new Dictionary<string, string> { { "used", "4.2GB" }, { "total", "24GB" } } } }
+            }
+        };
+
+        // Validate the health check result
+        var resultErrors = validResult.Validate();
+        Console.WriteLine($"\nValid result has {resultErrors.Count} errors"); // Output: 0
+
+        // Check if valid using convenience method
+        bool isResultValid = validResult.IsValid();
+        Console.WriteLine($"HealthCheckResult is valid: {isResultValid}"); // Output: True
+
+        // Use EnsureValid() to throw exception on invalid result
+        try
+        {
+            invalidComponentHealth.EnsureValid();
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"\nEnsureValid caught error: {ex.Message}");
+        }
+
+        // Validate MemoryHealthCheck (basic null validation only)
+        var memoryCheck = new MemoryHealthCheck();
+        bool isMemoryValid = memoryCheck.IsValid();
+        Console.WriteLine($"\nMemoryHealthCheck is valid: {isMemoryValid}"); // Output: True
+    }
+}
+
+```
+
 ## HttpImageClientValidation
 
 The `HttpImageClientValidation` class provides comprehensive validation utilities for `HttpImageClient` instances and related HTTP image operations. It includes validation methods for URLs, file paths, directory existence, HTTP status codes, timeouts, and retry configurations, ensuring robust error handling for HTTP-based image processing workflows.
