@@ -3,7 +3,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -15,6 +15,9 @@ namespace GpuImageProcessing.Domain;
 /// </summary>
 public static class ImageBatchJsonExtensions
 {
+    /// <summary>
+    /// Gets the JSON serialization options used by the extension methods.
+    /// </summary>
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -35,10 +38,7 @@ public static class ImageBatchJsonExtensions
         ArgumentNullException.ThrowIfNull(value);
 
         var options = indented
-            ? new JsonSerializerOptions(_jsonOptions)
-            {
-                WriteIndented = true
-            }
+            ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
             : _jsonOptions;
 
         return JsonSerializer.Serialize(value, options);
@@ -75,6 +75,11 @@ public static class ImageBatchJsonExtensions
         ArgumentException.ThrowIfNullOrEmpty(json);
 
         value = null;
+
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return false;
+        }
 
         try
         {
