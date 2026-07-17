@@ -18,8 +18,8 @@ public static class ImageBatchValidation
     /// Validates an <see cref="ImageBatch"/> instance and returns a list of human-readable problems.
     /// </summary>
     /// <param name="value">The image batch to validate.</param>
-    /// <returns>A read-only list of validation problems; empty if valid.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
+    /// <returns>A read-only list of validation problems; empty if the batch is valid.</returns>
+/// <exception cref="ArgumentNullException">Thrown if <see cref="AppConstants"/> configuration is null.</exception>
     public static IReadOnlyList<string> Validate(this ImageBatch value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -73,7 +73,7 @@ public static class ImageBatchValidation
         else if (value.ImageIds.Count > 0)
         {
             // Check for duplicate or default GUIDs in ImageIds
-            var seenImageIds = new HashSet<Guid>();
+            var seenImageIds = new HashSet<Guid>(value.ImageIds.Count);
             foreach (var imageId in value.ImageIds)
             {
                 if (imageId == Guid.Empty)
@@ -105,7 +105,7 @@ public static class ImageBatchValidation
         else if (value.FilterIds.Count > 0)
         {
             // Check for duplicate or default GUIDs in FilterIds
-            var seenFilterIds = new HashSet<Guid>();
+            var seenFilterIds = new HashSet<Guid>(value.FilterIds.Count);
             foreach (var filterId in value.FilterIds)
             {
                 if (filterId == Guid.Empty)
@@ -347,6 +347,7 @@ public static class ImageBatchValidation
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
     public static bool IsValid(this ImageBatch value)
     {
+    ArgumentNullException.ThrowIfNull(value);
         return Validate(value).Count == 0;
     }
 
@@ -355,7 +356,7 @@ public static class ImageBatchValidation
     /// </summary>
     /// <param name="value">The image batch to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown if the batch is invalid, containing a list of problems.</exception>
+/// <exception cref="ArgumentException">Thrown if the batch is invalid, containing a list of problems.</exception>
     public static void EnsureValid(this ImageBatch value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -363,9 +364,7 @@ public static class ImageBatchValidation
         var problems = Validate(value);
         if (problems.Count > 0)
         {
-            throw new ArgumentException(
-                "ImageBatch validation failed: " + string.Join(" ", problems),
-                nameof(value));
+            throw new ArgumentException("ImageBatch validation failed:\n" + string.Join("\n", problems), nameof(value));
+        }
         }
     }
-}
