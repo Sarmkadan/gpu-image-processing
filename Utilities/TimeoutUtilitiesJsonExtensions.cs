@@ -71,10 +71,12 @@ namespace GpuImageProcessing.Utilities
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         public static bool TryFromJson(string json, out TimeoutConfiguration? value)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
             value = null;
 
             if (string.IsNullOrEmpty(json))
-                return true;
+                return false;
 
             try
             {
@@ -102,8 +104,12 @@ namespace GpuImageProcessing.Utilities
             /// Converts the timeout configuration to a TimeSpan.
             /// </summary>
             /// <returns>The TimeSpan representation.</returns>
+            /// <exception cref="InvalidOperationException">Thrown when <see cref="Milliseconds"/> is negative.</exception>
             public TimeSpan ToTimeSpan()
             {
+                if (Milliseconds < 0)
+                    throw new InvalidOperationException("Milliseconds cannot be negative");
+
                 return TimeSpan.FromMilliseconds(Milliseconds);
             }
         }
