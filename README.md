@@ -244,6 +244,39 @@ public class ExampleMiddleware : IProcessingMiddleware
 }
 ```
 
+## CompressionMiddleware
+
+The `CompressionMiddleware` class reduces data transfer size in the processing pipeline by applying compression to response data. It provides monitoring of compression performance through statistics, including configuration parameters like minimum size thresholds and compression levels.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Middleware;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize the middleware
+        var middleware = new CompressionMiddleware();
+
+        // Process a request context
+        var context = new RequestMiddlewareContext();
+        var result = await middleware.ProcessAsync(context);
+
+        // Access compression statistics
+        var stats = middleware.GetStatistics();
+        Console.WriteLine($"Compression stats - MinSize: {stats.MinSizeToCompress}, Level: {stats.CompressionLevel}");
+
+        // Decompress data
+        byte[] compressedData = new byte[] { /* ... */ };
+        string decompressed = await CompressionMiddleware.DecompressAsync(compressedData);
+    }
+}
+```
+
 ## DeviceService
 
 The `DeviceService` manages GPU and CPU compute devices for image processing operations. It provides functionality for detecting available devices, selecting devices for processing, checking device capabilities and memory availability, and retrieving device statistics. The service automatically initializes with the most capable device and provides methods for refreshing device information and getting capabilities summaries.
