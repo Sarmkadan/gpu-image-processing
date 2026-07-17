@@ -3,59 +3,52 @@ using System.Collections.Generic;
 
 namespace GpuImageProcessing.Tests.Services
 {
-    /// <summary>
-    /// Validation helpers for <see cref="GpuManagementServiceTests"/> test fixture.
-    /// </summary>
-    public static class GpuManagementServiceTestsValidation
-    {
-        /// <summary>
-        /// Validates the specified <see cref="GpuManagementServiceTests"/> instance.
-        /// </summary>
-        /// <param name="value">The instance to validate.</param>
-        /// <returns>A list of validation problems; empty if valid.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
-        public static IReadOnlyList<string> Validate(this GpuManagementServiceTests value)
-        {
-            ArgumentNullException.ThrowIfNull(value);
+	/// <summary>
+	/// Provides validation extension methods for <see cref="GpuManagementServiceTests"/> instances.
+	/// </summary>
+	public static class GpuManagementServiceTestsValidation
+	{
+		/// <summary>
+		/// Validates the <see cref="GpuManagementServiceTests"/> instance for common issues.
+		/// </summary>
+		/// <param name="value">The service tests instance to validate.</param>
+		/// <returns>A list of human-readable validation problems; empty if valid.</returns>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
+		public static IReadOnlyList<string> Validate(this GpuManagementServiceTests value)
+		{
+			ArgumentNullException.ThrowIfNull(value);
 
-            var problems = new List<string>();
+			var problems = new List<string>();
 
-            // GpuManagementServiceTests is a test class with no public state to validate
-            // All validation is handled by the test methods themselves
-            // This class exists to maintain consistency with the validation pattern used throughout the codebase
+			// GpuManagementServiceTests has no public properties to validate
+			// This validation method exists for consistency with other test validation extensions
 
-            return problems.AsReadOnly();
-        }
+			return problems.AsReadOnly();
+		}
 
-        /// <summary>
-        /// Determines whether the specified <see cref="GpuManagementServiceTests"/> instance is valid.
-        /// </summary>
-        /// <param name="value">The instance to check.</param>
-        /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
-        public static bool IsValid(this GpuManagementServiceTests value)
-        {
-            ArgumentNullException.ThrowIfNull(value);
+		/// <summary>
+		/// Determines whether the <see cref="GpuManagementServiceTests"/> instance is valid.
+		/// </summary>
+		/// <param name="value">The service tests instance to check.</param>
+		/// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
+		public static bool IsValid(this GpuManagementServiceTests value) => Validate(value).Count == 0;
 
-            return Validate(value).Count == 0;
-        }
+		/// <summary>
+		/// Ensures that the <see cref="GpuManagementServiceTests"/> instance is valid, throwing an exception if not.
+		/// </summary>
+		/// <param name="value">The service tests instance to validate.</param>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
+		/// <exception cref="ArgumentException">Thrown when the instance is invalid, containing the validation problems.</exception>
+		public static void EnsureValid(this GpuManagementServiceTests value)
+		{
+			ArgumentNullException.ThrowIfNull(value);
 
-        /// <summary>
-        /// Ensures that the specified <see cref="GpuManagementServiceTests"/> instance is valid.
-        /// </summary>
-        /// <param name="value">The instance to validate.</param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
-        /// <exception cref="ArgumentException">Thrown if the instance is not valid, containing a list of problems.</exception>
-        public static void EnsureValid(this GpuManagementServiceTests value)
-        {
-            ArgumentNullException.ThrowIfNull(value);
-
-            var problems = Validate(value);
-            if (problems.Count > 0)
-            {
-                throw new ArgumentException(
-                    $"GpuManagementServiceTests is not valid. Problems:{Environment.NewLine}{string.Join(Environment.NewLine, problems)}");
-            }
-        }
-    }
+			var problems = Validate(value);
+			if (problems.Count > 0)
+			{
+				throw new ArgumentException(
+					$"GpuManagementServiceTests is invalid:{Environment.NewLine}{string.Join(Environment.NewLine, problems)}");
+			}
+		}
+	}
 }
