@@ -2,25 +2,24 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =======================================================================
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace GpuImageProcessing.Core.Models
 {
     /// <summary>
-    /// Provides validation helpers for the Transform class
+    /// Provides validation helpers for the Transform class.
     /// </summary>
     public static class TransformValidation
     {
         /// <summary>
-        /// Validates a Transform instance and returns a list of human-readable problems
+        /// Validates a Transform instance and returns a list of human-readable problems.
         /// </summary>
-        /// <param name="value">The Transform instance to validate</param>
-        /// <returns>List of validation errors; empty list if valid</returns>
-        /// <exception cref="ArgumentNullException">Thrown if value is null</exception>
+        /// <param name="value">The Transform instance to validate.</param>
+        /// <returns>List of validation errors; empty list if valid.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
         public static IReadOnlyList<string> Validate(this Transform value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -45,7 +44,6 @@ namespace GpuImageProcessing.Core.Models
 
             // Validate Type
             // TransformType is an enum, so it's always valid by default
-            // No additional validation needed beyond null check
 
             // Validate Description
             if (value.Description?.Length > 1024)
@@ -54,7 +52,7 @@ namespace GpuImageProcessing.Core.Models
             }
 
             // Validate Parameters
-            if (value.Parameters == null)
+            if (value.Parameters is null)
             {
                 errors.Add("Transform Parameters dictionary cannot be null");
             }
@@ -104,22 +102,20 @@ namespace GpuImageProcessing.Core.Models
         }
 
         /// <summary>
-        /// Checks if a Transform instance is valid
+        /// Checks if a Transform instance is valid.
         /// </summary>
-        /// <param name="value">The Transform instance to validate</param>
-        /// <returns>True if valid; false otherwise</returns>
-        /// <exception cref="ArgumentNullException">Thrown if value is null</exception>
+        /// <param name="value">The Transform instance to validate.</param>
+        /// <returns>True if valid; false otherwise.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
         public static bool IsValid(this Transform value)
-        {
-            return value.Validate().Count == 0;
-        }
+            => value.Validate().Count == 0;
 
         /// <summary>
-        /// Ensures that a Transform instance is valid, throwing an exception if not
+        /// Ensures that a Transform instance is valid, throwing an exception if not.
         /// </summary>
-        /// <param name="value">The Transform instance to validate</param>
-        /// <exception cref="ArgumentNullException">Thrown if value is null</exception>
-        /// <exception cref="ArgumentException">Thrown if value is not valid, containing the validation errors</exception>
+        /// <param name="value">The Transform instance to validate.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="value"/> is not valid, containing the validation errors.</exception>
         public static void EnsureValid(this Transform value)
         {
             ArgumentNullException.ThrowIfNull(value);
