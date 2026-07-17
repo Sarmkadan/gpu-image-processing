@@ -5509,3 +5509,47 @@ class Program
     }
 }
 ```
+
+## RateLimitingMiddleware
+
+The `RateLimitingMiddleware` enforces rate limiting on image processing operations to prevent resource exhaustion and maintain system stability. It utilizes a token bucket algorithm to manage request throughput and a semaphore to control concurrent operations, ensuring robust performance under load.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Middleware;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Setup logger and configuration
+        var logger = new LoggerFactory().CreateLogger<RateLimitingMiddleware>();
+        var config = new RateLimitConfig
+        {
+            MaxTokens = 500,
+            RefillRate = 50,
+            TokenCost = 5,
+            MaxConcurrentOperations = 3,
+            RetryAfterSeconds = 10
+        };
+
+        // Initialize the middleware
+        var middleware = new RateLimitingMiddleware(logger, config);
+
+        // Check current status
+        var status = middleware.GetStatus();
+        Console.WriteLine($"Available tokens: {status.AvailableTokens}/{status.MaxTokens}");
+        Console.WriteLine($"Active operations: {status.ActiveOperations}/{status.MaxConcurrentOperations}");
+
+        // Execute middleware (inside pipeline)
+        var context = new MiddlewareContext(); // Assuming context is available
+        var result = await middleware.ExecuteAsync(context);
+        
+        Console.WriteLine($"Middleware execution success: {result.IsSuccess}");
+    }
+}
+```
