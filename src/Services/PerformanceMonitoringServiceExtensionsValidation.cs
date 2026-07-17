@@ -4,7 +4,8 @@ using System.Collections.Generic;
 namespace GpuImageProcessing.Services;
 
 /// <summary>
-/// Provides validation helpers for <see cref="PerformanceMetricsWithTrends"/> and <see cref="PerformanceAlert"/>.
+/// Provides validation extensions for performance monitoring data structures.
+/// This sealed class cannot be inherited.
 /// </summary>
 public static class PerformanceMonitoringServiceExtensionsValidation
 {
@@ -31,6 +32,7 @@ public static class PerformanceMonitoringServiceExtensionsValidation
     /// <summary>
     /// Checks if <see cref="PerformanceMetricsWithTrends"/> is valid.
     /// </summary>
+    /// <returns>True if the instance is valid; otherwise, false.</returns>
     public static bool IsValid(this PerformanceMetricsWithTrends value) => value.Validate().Count == 0;
 
     /// <summary>
@@ -64,6 +66,7 @@ public static class PerformanceMonitoringServiceExtensionsValidation
     /// <summary>
     /// Checks if <see cref="PerformanceAlert"/> is valid.
     /// </summary>
+    /// <returns>True if the instance is valid; otherwise, false.</returns>
     public static bool IsValid(this PerformanceAlert value) => value.Validate().Count == 0;
 
     /// <summary>
