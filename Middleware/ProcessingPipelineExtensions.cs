@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using GpuImageProcessing.Middleware;
+using System.Linq;
 
 namespace GpuImageProcessing.Middleware
 {
