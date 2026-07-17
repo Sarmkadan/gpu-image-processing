@@ -31,15 +31,7 @@ public static class EnumerableExtensionsBenchmarksJsonExtensions
     /// <returns>A JSON string representation of the benchmarks.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static string ToJson(this EnumerableExtensionsBenchmarks value, bool indented = false)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-
-        var options = indented
-            ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
-            : _jsonOptions;
-
-        return JsonSerializer.Serialize(value, options);
-    }
+        => JsonSerializer.Serialize(value, indented ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true } : _jsonOptions);
 
     /// <summary>
     /// Deserializes a JSON string to a <see cref="EnumerableExtensionsBenchmarks"/> instance.
@@ -52,12 +44,9 @@ public static class EnumerableExtensionsBenchmarksJsonExtensions
     {
         ArgumentNullException.ThrowIfNull(json);
 
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return null;
-        }
-
-        return JsonSerializer.Deserialize<EnumerableExtensionsBenchmarks>(json, _jsonOptions);
+        return string.IsNullOrWhiteSpace(json)
+            ? null
+            : JsonSerializer.Deserialize<EnumerableExtensionsBenchmarks>(json, _jsonOptions);
     }
 
     /// <summary>
