@@ -79,7 +79,7 @@ namespace GpuImageProcessing.Tests.Domain
                     throw new AssertionFailedException(
                         $"Method '{methodName}' was expected to throw {expectedException.Name} but completed successfully.");
                 }
-                catch (TargetInvocationException tie) when (tie.InnerException != null)
+                catch (TargetInvocationException tie) when (tie.InnerException is not null)
                 {
                     if (tie.InnerException.GetType() != expectedException)
                     {
@@ -94,8 +94,8 @@ namespace GpuImageProcessing.Tests.Domain
 
         /// <summary>
         /// Returns the names of all public instance test methods declared on
-        /// <see cref="FilterChainBuilderTests"/>. The result is read‑only and ordered
-        /// alphabetically.
+        /// <see cref="FilterChainBuilderTests"/>.
+        /// The result is read‑only and ordered alphabetically.
         /// </summary>
         /// <param name="tests">The <see cref="FilterChainBuilderTests"/> instance.</param>
         /// <returns>An <see cref="IReadOnlyList{T}"/> containing the method names.</returns>
@@ -114,14 +114,31 @@ namespace GpuImageProcessing.Tests.Domain
             return Array.AsReadOnly(methodNames);
         }
 
-        // Helper that invokes a parameter‑less void method by name on the test instance.
+        /// <summary>
+        /// Invokes a parameterless void method by name on the test instance.
+        /// </summary>
+        /// <param name="tests">The test instance.</param>
+        /// <param name="methodName">Name of the method to invoke.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="tests"/> or <paramref name="methodName"/> is <c>null</c>.</exception>
+        /// <exception cref="MissingMethodException">If the method is not found.</exception>
+        /// <exception cref="InvalidOperationException">If the method doesn't return void or has parameters.</exception>
+        /// <exception cref="TargetInvocationException">If the invoked method throws an exception.</exception>
         private static void InvokeTestMethod(FilterChainBuilderTests tests, string methodName)
         {
+            ArgumentNullException.ThrowIfNull(tests);
+            ArgumentNullException.ThrowIfNull(methodName);
+
             var method = tests.GetType().GetMethod(methodName,
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly);
 
             if (method is null)
                 throw new MissingMethodException($"Method '{methodName}' not found on type '{tests.GetType().FullName}'.");
+
+            if (method.ReturnType != typeof(void))
+                throw new InvalidOperationException($"Method '{methodName}' must return void.");
+
+            if (method.GetParameters().Length != 0)
+                throw new InvalidOperationException($"Method '{methodName}' must be parameterless.");
 
             method.Invoke(tests, null);
         }
