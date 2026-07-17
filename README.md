@@ -1808,6 +1808,64 @@ class Program
         Console.WriteLine($"MIME type: {formatter.GetMimeType()}");
     }
 }
+## BatchItemResult
+
+The `BatchItemResult` record represents the outcome for a single file processed during a batch directory operation. It captures the input file path, optional output file path, success status, and any error message that occurred during processing. This type is returned by `DirectoryBatchProcessor.ProcessDirectoryAsync` as part of the `BatchRunSummary.Items` collection, allowing callers to inspect individual file results and handle failures appropriately.
+
+### Usage Example
+
+```csharp
+
+using GpuImageProcessing.Batch;
+using GpuImageProcessing.Domain;
+using System;
+using System.IO;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create a batch processor with CPU image processor (works without GPU)
+        var processor = new CpuImageProcessor();
+        var batchProcessor = new DirectoryBatchProcessor(processor);
+        
+        // Process a directory of images with a Gaussian blur filter
+        var progress = new Progress<BatchProgress>(report => 
+        {
+            Console.WriteLine($"Processing: {report.CurrentFile} ({report.Completed}/{report.Total})");
+        });
+        
+        var summary = await batchProcessor.ProcessDirectoryAsync(
+            inputDir: "/data/input-images",
+            outputDir: "/data/output-images",
+            filterType: FilterType.GaussianBlur,
+            progress: progress,
+            parameters: new Dictionary<string, object> { { "sigma", 2.5f } }
+        );
+        
+        // Inspect individual file results
+        Console.WriteLine($"\nBatch completed in {summary.Elapsed.TotalSeconds:F2}s");
+        Console.WriteLine($"Total files: {summary.Total}");
+        Console.WriteLine($"Succeeded: {summary.Succeeded}");
+        Console.WriteLine($"Failed: {summary.Failed}");
+        
+        foreach (var result in summary.Items)
+        {
+            if (result.Success)
+            {
+                Console.WriteLine($"✓ {Path.GetFileName(result.InputPath)} -> {Path.GetFileName(result.OutputPath)}");
+            }
+            else
+            {
+                Console.WriteLine($"✗ {Path.GetFileName(result.InputPath)}: {result.Error}");
+            }
+        }
+    }
+}
+
+```
+
 ## CsvResultFormatter
 
 The `CsvResultFormatter` class formats GPU image processing results, device information, job status, errors, and statistics into CSV (comma-separated values) format. It generates structured tabular data that is ideal for importing into spreadsheet applications, data analysis tools, and reporting systems.
