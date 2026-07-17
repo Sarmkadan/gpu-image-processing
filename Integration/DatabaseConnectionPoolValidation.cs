@@ -164,59 +164,149 @@ namespace GpuImageProcessing.Integration
             if (errors.Count > 0)
             {
                 throw new ArgumentException(
-                    $"DatabaseConnectionPool is not valid. Validation errors:{Environment.NewLine}  - {string.Join($"{Environment.NewLine}  - ", errors)}",
+                    $"DatabaseConnectionPool is not valid. Validation errors:{Environment.NewLine} - {string.Join($"{Environment.NewLine} - ", errors)}",
                     nameof(value));
             }
         }
 
+        /// <summary>
+        /// Gets the connection string from the specified database connection pool.
+        /// </summary>
+        /// <param name="pool">The database connection pool.</param>
+        /// <returns>The connection string.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="pool"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the connection string field cannot be retrieved or is null.</exception>
         private static string GetConnectionString(DatabaseConnectionPool pool)
         {
-            return _connectionStringField.GetValue(pool) as string;
+            ArgumentNullException.ThrowIfNull(pool);
+            return _connectionStringField.GetValue(pool) as string
+                ?? throw new InvalidOperationException("ConnectionString field cannot be null.");
         }
 
+        /// <summary>
+        /// Gets the minimum pool size from the specified database connection pool.
+        /// </summary>
+        /// <param name="pool">The database connection pool.</param>
+        /// <returns>The minimum pool size.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="pool"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the minimum pool size field cannot be retrieved or is null.</exception>
         private static int GetMinPoolSize(DatabaseConnectionPool pool)
         {
-            return (int)_minPoolSizeField.GetValue(pool)!;
+            ArgumentNullException.ThrowIfNull(pool);
+            return (int)(_minPoolSizeField.GetValue(pool)
+                ?? throw new InvalidOperationException("MinPoolSize field cannot be null."));
         }
 
+        /// <summary>
+        /// Gets the maximum pool size from the specified database connection pool.
+        /// </summary>
+        /// <param name="pool">The database connection pool.</param>
+        /// <returns>The maximum pool size.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="pool"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the maximum pool size field cannot be retrieved or is null.</exception>
         private static int GetMaxPoolSize(DatabaseConnectionPool pool)
         {
-            return (int)_maxPoolSizeField.GetValue(pool)!;
+            ArgumentNullException.ThrowIfNull(pool);
+            return (int)(_maxPoolSizeField.GetValue(pool)
+                ?? throw new InvalidOperationException("MaxPoolSize field cannot be null."));
         }
 
+        /// <summary>
+        /// Gets the connection timeout from the specified database connection pool.
+        /// </summary>
+        /// <param name="pool">The database connection pool.</param>
+        /// <returns>The connection timeout.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="pool"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the connection timeout field cannot be retrieved or is null.</exception>
         private static TimeSpan GetConnectionTimeout(DatabaseConnectionPool pool)
         {
-            return (TimeSpan)_connectionTimeoutField.GetValue(pool)!;
+            ArgumentNullException.ThrowIfNull(pool);
+            return (TimeSpan)(_connectionTimeoutField.GetValue(pool)
+                ?? throw new InvalidOperationException("ConnectionTimeout field cannot be null."));
         }
 
+        /// <summary>
+        /// Gets the available connection count from the specified database connection pool.
+        /// </summary>
+        /// <param name="pool">The database connection pool.</param>
+        /// <returns>The available connection count.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="pool"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the available connections property cannot be retrieved or is null.</exception>
         private static int GetAvailableCount(DatabaseConnectionPool pool)
         {
-            return (int)_availableConnectionsProperty.GetValue(pool)!;
+            ArgumentNullException.ThrowIfNull(pool);
+            return (int)(_availableConnectionsProperty.GetValue(pool)
+                ?? throw new InvalidOperationException("AvailableCount property cannot be null."));
         }
 
+        /// <summary>
+        /// Gets the in-use connection count from the specified database connection pool.
+        /// </summary>
+        /// <param name="pool">The database connection pool.</param>
+        /// <returns>The in-use connection count.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="pool"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the in-use count property cannot be retrieved or is null.</exception>
         private static int GetInUseCount(DatabaseConnectionPool pool)
         {
-            return (int)_inUseCountProperty.GetValue(pool)!;
+            ArgumentNullException.ThrowIfNull(pool);
+            return (int)(_inUseCountProperty.GetValue(pool)
+                ?? throw new InvalidOperationException("InUseCount property cannot be null."));
         }
 
+        /// <summary>
+        /// Gets the idle connection count from the specified database connection pool.
+        /// </summary>
+        /// <param name="pool">The database connection pool.</param>
+        /// <returns>The idle connection count.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="pool"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the idle count property cannot be retrieved or is null.</exception>
         private static int GetIdleCount(DatabaseConnectionPool pool)
         {
-            return (int)_idleCountProperty.GetValue(pool)!;
+            ArgumentNullException.ThrowIfNull(pool);
+            return (int)(_idleCountProperty.GetValue(pool)
+                ?? throw new InvalidOperationException("IdleCount property cannot be null."));
         }
 
+        /// <summary>
+        /// Gets the total connection count from the specified database connection pool.
+        /// </summary>
+        /// <param name="pool">The database connection pool.</param>
+        /// <returns>The total connection count.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="pool"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the total connections property cannot be retrieved or is null.</exception>
         private static int GetTotalConnections(DatabaseConnectionPool pool)
         {
-            return (int)_totalConnectionsProperty.GetValue(pool)!;
+            ArgumentNullException.ThrowIfNull(pool);
+            return (int)(_totalConnectionsProperty.GetValue(pool)
+                ?? throw new InvalidOperationException("TotalConnections property cannot be null."));
         }
 
+        /// <summary>
+        /// Gets the total request count from the specified database connection pool.
+        /// </summary>
+        /// <param name="pool">The database connection pool.</param>
+        /// <returns>The total request count.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="pool"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the total requests property cannot be retrieved or is null.</exception>
         private static long GetTotalRequests(DatabaseConnectionPool pool)
         {
-            return (long)_totalRequestsProperty.GetValue(pool)!;
+            ArgumentNullException.ThrowIfNull(pool);
+            return (long)(_totalRequestsProperty.GetValue(pool)
+                ?? throw new InvalidOperationException("TotalRequests property cannot be null."));
         }
 
+        /// <summary>
+        /// Gets the minimum pool size from pool statistics from the specified database connection pool.
+        /// </summary>
+        /// <param name="pool">The database connection pool.</param>
+        /// <returns>The minimum pool size from statistics.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="pool"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the minimum pool size property cannot be retrieved or is null.</exception>
         private static int GetPoolMinPoolSize(DatabaseConnectionPool pool)
         {
-            return (int)_minPoolSizeProperty.GetValue(pool)!;
+            ArgumentNullException.ThrowIfNull(pool);
+            return (int)(_minPoolSizeProperty.GetValue(pool)
+                ?? throw new InvalidOperationException("MinPoolSize property cannot be null."));
         }
     }
 }
