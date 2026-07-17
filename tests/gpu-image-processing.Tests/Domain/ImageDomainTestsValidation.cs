@@ -20,17 +20,12 @@ public static class ImageDomainTestsValidation
     /// </summary>
     /// <param name="value">The instance to validate.</param>
     /// <returns>A list of validation problems; empty if the instance is valid.</returns>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
     public static IReadOnlyList<string> Validate(this ImageDomainTests? value)
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var errors = new List<string>();
-
-        // ImageDomainTests is a test class with no actual properties to validate
-        // The validation simply ensures the test class instance is properly initialized
-
-        return errors.AsReadOnly();
+        return Array.Empty<string>();
     }
 
     /// <summary>
@@ -44,8 +39,8 @@ public static class ImageDomainTestsValidation
     /// Ensures that the specified <see cref="ImageDomainTests"/> instance is valid.
     /// </summary>
     /// <param name="value">The instance to validate.</param>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown if the instance is not valid, containing a list of validation problems.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">The instance is not valid.</exception>
     public static void EnsureValid(this ImageDomainTests? value)
     {
         ArgumentNullException.ThrowIfNull(value);
