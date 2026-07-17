@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace GpuImageProcessing.Monitoring
 {
@@ -23,8 +22,8 @@ namespace GpuImageProcessing.Monitoring
 
             var errors = new List<string>();
 
-            if (value.Status == default)
-                errors.Add("ComponentHealth.Status must be set to a valid HealthStatus value");
+            if (value.Status == default || value.Status == HealthStatus.Unknown)
+                errors.Add("ComponentHealth.Status must be set to a valid HealthStatus value other than Unknown");
 
             if (string.IsNullOrWhiteSpace(value.Message))
                 errors.Add("ComponentHealth.Message cannot be null or empty");
@@ -113,9 +112,10 @@ namespace GpuImageProcessing.Monitoring
         /// </summary>
         /// <param name="value">The component health to check</param>
         /// <returns>True if valid; otherwise false</returns>
+        /// <exception cref="ArgumentNullException">Thrown if value is null</exception>
         public static bool IsValid(this ComponentHealth? value)
         {
-            return value?.Validate().Count == 0;
+            return value?.Validate() is { Count: 0 };
         }
 
         /// <summary>
@@ -123,9 +123,10 @@ namespace GpuImageProcessing.Monitoring
         /// </summary>
         /// <param name="value">The health check result to check</param>
         /// <returns>True if valid; otherwise false</returns>
+        /// <exception cref="ArgumentNullException">Thrown if value is null</exception>
         public static bool IsValid(this HealthCheckResult? value)
         {
-            return value?.Validate().Count == 0;
+            return value?.Validate() is { Count: 0 };
         }
 
         /// <summary>
@@ -133,6 +134,7 @@ namespace GpuImageProcessing.Monitoring
         /// </summary>
         /// <param name="value">The memory health check to check</param>
         /// <returns>True if valid; otherwise false</returns>
+        /// <exception cref="ArgumentNullException">Thrown if value is null</exception>
         public static bool IsValid(this MemoryHealthCheck? value)
         {
             return value != null;
@@ -143,6 +145,7 @@ namespace GpuImageProcessing.Monitoring
         /// </summary>
         /// <param name="value">The response time health check to check</param>
         /// <returns>True if valid; otherwise false</returns>
+        /// <exception cref="ArgumentNullException">Thrown if value is null</exception>
         public static bool IsValid(this ResponseTimeHealthCheck? value)
         {
             return value != null;
