@@ -7,16 +7,16 @@ using System.Globalization;
 namespace GpuImageProcessing.Caching
 {
     /// <summary>
-    /// Provides validation helpers for <see cref="DistributedCache"/> instances.
+    /// Provides validation extension methods for <see cref="DistributedCache"/> instances.
     /// </summary>
     public static class DistributedCacheValidation
     {
         /// <summary>
         /// Validates the cache instance and returns a list of human-readable problems.
         /// </summary>
-        /// <param name="value">The cache instance to validate</param>
-        /// <returns>List of validation problems; empty if valid</returns>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
+        /// <param name="value">The cache instance to validate.</param>
+        /// <returns>A list of human-readable validation problems; empty if the cache instance is valid.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
         public static IReadOnlyList<string> Validate(this DistributedCache value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -72,18 +72,18 @@ namespace GpuImageProcessing.Caching
         /// Determines whether the cache instance is valid.
         /// </summary>
         /// <param name="value">The cache instance to check</param>
-        /// <returns>True if valid; false otherwise</returns>
+        /// <returns><see langword="true"/> if the cache instance is not null and passes all validations; otherwise, <see langword="false"/>.</returns>
         public static bool IsValid(this DistributedCache value)
         {
-            return value?.Validate().Count == 0;
+            return value is not null && value.Validate().Count == 0;
         }
 
         /// <summary>
         /// Ensures the cache instance is valid, throwing an exception if not.
         /// </summary>
-        /// <param name="value">The cache instance to validate</param>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
-        /// <exception cref="ArgumentException">Thrown when validation fails with a list of problems</exception>
+        /// <param name="value">The cache instance to validate.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">The cache instance fails validation. The exception message contains a list of all validation problems.</exception>
         public static void EnsureValid(this DistributedCache value)
         {
             ArgumentNullException.ThrowIfNull(value);
