@@ -10,80 +10,91 @@ using System.Text.Json.Serialization;
 
 namespace GpuImageProcessing.Monitoring
 {
-    /// <summary>
-    /// Provides JSON serialization extensions for <see cref="HealthCheckService"/>.
-    /// </summary>
-    public static class HealthCheckServiceJsonExtensions
-    {
-        private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = false,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-            ReferenceHandler = ReferenceHandler.IgnoreCycles
-        };
+	/// <summary>
+	/// Provides JSON serialization extensions for <see cref="HealthCheckService"/>.
+	/// </summary>
+	public static class HealthCheckServiceJsonExtensions
+	{
+		private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
+		{
+			PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+			WriteIndented = false,
+			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+			ReferenceHandler = ReferenceHandler.IgnoreCycles
+		};
 
-        /// <summary>
-        /// Serializes the <see cref="HealthCheckService"/> instance to a JSON string.
-        /// </summary>
-        /// <param name="value">The health check service to serialize.</param>
-        /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
-        /// <returns>A JSON string representation of the health check service.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-        public static string ToJson(this HealthCheckService value, bool indented = false)
-        {
-            ArgumentNullException.ThrowIfNull(value);
+		/// <summary>
+		/// Serializes the <see cref="HealthCheckService"/> instance to a JSON string.
+		/// </summary>
+		/// <param name="value">The health check service to serialize.</param>
+		/// <param name="indented">Whether to format the JSON with indentation for readability.</param>
+		/// <returns>A JSON string representation of the health check service.</returns>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+		public static string ToJson(this HealthCheckService value, bool indented = false)
+		{
+			ArgumentNullException.ThrowIfNull(value);
 
-            var options = indented
-                ? new JsonSerializerOptions(_jsonSerializerOptions)
-                {
-                    WriteIndented = true
-                }
-                : _jsonSerializerOptions;
+			var options = indented
+				? new JsonSerializerOptions(_jsonSerializerOptions)
+				  { WriteIndented = true }
+				: _jsonSerializerOptions;
 
-            return JsonSerializer.Serialize(value, options);
-        }
+			return JsonSerializer.Serialize(value, options);
+		}
 
-        /// <summary>
-        /// Deserializes a JSON string to a <see cref="HealthCheckService"/> instance.
-        /// </summary>
-        /// <param name="json">The JSON string to deserialize.</param>
-        /// <returns>The deserialized health check service, or null if the JSON is null or empty.</returns>
-        /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
-        public static HealthCheckService? FromJson(string json)
-        {
-            if (string.IsNullOrEmpty(json))
-            {
-                return null;
-            }
+		/// <summary>
+		/// Deserializes a JSON string to a <see cref="HealthCheckService"/> instance.
+		/// </summary>
+		/// <param name="json">The JSON string to deserialize.</param>
+		/// <returns>The deserialized health check service, or null if the JSON is null or empty.</returns>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+		/// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
+		public static HealthCheckService? FromJson(string json)
+		{
+			ArgumentNullException.ThrowIfNull(json);
 
-            return JsonSerializer.Deserialize<HealthCheckService>(json, _jsonSerializerOptions);
-        }
+			if (string.IsNullOrEmpty(json))
+			{
+				return null;
+			}
 
-        /// <summary>
-        /// Attempts to deserialize a JSON string to a <see cref="HealthCheckService"/> instance.
-        /// </summary>
-        /// <param name="json">The JSON string to deserialize.</param>
-        /// <param name="value">Receives the deserialized health check service if successful.</param>
-        /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-        public static bool TryFromJson(string json, out HealthCheckService? value)
-        {
-            value = null;
+			try
+			{
+				return JsonSerializer.Deserialize<HealthCheckService>(json, _jsonSerializerOptions);
+			}
+			catch (JsonException)
+			{
+				return null;
+			}
+		}
 
-            if (string.IsNullOrEmpty(json))
-            {
-                return false;
-            }
+		/// <summary>
+		/// Attempts to deserialize a JSON string to a <see cref="HealthCheckService"/> instance.
+		/// </summary>
+		/// <param name="json">The JSON string to deserialize.</param>
+		/// <param name="value">Receives the deserialized health check service if successful.</param>
+		/// <returns>True if deserialization succeeded; otherwise, false.</returns>
+		/// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+		public static bool TryFromJson(string json, out HealthCheckService? value)
+		{
+			ArgumentNullException.ThrowIfNull(json);
 
-            try
-            {
-                value = JsonSerializer.Deserialize<HealthCheckService>(json, _jsonSerializerOptions);
-                return true;
-            }
-            catch (JsonException)
-            {
-                return false;
-            }
-        }
-    }
+			if (string.IsNullOrEmpty(json))
+			{
+				value = null;
+				return false;
+			}
+
+			try
+			{
+				value = JsonSerializer.Deserialize<HealthCheckService>(json, _jsonSerializerOptions);
+				return value is not null;
+			}
+			catch (JsonException)
+			{
+				value = null;
+				return false;
+			}
+		}
+	}
 }
