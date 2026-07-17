@@ -26,10 +26,11 @@ namespace GpuImageProcessing.Middleware
         /// <param name="middleware">The <see cref="ErrorHandlingMiddleware"/> instance.</param>
         /// <returns>A formatted string representing the middleware name.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="middleware"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when <see cref="ErrorHandlingMiddleware.GetName"/> returns null.</exception>
         public static string GetDisplayName(this ErrorHandlingMiddleware middleware)
         {
             ArgumentNullException.ThrowIfNull(middleware);
-            return middleware.GetName().ToUpperInvariant();
+            return middleware.GetName()?.ToUpperInvariant() ?? throw new InvalidOperationException("Middleware name cannot be null");
         }
     }
 }
