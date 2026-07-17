@@ -2,16 +2,15 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace GpuImageProcessing.Tests.Domain;
 
 /// <summary>
-/// JSON serialization helpers for ImageDomainTests.
+/// Provides JSON serialization and deserialization extensions for <see cref="ImageDomainTests"/>.
 /// </summary>
 public static class ImageDomainTestsJsonExtensions
 {
@@ -22,27 +21,27 @@ public static class ImageDomainTestsJsonExtensions
     };
 
     /// <summary>
-    /// Converts an ImageDomainTests instance to JSON.
+    /// Converts an <see cref="ImageDomainTests"/> instance to JSON.
     /// </summary>
-    /// <param name="value">The ImageDomainTests instance to convert.</param>
+    /// <param name="value">The <see cref="ImageDomainTests"/> instance to convert.</param>
     /// <param name="indented">Whether to format the JSON with indentation.</param>
-    /// <returns>The JSON representation of the ImageDomainTests instance.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+    /// <returns>The JSON representation of the <see cref="ImageDomainTests"/> instance.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
     public static string ToJson(this ImageDomainTests value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var options = indented ? JsonOptions : JsonSerializerOptions.Default;
+        var options = new JsonSerializerOptions(JsonOptions) { WriteIndented = indented };
         return JsonSerializer.Serialize(value, options);
     }
 
     /// <summary>
-    /// Creates an ImageDomainTests instance from JSON.
+    /// Creates an <see cref="ImageDomainTests"/> instance from JSON.
     /// </summary>
     /// <param name="json">The JSON to deserialize.</param>
-    /// <returns>The deserialized ImageDomainTests instance, or null if the JSON is empty.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
-    /// <exception cref="JsonException">Thrown when the JSON is invalid.</exception>
+    /// <returns>The deserialized <see cref="ImageDomainTests"/> instance, or null if deserialization fails.</returns>
+    /// <exception cref="ArgumentException"><paramref name="json"/> is <see langword="null"/> or empty.</exception>
+    /// <exception cref="JsonException">The JSON is invalid or cannot be deserialized.</exception>
     public static ImageDomainTests? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
@@ -51,12 +50,12 @@ public static class ImageDomainTestsJsonExtensions
     }
 
     /// <summary>
-    /// Tries to create an ImageDomainTests instance from JSON.
+    /// Attempts to create an <see cref="ImageDomainTests"/> instance from JSON.
     /// </summary>
     /// <param name="json">The JSON to deserialize.</param>
-    /// <param name="value">The deserialized ImageDomainTests instance, or null if the JSON is invalid.</param>
+    /// <param name="value">The deserialized <see cref="ImageDomainTests"/> instance, or null if deserialization fails.</param>
     /// <returns>True if the JSON was successfully deserialized; otherwise, false.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+    /// <exception cref="ArgumentException"><paramref name="json"/> is <see langword="null"/> or empty.</exception>
     public static bool TryFromJson(string json, out ImageDomainTests? value)
     {
         try
