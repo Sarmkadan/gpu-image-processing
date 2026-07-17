@@ -49,7 +49,11 @@ public static class ConcurrencyAndConfigurationTestsValidation
     /// <param name="value">The settings instance to validate.</param>
     /// <returns><see langword="true"/> if the settings are valid; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-    public static bool IsValid(this ConcurrencyAndConfigurationTestSettings value) => Validate(value).Count == 0;
+    public static bool IsValid(this ConcurrencyAndConfigurationTestSettings value)
+    {
+        ArgumentNullException.ThrowIfNull(value);
+        return value.IsValid;
+    }
 
     /// <summary>
     /// Ensures that the specified <paramref name="value"/> is valid, throwing an
@@ -62,9 +66,9 @@ public static class ConcurrencyAndConfigurationTestsValidation
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var problems = Validate(value);
-        if (problems.Count > 0)
+        if (!value.IsValid)
         {
+            var problems = Validate(value);
             throw new ArgumentException(
                 $"Invalid {nameof(ConcurrencyAndConfigurationTestSettings)}: {string.Join(", ", problems)}",
                 nameof(value));
