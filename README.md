@@ -837,6 +837,116 @@ string profileSummary = balancedProfile.GetProfileSummary();
 Console.WriteLine(profileSummary);
 ```
 
+## ApplicationSettings
+
+The `ApplicationSettings` class provides centralized configuration for the GPU Image Processing application. It consolidates all runtime parameters into a single, strongly-typed object that can be loaded from configuration files, environment variables, or constructed programmatically. The settings control OpenCL device selection, processing behavior, storage locations, performance tuning, and logging configuration, enabling consistent behavior across different environments (development, staging, production).
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Configuration;
+using System;
+using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        // Create settings programmatically
+        var settings = new ApplicationSettings
+        {
+            ApplicationName = "GPU Image Processing",
+            Version = "1.0.0",
+            Environment = "Production",
+            
+            // OpenCL configuration
+            OpenCL = new OpenCLSettings
+            {
+                Enabled = true,
+                PreferredPlatformName = "NVIDIA CUDA",
+                PreferredDeviceName = "NVIDIA GeForce RTX 4090",
+                MaxKernels = 200,
+                CompileKernels = true,
+                KernelCachePath = Path.Combine(Directory.GetCurrentDirectory(), "cache", "kernels")
+            },
+            
+            // Processing configuration
+            Processing = new ProcessingSettings
+            {
+                DefaultBatchSize = 25,
+                MaxParallelOperations = 8,
+                UseGPUAcceleration = true,
+                MaxImageDimension = 16384,
+                MaxImageFileSizeBytes = 1_000_000_000, // 1GB
+                TileSizePixels = 1024,
+                EnableTiling = true,
+                SupportedFormats = new[] { "jpg", "png", "webp" },
+                CompressionQuality = 95,
+                MaxJobRetries = 5
+            },
+            
+            // Storage configuration
+            Storage = new StorageSettings
+            {
+                InputDirectory = "/data/input/",
+                OutputDirectory = "/data/output/",
+                TempDirectory = "/data/temp/",
+                CacheDirectory = "/data/cache/",
+                CacheIntermediateResults = true,
+                MaxCacheSizeBytes = 10_000_000_000, // 10GB
+                CacheRetentionDays = 30,
+                AutoCreateDirectories = true,
+                OverwriteExistingOutput = false
+            },
+            
+            // Performance configuration
+            Performance = new PerformanceSettings
+            {
+                EnableOptimizations = true,
+                EnableMemoryPooling = true,
+                MaxMemoryUsageBytes = 8_000_000_000, // 8GB
+                EnablePrecisionReduction = true,
+                PrecisionFormat = "float16",
+                MaxConcurrentJobs = 16,
+                MonitoringIntervalMs = 500,
+                EnableProfiling = true
+            },
+            
+            // Logging configuration
+            Logging = new LoggingSettings
+            {
+                LogLevel = "Information",
+                LogPath = "/var/log/gpu-image-processing/",
+                MaxLogFileSizeBytes = 50_000_000, // 50MB
+                MaxLogFiles = 20,
+                LogToConsole = false,
+                LogToFile = true,
+                LogPerformanceMetrics = true,
+                LogDeviceInfo = true
+            }
+        };
+        
+        // Validate configuration before use
+        var validationErrors = ConfigurationValidator.ValidateSettings(settings);
+        if (validationErrors.Count > 0)
+        {
+            Console.WriteLine("Configuration validation failed:");
+            foreach (var error in validationErrors)
+            {
+                Console.WriteLine($" - {error}");
+            }
+            return;
+        }
+        
+        Console.WriteLine($"Configuration loaded successfully for {settings.ApplicationName} v{settings.Version}");
+        Console.WriteLine($"Environment: {settings.Environment}");
+        Console.WriteLine($"GPU Acceleration: {settings.Processing.UseGPUAcceleration}");
+        Console.WriteLine($"Max Parallel Operations: {settings.Processing.MaxParallelOperations}");
+        Console.WriteLine($"Max Memory Usage: {settings.Performance.MaxMemoryUsageBytes / (1024.0 * 1024.0):F2} MB");
+    }
+}
+```
+
 ## DependencyInjectionSetup
 
 The `DependencyInjectionSetup` class provides centralized configuration for the application's dependency injection container. It registers all services, repositories, and configuration components required for GPU-accelerated image processing, including device management, compute shader pipelines, filter/transform services, and image processing components. The setup supports both synchronous service registration and asynchronous initialization, with environment-specific configuration for development and production scenarios.
