@@ -414,6 +414,143 @@ class Program
 
 ```
 
+## RemoteImageServiceValidation
+
+The `RemoteImageServiceValidation` class provides validation helpers for `RemoteImageResult` and `RemoteImageData` instances. It validates the structure and content of remote image processing results, including success states, error messages, image data integrity, content types, and byte sizes. This ensures that remote image operations produce valid, well-formed results suitable for downstream processing.
+
+### Key Features
+
+- Validates `RemoteImageResult` instances with comprehensive state and data validation
+- Validates `RemoteImageData` instances including image data, content type, size, and metadata
+- Returns detailed error messages through `Validate()` methods for debugging
+- Provides convenience methods like `IsValid()` and `EnsureValid()` for fluent validation patterns
+- Ensures proper relationships between `IsSuccess`, `Data`, and `Error` fields in `RemoteImageResult`
+- Validates content type format (must start with "image/")
+- Validates image data integrity and size constraints
+- Validates source URL format when present
+- Validates timestamp fields (DownloadedAt cannot be in the future)
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Integration;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+static void Main()
+{
+
+// Create a valid RemoteImageResult
+var validResult = new RemoteImageResult
+{
+    IsSuccess = true,
+    Data = new RemoteImageData
+    {
+        ImageData = new byte[] { 0xFF, 0xD8, 0xFF }, // JPEG header
+        ContentType = "image/jpeg",
+        SizeBytes = 1024,
+        SourceUrl = "https://example.com/image.jpg",
+        DownloadedAt = DateTime.UtcNow
+    },
+    Error = null
+};
+
+// Validate the result
+var resultErrors = validResult.Validate();
+Console.WriteLine($"Valid result has {resultErrors.Count} errors"); // Output: 0
+
+// Check if valid using convenience method
+bool isValid = validResult.IsValid();
+Console.WriteLine($"Is valid: {isValid}"); // Output: Is valid: True
+
+// Create an invalid result (IsSuccess=true but Data=null)
+var invalidResult = new RemoteImageResult
+{
+    IsSuccess = true,
+    Data = null, // Invalid - must not be null when IsSuccess is true
+    Error = null
+};
+
+// Validate and get detailed errors
+var errors = invalidResult.Validate();
+Console.WriteLine("Validation errors:");
+foreach (var error in errors)
+{
+    Console.WriteLine($"- {error}");
+}
+/* Output:
+- Data must not be null when IsSuccess is true.
+*/
+
+// Validate RemoteImageData separately
+var invalidData = new RemoteImageData
+{
+    ImageData = null, // Invalid - must not be null
+    ContentType = "invalid-type", // Invalid - must start with "image/"
+    SizeBytes = -100, // Invalid - must be non-negative
+    SourceUrl = "not-a-valid-url", // Invalid - must be valid URI if specified
+    DownloadedAt = DateTime.UtcNow.AddDays(1) // Invalid - cannot be in the future
+};
+
+var dataErrors = invalidData.Validate();
+Console.WriteLine($"\nData validation errors: {dataErrors.Count}");
+foreach (var error in dataErrors)
+{
+    Console.WriteLine($"- {error}");
+}
+/* Output:
+- ImageData must not be null.
+- ContentType must start with 'image/' prefix.
+- SizeBytes must be a non-negative number.
+- SourceUrl must be a valid absolute URI if specified.
+- DownloadedAt cannot be in the future.
+*/
+
+// Use EnsureValid() to throw exception on invalid result
+try
+{
+    invalidResult.EnsureValid();
+}
+catch (ArgumentException ex)
+{
+    Console.WriteLine($"\nEnsureValid caught error: {ex.Message}");
+}
+
+// Use EnsureValid() on data
+try
+{
+    invalidData.EnsureValid();
+}
+catch (ArgumentException ex)
+{
+    Console.WriteLine($"EnsureValid on data caught error: {ex.Message}");
+}
+
+// Validate a successful result with all fields
+var completeResult = new RemoteImageResult
+{
+    IsSuccess = true,
+    Data = new RemoteImageData
+    {
+        ImageData = new byte[] { 0x89, 0x50, 0x4E, 0x47 }, // PNG header
+        ContentType = "image/png",
+        SizeBytes = 2048,
+        SourceUrl = "https://cdn.example.com/photos/image.png",
+        DownloadedAt = DateTime.UtcNow.AddMinutes(-5)
+    },
+    Error = null
+};
+
+var completeErrors = completeResult.Validate();
+Console.WriteLine($"\nComplete result validation: {completeErrors.Count} errors"); // Output: 0
+}
+}
+
+```
+
 ## HttpImageClientValidation
 
 The `HttpImageClientValidation` class provides comprehensive validation utilities for `HttpImageClient` instances and related HTTP image operations. It includes validation methods for URLs, file paths, directory existence, HTTP status codes, timeouts, and retry configurations, ensuring robust error handling for HTTP-based image processing workflows.
