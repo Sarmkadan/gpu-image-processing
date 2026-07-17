@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace GpuImageProcessing.Services;
 
@@ -32,7 +31,7 @@ public static class NotificationServiceValidation
         }
 
         // Validate Type
-        if (!Enum.IsDefined(value.Type))
+        if (!Enum.IsDefined(typeof(NotificationType), value.Type))
         {
             problems.Add($"Type '{value.Type}' is not a valid NotificationType value.");
         }
@@ -58,7 +57,7 @@ public static class NotificationServiceValidation
         }
 
         // Validate Severity
-        if (!Enum.IsDefined(value.Severity))
+        if (!Enum.IsDefined(typeof(NotificationSeverity), value.Severity))
         {
             problems.Add($"Severity '{value.Severity}' is not a valid NotificationSeverity value.");
         }
@@ -94,19 +93,15 @@ public static class NotificationServiceValidation
                 if (kvp.Key is null)
                 {
                     problems.Add("Details dictionary contains a null key.");
-                    break;
                 }
-
-                if (kvp.Key.Length > 256)
+                else if (kvp.Key.Length > 256)
                 {
                     problems.Add("Details dictionary key exceeds maximum length of 256 characters.");
-                    break;
                 }
 
                 if (kvp.Value is null)
                 {
                     problems.Add($"Details dictionary contains a null value for key '{kvp.Key}'.");
-                    break;
                 }
             }
         }
