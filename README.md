@@ -737,6 +737,124 @@ class Program
 }
 ```
 
+## HtmlResultFormatter
+
+The `HtmlResultFormatter` class formats GPU image processing results, device information, job status, and errors into interactive HTML documents with embedded CSS styling. It generates comprehensive web-ready reports with tables, statistics, and responsive design suitable for web display, dashboards, and reporting purposes.
+
+### Key Features
+
+- Formats processing results into structured HTML reports with embedded CSS
+- Generates interactive tables with hover effects and status indicators
+- Creates responsive statistics cards with visual indicators
+- Formats device information and job status with styled HTML elements
+- Handles error reporting with formatted HTML output
+- Provides file extension and MIME type information for HTML output
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Formatters;
+using GpuImageProcessing.Core.Models;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var formatter = new HtmlResultFormatter();
+
+        // Format a single processing result
+        var singleResult = new ProcessingResult
+        {
+            Id = "result-001",
+            ImageId = "image-001",
+            IsSuccessful = true,
+            ProcessingTimeMs = 150.5f,
+            OutputFileSizeBytes = 1024 * 1024, // 1MB
+            AppliedFilters = new List<string> { "GaussianBlur", "EdgeDetection" },
+            AppliedTransforms = new List<string> { "Resize" }
+        };
+
+        string singleResultHtml = formatter.FormatResult(singleResult);
+        Console.WriteLine(singleResultHtml);
+
+        // Format multiple processing results
+        var results = new List<ProcessingResult>
+        {
+            new ProcessingResult
+            {
+                Id = "result-001",
+                ImageId = "image-001",
+                IsSuccessful = true,
+                ProcessingTimeMs = 150.5f,
+                OutputFileSizeBytes = 1024 * 1024,
+                AppliedFilters = new List<string> { "GaussianBlur" }
+            },
+            new ProcessingResult
+            {
+                Id = "result-002",
+                ImageId = "image-002",
+                IsSuccessful = false,
+                ProcessingTimeMs = 250.0f,
+                OutputFileSizeBytes = 512 * 1024,
+                ErrorMessage = "Invalid image format"
+            },
+            new ProcessingResult
+            {
+                Id = "result-003",
+                ImageId = "image-003",
+                IsSuccessful = true,
+                ProcessingTimeMs = 120.25f,
+                OutputFileSizeBytes = 2 * 1024 * 1024,
+                AppliedTransforms = new List<string> { "Crop", "Rotate" }
+            }
+        };
+
+        string multipleResultsHtml = formatter.FormatResults(results);
+        Console.WriteLine(multipleResultsHtml);
+
+        // Format a processing job
+        var job = new ProcessingJob
+        {
+            Name = "Batch Image Processing Job",
+            Status = "Completed",
+            ProcessedImages = 45,
+            TotalImages = 50,
+            ProgressPercentage = 90.0f
+        };
+
+        string jobHtml = formatter.FormatJob(job);
+        Console.WriteLine(jobHtml);
+
+        // Format device information
+        var device = new DeviceInfo
+        {
+            Name = "NVIDIA RTX 3090 Ti",
+            Vendor = "NVIDIA",
+            DeviceType = "GPU",
+            IsAvailable = true,
+            GlobalMemoryBytes = 24L * 1024 * 1024 * 1024 // 24GB
+        };
+
+        string deviceHtml = formatter.FormatDevice(device);
+        Console.WriteLine(deviceHtml);
+
+        // Format an error
+        string errorHtml = formatter.FormatError(
+            "Failed to initialize compute shader pipeline",
+            "GPU-001",
+            new InvalidOperationException("Device not available or driver error")
+        );
+        Console.WriteLine(errorHtml);
+
+        // Get file extension and MIME type
+        Console.WriteLine($"File extension: {formatter.GetFileExtension()}");
+        Console.WriteLine($"MIME type: {formatter.GetMimeType()}");
+    }
+}
+```
+
 ## JsonResultFormatter
 
 The `JsonResultFormatter` class provides JSON serialization utilities for GPU image processing results, device information, job status, and errors. It formats data into structured JSON output with configurable formatting options, camelCase property naming, and proper null handling.
