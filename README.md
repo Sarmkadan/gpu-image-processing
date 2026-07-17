@@ -1932,9 +1932,193 @@ Console.WriteLine("Batch processing completed!");
 }
 ```
 
-## BatchProcessingUtilitiesValidation
+## MetricsUtilitiesValidation
 
-The `BatchProcessingUtilitiesValidation` class provides comprehensive validation utilities for batch processing operations. It validates `BatchItem<T>`, `BatchProgress`, and `ThrottleRecommendation` instances with detailed error messages through `Validate()` methods, ensuring that batch configurations, progress tracking, and performance recommendations are valid and safe for processing. This validation layer helps prevent runtime errors and provides detailed error messages for debugging batch operations.
+The `MetricsUtilitiesValidation` class provides comprehensive validation utilities for image quality metrics and statistical analysis results. It validates `StatisticalMetrics`, `Histogram`, and `HistogramBucket` instances with detailed error messages through `Validate()` methods, ensuring that computed metrics are valid and safe for downstream processing. This validation layer helps prevent runtime errors and provides detailed error messages for debugging metric calculations.
+
+### Key Features
+
+- Validates `StatisticalMetrics` instances including count, min, max, mean, median, percentiles, standard deviation, and sum with comprehensive range and consistency checks
+- Validates `Histogram` instances including bucket validation, total count matching, and range consistency across buckets
+- Validates `HistogramBucket` instances including bucket number, count, percentage, and range validation
+- Returns detailed error messages through `Validate()` methods for debugging and validation scenarios
+- Provides convenience methods like `IsValid()` and `EnsureValid()` for fluent validation patterns
+- Ensures proper relationships between statistical values (e.g., mean between min/max, std dev non-negative)
+- Throws descriptive exceptions when validation fails with comprehensive error details
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Utilities;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+
+static void Main()
+{
+
+// Create valid statistical metrics from image quality analysis
+var validMetrics = new StatisticalMetrics
+{
+Count = 1000,
+Min = 25.5,
+Max = 98.7,
+Mean = 67.3,
+Median = 68.1,
+P95 = 95.2,
+P99 = 97.8,
+StdDev = 12.4,
+Sum = 67300.0
+};
+
+// Validate the metrics
+var metricErrors = validMetrics.Validate();
+Console.WriteLine($"StatisticalMetrics validation: {(metricErrors.Count == 0 ? "Valid" : string.Join(", ", metricErrors))}");
+
+// Check if valid using convenience method
+bool isMetricsValid = validMetrics.IsValid();
+Console.WriteLine($"Is StatisticalMetrics valid: {isMetricsValid}");
+
+// Create a valid histogram
+var validHistogram = new Histogram
+{
+TotalCount = 1000,
+Buckets = new List<HistogramBucket>
+{
+new HistogramBucket { BucketNumber = 1, Min = 0, Max = 25, Count = 250, Percentage = 25.0 },
+new HistogramBucket { BucketNumber = 2, Min = 25, Max = 50, Count = 500, Percentage = 50.0 },
+new HistogramBucket { BucketNumber = 3, Min = 50, Max = 75, Count = 200, Percentage = 20.0 },
+new HistogramBucket { BucketNumber = 4, Min = 75, Max = 100, Count = 50, Percentage = 5.0 }
+}
+};
+
+// Validate the histogram
+var histogramErrors = validHistogram.Validate();
+Console.WriteLine($"\nHistogram validation: {(histogramErrors.Count == 0 ? "Valid" : string.Join(", ", histogramErrors))}");
+
+// Check if valid using convenience method
+bool isHistogramValid = validHistogram.IsValid();
+Console.WriteLine($"Is Histogram valid: {isHistogramValid}");
+
+// Create a valid histogram bucket
+var validBucket = new HistogramBucket
+{
+BucketNumber = 1,
+Min = 0,
+Max = 25,
+Count = 250,
+Percentage = 25.0
+};
+
+// Validate the bucket
+var bucketErrors = validBucket.Validate();
+Console.WriteLine($"\nHistogramBucket validation: {(bucketErrors.Count == 0 ? "Valid" : string.Join(", ", bucketErrors))}");
+
+// Check if valid using convenience method
+bool isBucketValid = validBucket.IsValid();
+Console.WriteLine($"Is HistogramBucket valid: {isBucketValid}");
+
+// Use EnsureValid() to throw exception on invalid metrics
+try
+{
+var invalidMetrics = new StatisticalMetrics
+{
+Count = -1, // Invalid - negative count
+Mean = double.NaN
+};
+invalidMetrics.EnsureValid();
+}
+catch (ArgumentException ex)
+{
+Console.WriteLine($"\nEnsureValid caught error: {ex.Message}");
+}
+
+// Use EnsureValid() on histogram
+try
+{
+var invalidHistogram = new Histogram
+{
+TotalCount = 100,
+Buckets = new List<HistogramBucket> { new HistogramBucket { BucketNumber = 1, Min = 50, Max = 25, Count = 100 } }
+};
+invalidHistogram.EnsureValid();
+}
+catch (ArgumentException ex)
+{
+Console.WriteLine($"EnsureValid on Histogram caught error: {ex.Message}");
+}
+
+// Use EnsureValid() on bucket
+try
+{
+var invalidBucket = new HistogramBucket
+{
+BucketNumber = -1, // Invalid - negative bucket number
+Min = 25,
+Max = 0, // Invalid - min > max
+Count = 100
+};
+invalidBucket.EnsureValid();
+}
+catch (ArgumentException ex)
+{
+Console.WriteLine($"EnsureValid on HistogramBucket caught error: {ex.Message}");
+}
+
+// Example with actual metric calculation workflow
+Console.WriteLine("\n--- Image Quality Metrics Validation Example ---");
+
+// Simulate computing metrics from image processing results
+var qualityMetrics = new StatisticalMetrics
+{
+Count = 500,
+Min = 30.2,
+Max = 99.8,
+Mean = 75.6,
+Median = 78.3,
+P95 = 98.1,
+P99 = 99.5,
+StdDev = 15.2,
+Sum = 37800.0
+};
+
+// Validate before using metrics in calculations
+if (qualityMetrics.IsValid())
+{
+Console.WriteLine($"Quality metrics are valid!");
+Console.WriteLine($"Range: {qualityMetrics.Min:F1}-{qualityMetrics.Max:F1}");
+Console.WriteLine($"Mean: {qualityMetrics.Mean:F1} ± {qualityMetrics.StdDev:F1}");
+Console.WriteLine($"P95: {qualityMetrics.P95:F1}, P99: {qualityMetrics.P99:F1}");
+}
+
+// Create histogram from distribution analysis
+var distribution = new Histogram
+{
+TotalCount = 500,
+Buckets = new List<HistogramBucket>
+{
+new HistogramBucket { BucketNumber = 1, Min = 0, Max = 20, Count = 50, Percentage = 10.0 },
+new HistogramBucket { BucketNumber = 2, Min = 20, Max = 40, Count = 150, Percentage = 30.0 },
+new HistogramBucket { BucketNumber = 3, Min = 40, Max = 60, Count = 200, Percentage = 40.0 },
+new HistogramBucket { BucketNumber = 4, Min = 60, Max = 80, Count = 80, Percentage = 16.0 },
+new HistogramBucket { BucketNumber = 5, Min = 80, Max = 100, Count = 20, Percentage = 4.0 }
+}
+};
+
+if (distribution.IsValid())
+{
+Console.WriteLine($"\nDistribution histogram is valid!");
+Console.WriteLine($"Total items: {distribution.TotalCount}");
+Console.WriteLine($"Most common bucket: {distribution.Buckets.OrderByDescending(b => b.Count).First().BucketNumber}");
+}
+}
+
+```
+
+## BatchProcessingUtilitiesValidation
 
 ### Key Features
 
