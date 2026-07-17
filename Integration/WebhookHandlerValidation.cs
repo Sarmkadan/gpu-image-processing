@@ -31,8 +31,8 @@ namespace GpuImageProcessing.Integration
         /// Validates a <see cref="WebhookHandler"/> instance.
         /// </summary>
         /// <param name="value">The webhook handler to validate.</param>
-        /// <returns>A list of validation errors; empty if the instance is valid.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+        /// <returns>A read‑only list of validation error messages; empty if the instance is valid.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
         public static IReadOnlyList<string> Validate(this WebhookHandler value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -43,7 +43,7 @@ namespace GpuImageProcessing.Integration
             var subscriptions = GetSubscriptions(value);
             if (subscriptions is not System.Collections.IList)
             {
-                errors.Add("Subscriptions list must be a valid IList instance.");
+                errors.Add("Subscriptions list must be a non‑null IList instance.");
             }
 
             // Validate http client
@@ -74,15 +74,16 @@ namespace GpuImageProcessing.Integration
         /// Determines whether a <see cref="WebhookHandler"/> instance is valid.
         /// </summary>
         /// <param name="value">The webhook handler to check.</param>
-        /// <returns>True if the instance is valid; otherwise false.</returns>
-        public static bool IsValid(this WebhookHandler value) => value is not null && value.Validate().Count == 0;
+        /// <returns><c>true</c> if the instance is non‑null and has no validation errors; otherwise <c>false</c>.</returns>
+        public static bool IsValid(this WebhookHandler value) =>
+            value is not null && value.Validate().Count == 0;
 
         /// <summary>
         /// Ensures that a <see cref="WebhookHandler"/> instance is valid, throwing an exception if it is not.
         /// </summary>
         /// <param name="value">The webhook handler to validate.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="value"/> is not valid.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">Thrown when the instance is not valid; the message contains the validation errors.</exception>
         public static void EnsureValid(this WebhookHandler value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -94,67 +95,36 @@ namespace GpuImageProcessing.Integration
             }
         }
 
-        /// <summary>
-/// Gets the subscriptions list from a <see cref="WebhookHandler"/> instance.
-/// </summary>
-/// <param name="handler">The webhook handler instance.</param>
-/// <returns>The subscriptions list, or null if not found.</returns>
-/// <exception cref="ArgumentNullException">Thrown when <paramref name="handler"/> is null.</exception>
-private static System.Collections.IList? GetSubscriptions(WebhookHandler handler)
+        private static System.Collections.IList? GetSubscriptions(WebhookHandler handler)
         {
             ArgumentNullException.ThrowIfNull(handler);
             return _subscriptionsField.GetValue(handler) as System.Collections.IList;
         }
 
-        /// <summary>
-/// Gets the HTTP client from a <see cref="WebhookHandler"/> instance.
-/// </summary>
-/// <param name="handler">The webhook handler instance.</param>
-/// <returns>The HTTP client instance, or null if not found.</returns>
-/// <exception cref="ArgumentNullException">Thrown when <paramref name="handler"/> is null.</exception>
-private static object? GetHttpClient(WebhookHandler handler)
+        private static object? GetHttpClient(WebhookHandler handler)
         {
             ArgumentNullException.ThrowIfNull(handler);
             return _httpClientProperty.GetValue(handler);
         }
 
-        /// <summary>
-/// Gets the logger from a <see cref="WebhookHandler"/> instance.
-/// </summary>
-/// <param name="handler">The webhook handler instance.</param>
-/// <returns>The logger instance, or null if not found.</returns>
-/// <exception cref="ArgumentNullException">Thrown when <paramref name="handler"/> is null.</exception>
-private static object? GetLogger(WebhookHandler handler)
+        private static object? GetLogger(WebhookHandler handler)
         {
             ArgumentNullException.ThrowIfNull(handler);
             return _loggerProperty.GetValue(handler);
         }
 
-        /// <summary>
-/// Gets the lock object from a <see cref="WebhookHandler"/> instance.
-/// </summary>
-/// <param name="handler">The webhook handler instance.</param>
-/// <returns>The lock object instance, or null if not found.</returns>
-/// <exception cref="ArgumentNullException">Thrown when <paramref name="handler"/> is null.</exception>
-private static object? GetLockObject(WebhookHandler handler)
+        private static object? GetLockObject(WebhookHandler handler)
         {
             ArgumentNullException.ThrowIfNull(handler);
             return _lockObjectProperty.GetValue(handler);
         }
 
-        /// <summary>
-/// Throws a validation exception with the accumulated errors.
-/// </summary>
-/// <param name="typeName">The type name being validated.</param>
-/// <param name="errors">The list of validation error messages.</param>
-/// <exception cref="ArgumentException">Always thrown with the validation errors.</exception>
-private static void ThrowValidationException(string typeName, IReadOnlyList<string> errors)
+        private static void ThrowValidationException(string typeName, IReadOnlyList<string> errors)
         {
             throw new ArgumentException(
                 $"{typeName} is not valid. Validation errors:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
         }
     }
-}
 
     /// <summary>
     /// Provides validation helpers for <see cref="WebhookRetryPolicy"/> instances.
@@ -165,7 +135,8 @@ private static void ThrowValidationException(string typeName, IReadOnlyList<stri
         /// Validates a <see cref="WebhookRetryPolicy"/> instance.
         /// </summary>
         /// <param name="value">The retry policy to validate.</param>
-        /// <returns>A list of validation errors; empty if the instance is valid.</returns>
+        /// <returns>A read‑only list of validation error messages; empty if the instance is valid.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
         internal static IReadOnlyList<string> Validate(this WebhookRetryPolicy value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -207,15 +178,16 @@ private static void ThrowValidationException(string typeName, IReadOnlyList<stri
         /// Determines whether a <see cref="WebhookRetryPolicy"/> instance is valid.
         /// </summary>
         /// <param name="value">The retry policy to check.</param>
-        /// <returns>True if the instance is valid; otherwise false.</returns>
-        internal static bool IsValid(this WebhookRetryPolicy value) => value is not null && value.Validate().Count == 0;
+        /// <returns><c>true</c> if the instance is non‑null and has no validation errors; otherwise <c>false</c>.</returns>
+        internal static bool IsValid(this WebhookRetryPolicy value) =>
+            value is not null && value.Validate().Count == 0;
 
         /// <summary>
         /// Ensures that a <see cref="WebhookRetryPolicy"/> instance is valid, throwing an exception if it is not.
         /// </summary>
         /// <param name="value">The retry policy to validate.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="value"/> is not valid.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">Thrown when the instance is not valid; the message contains the validation errors.</exception>
         internal static void EnsureValid(this WebhookRetryPolicy value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -227,13 +199,7 @@ private static void ThrowValidationException(string typeName, IReadOnlyList<stri
             }
         }
 
-        /// <summary>
-/// Throws a validation exception with the accumulated errors.
-/// </summary>
-/// <param name="typeName">The type name being validated.</param>
-/// <param name="errors">The list of validation error messages.</param>
-/// <exception cref="ArgumentException">Always thrown with the validation errors.</exception>
-private static void ThrowValidationException(string typeName, IReadOnlyList<string> errors)
+        private static void ThrowValidationException(string typeName, IReadOnlyList<string> errors)
         {
             throw new ArgumentException(
                 $"{typeName} is not valid. Validation errors:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
@@ -249,7 +215,8 @@ private static void ThrowValidationException(string typeName, IReadOnlyList<stri
         /// Validates a <see cref="WebhookSubscription"/> instance.
         /// </summary>
         /// <param name="value">The subscription to validate.</param>
-        /// <returns>A list of validation errors; empty if the instance is valid.</returns>
+        /// <returns>A read‑only list of validation error messages; empty if the instance is valid.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
         internal static IReadOnlyList<string> Validate(this WebhookSubscription value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -311,15 +278,16 @@ private static void ThrowValidationException(string typeName, IReadOnlyList<stri
         /// Determines whether a <see cref="WebhookSubscription"/> instance is valid.
         /// </summary>
         /// <param name="value">The subscription to check.</param>
-        /// <returns>True if the instance is valid; otherwise false.</returns>
-        internal static bool IsValid(this WebhookSubscription value) => value is not null && value.Validate().Count == 0;
+        /// <returns><c>true</c> if the instance is non‑null and has no validation errors; otherwise <c>false</c>.</returns>
+        internal static bool IsValid(this WebhookSubscription value) =>
+            value is not null && value.Validate().Count == 0;
 
         /// <summary>
         /// Ensures that a <see cref="WebhookSubscription"/> instance is valid, throwing an exception if it is not.
         /// </summary>
         /// <param name="value">The subscription to validate.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="value"/> is not valid.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">Thrown when the instance is not valid; the message contains the validation errors.</exception>
         internal static void EnsureValid(this WebhookSubscription value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -331,15 +299,10 @@ private static void ThrowValidationException(string typeName, IReadOnlyList<stri
             }
         }
 
-        /// <summary>
-/// Throws a validation exception with the accumulated errors.
-/// </summary>
-/// <param name="typeName">The type name being validated.</param>
-/// <param name="errors">The list of validation error messages.</param>
-/// <exception cref="ArgumentException">Always thrown with the validation errors.</exception>
-private static void ThrowValidationException(string typeName, IReadOnlyList<string> errors)
+        private static void ThrowValidationException(string typeName, IReadOnlyList<string> errors)
         {
             throw new ArgumentException(
                 $"{typeName} is not valid. Validation errors:{Environment.NewLine}{string.Join(Environment.NewLine, errors)}");
         }
     }
+}
