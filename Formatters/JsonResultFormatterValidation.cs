@@ -57,7 +57,8 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         /// <param name="value">The formatter to check.</param>
         /// <returns>True if the formatter is valid; otherwise false.</returns>
-        public static bool IsValid(this JsonResultFormatter value)
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
+        public static bool IsValid(this JsonResultFormatter? value)
         {
             return value?.Validate().Count == 0;
         }
