@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text.Json;
 
 namespace GpuImageProcessing.Cli
@@ -52,17 +54,18 @@ namespace GpuImageProcessing.Cli
             var fileInfo = new FileInfo(Assembly.GetExecutingAssembly().Location);
             var buildDate = fileInfo.LastWriteTime.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
 
+            var targetFramework = GetTargetFramework();
+
+            var osPlatform = GetOSPlatform();
+
             var info = new
             {
                 Name = "GPU Image Processing System",
                 Version = $"{version.Major}.{version.Minor}.{version.Build}.{version.Revision}",
                 BuildDate = buildDate,
-                TargetFramework = ".NET 10.0",
+                TargetFramework = targetFramework,
                 RuntimeVersion = Environment.Version.ToString(),
-                OS = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? "Windows"
-                     : RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? "Linux"
-                     : RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? "macOS"
-                     : "Unknown",
+                OS = osPlatform,
                 Architecture = RuntimeInformation.ProcessArchitecture.ToString(),
                 Debug = IsDebugBuild()
             };
@@ -70,6 +73,45 @@ namespace GpuImageProcessing.Cli
             return JsonSerializer.Serialize(info, new JsonSerializerOptions { WriteIndented = true });
         }
 
+        /// <summary>
+        /// Gets the target framework moniker from assembly metadata.
+        /// </summary>
+        /// <returns>The target framework identifier.</returns>
+        private static string GetTargetFramework()
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var targetFrameworkAttribute = assembly.GetCustomAttribute<TargetFrameworkAttribute>();
+            return targetFrameworkAttribute?.FrameworkName ?? ".NET";
+        }
+
+        /// <summary>
+        /// Determines the current operating system platform.
+        /// </summary>
+        /// <returns>The OS platform name.</returns>
+        private static string GetOSPlatform()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return "Windows";
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return "Linux";
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                return "macOS";
+            }
+
+            return "Unknown";
+        }
+
+        /// <summary>
+        /// Checks if the application was compiled in Debug mode.
+        /// </summary>
+        /// <returns><c>true</c> if in Debug mode; otherwise, <c>false</c>.</returns>
         private static bool IsDebugBuild()
         {
 #if DEBUG
