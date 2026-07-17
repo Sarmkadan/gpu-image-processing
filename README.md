@@ -1506,6 +1506,123 @@ class Program
 
 The `PathUtilities` class provides a comprehensive set of utilities for path manipulation, normalization, and directory management. It handles cross-platform path operations, safe file operations, and directory traversal with robust error handling to ensure reliable file system operations across different operating systems.
 
+## GpuManagementServiceValidation
+
+The `GpuManagementServiceValidation` class provides validation utilities for `GpuManagementService` instances to ensure GPU device availability, memory allocation, and service state are valid before performing GPU-accelerated image processing operations. It validates device properties, memory constraints, compute unit availability, and service configuration, returning detailed error messages when validation fails.
+
+### Key Features
+
+- Validates `GpuManagementService` instances with comprehensive device and service state checks
+- Validates `GpuDevice` instances with detailed property validation (memory, compute units, availability)
+- Validates device allocation requests with memory and compute unit requirements
+- Returns detailed error messages through `Validate()` methods for debugging and error handling
+- Provides convenience methods like `IsValid()` and `EnsureValid()` for fluent validation patterns
+- Includes allocation validation with `ValidateDeviceAllocation()`, `CanAllocate()`, and `EnsureCanAllocate()` methods
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Services;
+using GpuImageProcessing.Domain;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        // Initialize GPU management service (typically via dependency injection)
+        var gpuService = new GpuManagementService();
+        
+        // Validate the service state
+        var serviceErrors = gpuService.Validate();
+        Console.WriteLine($"Service validation has {serviceErrors.Count} errors");
+        
+        // Check if service is valid using convenience method
+        bool isServiceValid = gpuService.IsValid();
+        Console.WriteLine($"Service is valid: {isServiceValid}");
+        
+        // Get available devices
+        var devices = gpuService.GetAvailableDevices();
+        Console.WriteLine($"Found {devices.Count} available devices");
+        
+        // Validate each device
+        foreach (var device in devices)
+        {
+            var deviceErrors = device.Validate();
+            if (deviceErrors.Count == 0)
+            {
+                Console.WriteLine($"Device {device.Name} is valid");
+            }
+            else
+            {
+                Console.WriteLine($"Device {device.Name} has {deviceErrors.Count} validation errors:");
+                foreach (var error in deviceErrors)
+                {
+                    Console.WriteLine($"  - {error}");
+                }
+            }
+        }
+        
+        // Validate device allocation for a specific task
+        var allocationErrors = gpuService.ValidateDeviceAllocation(
+            deviceId: devices[0].Id,
+            requiredMemory: 1024 * 1024 * 1024, // 1GB
+            requiredComputeUnits: 8
+        );
+        
+        if (allocationErrors.Count == 0)
+        {
+            Console.WriteLine("Device allocation is valid - GPU resources are sufficient");
+        }
+        else
+        {
+            Console.WriteLine("Device allocation validation failed:");
+            foreach (var error in allocationErrors)
+            {
+                Console.WriteLine($"  - {error}");
+            }
+        }
+        
+        // Use CanAllocate() for conditional logic
+        bool canAllocate = gpuService.CanAllocate(
+            deviceId: devices[0].Id,
+            requiredMemory: 512 * 1024 * 1024, // 512MB
+            requiredComputeUnits: 4
+        );
+        Console.WriteLine($"Can allocate resources: {canAllocate}");
+        
+        // Use EnsureValid() to throw exception on invalid service
+        try
+        {
+            gpuService.EnsureValid();
+            Console.WriteLine("Service passed validation");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Service validation failed: {ex.Message}");
+        }
+        
+        // Use EnsureCanAllocate() to throw exception on allocation failure
+        try
+        {
+            gpuService.EnsureCanAllocate(
+                deviceId: devices[0].Id,
+                requiredMemory: 2L * 1024 * 1024 * 1024, // 2GB
+                requiredComputeUnits: 16
+            );
+            Console.WriteLine("Device allocation passed validation");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Device allocation failed: {ex.Message}");
+        }
+    }
+}
+
+```
+
 ## ComputeShaderPassValidation
 
 The `ComputeShaderPassValidation` class provides validation utilities for `ComputeShaderPass` instances to ensure all required properties are properly initialized before GPU execution. It validates critical properties such as kernel names, workgroup configurations, input/output images, and parameter dictionaries, returning detailed error messages when validation fails.
