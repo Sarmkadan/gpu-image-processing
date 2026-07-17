@@ -22,7 +22,7 @@ public static class FilterChainBuilderExtensions
     /// <summary>
     /// Adds multiple filter steps in a single call using a collection of filter types.
     /// </summary>
-    /// <param name="builder">The builder instance.</param>
+    /// <param name="builder">The <see cref="FilterChainBuilder"/> instance.</param>
     /// <param name="filterTypes">Collection of filter types to add.</param>
     /// <returns>The builder instance for fluent chaining.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="builder"/> or <paramref name="filterTypes"/> is null.</exception>
@@ -57,9 +57,9 @@ public static class FilterChainBuilderExtensions
     /// <summary>
     /// Adds a sequence of common image enhancement filters (grayscale, sharpen, contrast).
     /// </summary>
-    /// <param name="builder">The builder instance.</param>
-    /// <param name="sharpenStrength">Sharpen strength (0.0 - 10.0). Defaults to 1.0.</param>
-    /// <param name="brightness">Brightness adjustment (-1.0 - 1.0). Defaults to 0.0.</param>
+    /// <param name="builder">The <see cref="FilterChainBuilder"/> instance.</param>
+    /// <param name="sharpenStrength">Sharpen strength in range 0.0 - 10.0. Defaults to 1.0.</param>
+    /// <param name="brightness">Brightness adjustment in range -1.0 - 1.0. Defaults to 0.0.</param>
     /// <returns>The builder instance for fluent chaining.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="builder"/> is null.</exception>
     public static FilterChainBuilder AddEnhancementSequence(
@@ -68,7 +68,6 @@ public static class FilterChainBuilderExtensions
         float brightness = 0.0f)
     {
         ArgumentNullException.ThrowIfNull(builder);
-
         return builder
             .AddGrayscale()
             .AddSharpen(strength: sharpenStrength)
@@ -78,8 +77,8 @@ public static class FilterChainBuilderExtensions
     /// <summary>
     /// Adds a standard edge detection pipeline (grayscale, edge detection, threshold).
     /// </summary>
-    /// <param name="builder">The builder instance.</param>
-    /// <param name="threshold">Threshold value (0.0 - 1.0). Defaults to 0.5.</param>
+    /// <param name="builder">The <see cref="FilterChainBuilder"/> instance.</param>
+    /// <param name="threshold">Threshold value in range 0.0 - 1.0. Defaults to 0.5.</param>
     /// <returns>The builder instance for fluent chaining.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="builder"/> is null.</exception>
     public static FilterChainBuilder AddEdgeDetectionPipeline(
@@ -87,7 +86,6 @@ public static class FilterChainBuilderExtensions
         float threshold = 0.5f)
     {
         ArgumentNullException.ThrowIfNull(builder);
-
         return builder
             .AddGrayscale()
             .AddEdgeDetection()
@@ -97,7 +95,7 @@ public static class FilterChainBuilderExtensions
     /// <summary>
     /// Adds a batch of common filters for noise reduction and smoothing.
     /// </summary>
-    /// <param name="builder">The builder instance.</param>
+    /// <param name="builder">The <see cref="FilterChainBuilder"/> instance.</param>
     /// <param name="blurRadius">Blur radius in pixels. Defaults to 2.0.</param>
     /// <returns>The builder instance for fluent chaining.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="builder"/> is null.</exception>
@@ -107,14 +105,6 @@ public static class FilterChainBuilderExtensions
         float blurRadius = 2.0f)
     {
         ArgumentNullException.ThrowIfNull(builder);
-
-        if (blurRadius < AppConstants.Filters.MinKernelRadius || blurRadius > AppConstants.Filters.MaxKernelRadius)
-        {
-            throw new ArgumentOutOfRangeException(
-                nameof(blurRadius),
-                FormattableString.Invariant($"Blur radius must be between {AppConstants.Filters.MinKernelRadius} and {AppConstants.Filters.MaxKernelRadius}."));
-        }
-
         return builder
             .AddBilateral()
             .AddMedian()
