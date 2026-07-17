@@ -22,6 +22,7 @@ namespace GpuImageProcessing.Services
             ArgumentNullException.ThrowIfNull(value);
 
             var errors = new List<string>();
+            ArgumentNullException.ThrowIfNull(errors);
 
             // Validate internal state consistency
             // Since we can't directly access private fields, we validate via public API
@@ -124,9 +125,7 @@ namespace GpuImageProcessing.Services
         /// <param name="value">The service instance to check.</param>
         /// <returns>True if the instance is valid; otherwise, false.</returns>
         public static bool IsValid(this SystemPerformanceMonitoringService? value)
-        {
-            return value?.Validate().Count == 0;
-        }
+            => value?.Validate().Count == 0;
 
         /// <summary>
         /// Ensures that a <see cref="SystemPerformanceMonitoringService"/> instance is valid.
