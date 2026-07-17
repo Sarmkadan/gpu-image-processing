@@ -447,6 +447,64 @@ class Program
 }
 ```
 
+## RequestValidator
+
+The `RequestValidator` class provides a fluent validation API for validating API request parameters and payloads. It supports common validation scenarios like required fields, string length constraints, numeric ranges, and custom validation rules. The validator automatically sanitizes input data to prevent injection attacks and returns structured validation results with detailed error messages.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Api;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a request validator
+        var validator = new RequestValidator();
+
+        // Build validation rules using fluent API
+        validator
+            .RequireField("imagePath", v => !string.IsNullOrWhiteSpace(v?.ToString()))
+            .ValidateStringLength("imageName", 3, 100)
+            .ValidateRange("quality", 1, 100)
+            .AddRule("format", v => new[] { "jpg", "png", "webp" }.Contains(v?.ToString()?.ToLower()),
+                   "Format must be one of: jpg, png, webp");
+
+        // Prepare request data
+        var requestData = new Dictionary<string, object>
+        {
+            { "imagePath", "/data/images/sample.jpg" },
+            { "imageName", "Sample Image" },
+            { "quality", 85 },
+            { "format", "png" }
+        };
+
+        // Validate the request
+        var result = validator.Validate(requestData);
+
+        if (result.IsValid)
+        {
+            Console.WriteLine("Request validation passed!");
+        }
+        else
+        {
+            Console.WriteLine("Validation errors:");
+            foreach (var error in result.Errors)
+            {
+                Console.WriteLine($" - {error}");
+            }
+        }
+
+        // Sanitize request data to prevent injection attacks
+        var sanitizedRequest = RequestValidator.SanitizeRequest(requestData);
+        Console.WriteLine($"Sanitized imageName: {sanitizedRequest["imageName"]}");
+    }
+}
+```
+
 ## RequestMiddlewareContext
 
 The `RequestMiddlewareContext` class acts as the primary data container passed through the middleware pipeline, encapsulating request metadata, authentication details, and operational state. It provides methods to track the request lifecycle, manage response data, and securely handle errors during execution.
