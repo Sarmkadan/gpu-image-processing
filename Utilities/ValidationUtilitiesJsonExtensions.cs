@@ -29,7 +29,7 @@ namespace GpuImageProcessing.Utilities
         /// <param name="result">The validation result to serialize.</param>
         /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
         /// <returns>A JSON string representation of the validation result.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="result"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="result"/> is <see langword="null"/>.</exception>
         public static string ToJson(this ValidationResult result, bool indented = false)
         {
             ArgumentNullException.ThrowIfNull(result);
@@ -48,11 +48,12 @@ namespace GpuImageProcessing.Utilities
         /// Deserializes a JSON string to a <see cref="ValidationResult"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <returns>A deserialized <see cref="ValidationResult"/> instance, or null if the JSON is invalid.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+        /// <returns>A deserialized <see cref="ValidationResult"/> instance if successful; otherwise, <see langword="null"/>.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
+/// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or consists only of whitespace.</exception>
         public static ValidationResult? FromJson(string json)
         {
-            ArgumentException.ThrowIfNullOrEmpty(json);
+            ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
             try
             {
@@ -68,12 +69,13 @@ namespace GpuImageProcessing.Utilities
         /// Attempts to deserialize a JSON string to a <see cref="ValidationResult"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <param name="value">Receives the deserialized instance if successful, otherwise null.</param>
+        /// <param name="value">Receives the deserialized instance if successful; otherwise, <see langword="null"/>.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
+/// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or consists only of whitespace.</exception>
         public static bool TryFromJson(string json, out ValidationResult? value)
         {
-            ArgumentException.ThrowIfNullOrEmpty(json);
+            ArgumentException.ThrowIfNullOrWhiteSpace(json);
 
             try
             {
