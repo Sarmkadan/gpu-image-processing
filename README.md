@@ -827,6 +827,33 @@ Console.WriteLine($"Memory footprint 4K: {memoryFootprint4K:N0} bytes");
 Console.WriteLine($"Best device: {bestDevice?.Name ?? "None found"}");
 ```
 
+## DeviceInfo
+
+The `DeviceInfo` class represents detailed hardware information for a compute device, such as a GPU or CPU, available for image processing. It provides comprehensive specifications including memory capacity, compute unit count, clock frequency, supported extensions, and capability scores to enable informed device selection.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Models;
+using System;
+
+// Create a new DeviceInfo instance to represent a GPU
+var deviceInfo = new DeviceInfo
+{
+Name = "NVIDIA GeForce RTX 4090",
+Vendor = "NVIDIA",
+DeviceType = "GPU",
+GlobalMemoryBytes = 24L * 1024 * 1024 * 1024, // 24 GB
+ComputeUnits = 128,
+ClockFrequencyMHz = 2500f,
+SupportsDoublePrecision = true
+};
+
+Console.WriteLine($"Device: {deviceInfo.Name}");
+Console.WriteLine($"Memory: {deviceInfo.GetFormattedMemory()}");
+Console.WriteLine($"Capability Score: {deviceInfo.GetCapabilityScore()}/100");
+```
+
 ## GpuDevice
 
 The `GpuDevice` class represents a physical GPU available for processing tasks, encapsulating hardware specifications and operational capabilities. It provides detailed metrics such as memory capacity, compute unit counts, and supported precision types, allowing the application to intelligently select devices based on workload requirements.
