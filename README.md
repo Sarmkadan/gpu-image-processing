@@ -278,6 +278,79 @@ class Program
 
 ```
 
+## FilterChainBuilderTestsExtensions
+
+The `FilterChainBuilderTestsExtensions` class provides extension methods for the `FilterChainBuilderTests` class that simplify running groups of test methods programmatically. It includes utilities for executing successful build tests, validating parameter validation tests, and retrieving all test method names, making it easier to automate test execution and validation.
+
+### Key Features
+
+- Execute all successful build tests that should not throw exceptions
+- Run invalid parameter tests that are expected to throw specific exception types
+- Retrieve all test method names from the test class
+- Custom assertion exception for test failures with detailed error messages
+- Null safety checks for all public methods
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Tests.Domain;
+using System;
+using System.Linq;
+
+class Program
+{
+static void Main()
+{
+// Create an instance of the test class
+var testInstance = new FilterChainBuilderTests();
+
+// Get all test method names
+var allMethodNames = testInstance.GetAllTestMethodNames();
+Console.WriteLine($"Total test methods: {allMethodNames.Count}");
+Console.WriteLine("Method names:");
+foreach (var methodName in allMethodNames)
+{
+Console.WriteLine($" - {methodName}");
+}
+
+// Run all successful build tests (methods that should not throw)
+try
+{
+testInstance.RunAllSuccessfulBuildTests();
+Console.WriteLine("All successful build tests passed!");
+}
+catch (FilterChainBuilderTestsExtensions.AssertionFailedException ex)
+{
+Console.WriteLine($"Build test failed: {ex.Message}");
+}
+
+// Run all invalid parameter tests (methods that should throw specific exceptions)
+try
+{
+testInstance.RunAllInvalidParameterTests();
+Console.WriteLine("All invalid parameter tests completed successfully!");
+}
+catch (FilterChainBuilderTestsExtensions.AssertionFailedException ex)
+{
+Console.WriteLine($"Parameter validation test failed: {ex.Message}");
+}
+
+// Example: Run specific tests individually
+try
+{
+testInstance.Build_SingleStep_ProducesValidChain();
+Console.WriteLine("Build_SingleStep_ProducesValidChain passed");
+}
+catch (Exception ex)
+{
+Console.WriteLine($"Test failed: {ex.Message}");
+}
+}
+}
+
+```
+
 ## BatchProcessingUtilities
 
 The `BatchProcessingUtilities` class provides utilities for managing and processing batches of images efficiently. It includes batch splitting, progress tracking, and result aggregation.
