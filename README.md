@@ -1900,6 +1900,141 @@ class Program
         Console.WriteLine($"MIME type: {formatter.GetMimeType()}");
     }
 }
+## PerformanceMonitoringServiceExtensionsValidation
+
+The `PerformanceMonitoringServiceExtensionsValidation` class provides validation extension methods for performance monitoring data structures in the GPU image processing library. It validates critical properties of `PerformanceMetricsWithTrends` and `PerformanceAlert` instances, returning detailed error messages when validation fails and providing convenience methods for fluent validation patterns.
+
+### Key Features
+
+- Validates `PerformanceMetricsWithTrends` instances with comprehensive property checks including null checks, timestamp validation, and finite value constraints
+- Validates `PerformanceAlert` instances with message validation, timestamp checks, and finite value validation
+- Provides `IsValid()` convenience methods for quick validation checks
+- Provides `EnsureValid()` methods that throw exceptions when validation fails
+- Returns detailed error messages through `Validate()` methods for debugging and error handling
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Services;
+using GpuImageProcessing.Domain;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        // Create valid performance metrics with trends
+        var validMetrics = new PerformanceMetricsWithTrends
+        {
+            Current = new PerformanceMetrics
+            {
+                CpuUsagePercent = 45.2,
+                GpuUsagePercent = 78.5,
+                MemoryUsageBytes = 4L * 1024 * 1024 * 1024, // 4GB
+                ThroughputOperationsPerSecond = 1250000,
+                AverageExecutionTimeMs = 8.5f
+            },
+            Timestamp = DateTime.UtcNow,
+            CpuChangePercent = 2.5,
+            GpuChangePercent = -1.2,
+            MemoryChangePercent = 3.8,
+            ThroughputChangePercent = 5.1,
+            ExecutionTimeChangePercent = -4.3
+        };
+
+        // Validate the metrics
+        var validationErrors = validMetrics.Validate();
+        Console.WriteLine($"Valid metrics has {validationErrors.Count} errors"); // Output: 0
+
+        // Check if valid using convenience method
+        bool isValid = validMetrics.IsValid();
+        Console.WriteLine($"Is valid: {isValid}"); // Output: Is valid: True
+
+        // Create an invalid metrics instance (missing required fields)
+        var invalidMetrics = new PerformanceMetricsWithTrends
+        {
+            Current = null, // Invalid - null
+            Timestamp = default(DateTime), // Invalid - default
+            CpuChangePercent = double.PositiveInfinity, // Invalid - not finite
+            GpuChangePercent = double.NaN, // Invalid - not finite
+            MemoryChangePercent = double.NegativeInfinity, // Invalid - not finite
+            ThroughputChangePercent = 5.1,
+            ExecutionTimeChangePercent = -4.3
+        };
+
+        // Validate and get detailed errors
+        var errors = invalidMetrics.Validate();
+        Console.WriteLine("Validation errors:");
+        foreach (var error in errors)
+        {
+            Console.WriteLine($"- {error}");
+        }
+        /* Output:
+        - Current metrics cannot be null.
+        - Timestamp cannot be default.
+        - CpuChangePercent must be finite.
+        - GpuChangePercent must be finite.
+        - MemoryChangePercent must be finite.
+        */
+
+        // Use EnsureValid() to throw exception on invalid metrics
+        try
+        {
+            invalidMetrics.EnsureValid();
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Validation failed: {ex.Message}");
+        }
+
+        // Create valid performance alert
+        var validAlert = new PerformanceAlert
+        {
+            Message = "High GPU memory usage detected",
+            Timestamp = DateTime.UtcNow,
+            CurrentValue = 95.8,
+            Threshold = 90.0,
+            Severity = AlertSeverity.Warning
+        };
+
+        // Validate the alert
+        var alertErrors = validAlert.Validate();
+        Console.WriteLine($"Valid alert has {alertErrors.Count} errors"); // Output: 0
+
+        // Check if alert is valid
+        bool alertIsValid = validAlert.IsValid();
+        Console.WriteLine($"Alert is valid: {alertIsValid}"); // Output: Alert is valid: True
+
+        // Create an invalid alert
+        var invalidAlert = new PerformanceAlert
+        {
+            Message = "   ", // Invalid - whitespace only
+            Timestamp = default(DateTime), // Invalid - default
+            CurrentValue = double.NaN, // Invalid - not finite
+            Threshold = double.NaN, // Invalid - not finite
+            Severity = AlertSeverity.Critical
+        };
+
+        // Validate alert and get errors
+        var alertValidationErrors = invalidAlert.Validate();
+        Console.WriteLine($"Invalid alert has {alertValidationErrors.Count} errors");
+        
+        // Use EnsureValid() on invalid alert
+        try
+        {
+            invalidAlert.EnsureValid();
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Alert validation failed: {ex.Message}");
+        }
+    }
+}
+
+```
+
 ## BatchItemResult
 
 The `BatchItemResult` record represents the outcome for a single file processed during a batch directory operation. It captures the input file path, optional output file path, success status, and any error message that occurred during processing. This type is returned by `DirectoryBatchProcessor.ProcessDirectoryAsync` as part of the `BatchRunSummary.Items` collection, allowing callers to inspect individual file results and handle failures appropriately.
