@@ -37,7 +37,8 @@ namespace GpuImageProcessing.Integration
 
             var state = new MetricsPublisherState
             {
-                BufferSize = 100 // Default value from MetricsPublisher constructor
+                BufferSize = value.BufferSize,
+                EndpointCount = value.EndpointCount
             };
 
             var options = indented
@@ -58,9 +59,14 @@ namespace GpuImageProcessing.Integration
         {
             ArgumentException.ThrowIfNullOrEmpty(json);
 
-            // Since MetricsPublisher has no public state to deserialize,
-            // we create a new instance with default values
-            return new MetricsPublisher();
+            var state = JsonSerializer.Deserialize<MetricsPublisherState>(json, _jsonOptions);
+
+            if (state == null)
+            {
+                throw new JsonException("Failed to deserialize MetricsPublisher state from JSON.");
+            }
+
+            return new MetricsPublisher(state.BufferSize);
         }
 
         /// <summary>
@@ -79,7 +85,7 @@ namespace GpuImageProcessing.Integration
                 value = FromJson(json);
                 return true;
             }
-            catch (JsonException)
+            catch
             {
                 value = null;
                 return false;
@@ -89,6 +95,8 @@ namespace GpuImageProcessing.Integration
         private sealed class MetricsPublisherState
         {
             public int BufferSize { get; set; }
+
+            public int EndpointCount { get; set; }
         }
     }
 }
