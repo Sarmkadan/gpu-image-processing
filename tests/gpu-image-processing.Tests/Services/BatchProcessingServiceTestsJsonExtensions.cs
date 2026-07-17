@@ -6,8 +6,13 @@ using GpuImageProcessing.Services;
 namespace GpuImageProcessing.Tests.Services;
 
 /// <summary>
-/// Provides System.Text.Json serialization extensions for <see cref="BatchProcessingServiceTests"/>.
+/// Provides System.Text.Json serialization extensions for <see cref="BatchProcessingServiceTests"/> test data.
 /// </summary>
+/// <remarks>
+/// This static class contains extension methods for serializing and deserializing
+/// <see cref="BatchProcessingServiceTests"/> instances to/from JSON strings using camelCase naming policy
+/// and culture-invariant serialization settings.
+/// </remarks>
 public static class BatchProcessingServiceTestsJsonExtensions
 {
     private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
@@ -39,13 +44,10 @@ public static class BatchProcessingServiceTestsJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized instance, or null if the JSON is empty.</returns>
-    /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
-    public static BatchProcessingServiceTests? FromJson(string json)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(json);
-
-        return JsonSerializer.Deserialize<BatchProcessingServiceTests>(json, _jsonOptions);
-    }
+    /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="json"/> is empty or whitespace.</exception>
+    /// <exception cref="JsonException">The JSON is invalid or cannot be deserialized into a <see cref="BatchProcessingServiceTests"/> instance.</exception>
+    public static BatchProcessingServiceTests? FromJson(string json) => JsonSerializer.Deserialize<BatchProcessingServiceTests>(json, _jsonOptions);
 
     /// <summary>
     /// Attempts to deserialize a JSON string to a <see cref="BatchProcessingServiceTests"/> instance.
@@ -53,6 +55,8 @@ public static class BatchProcessingServiceTestsJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized instance if successful.</param>
     /// <returns>True if deserialization succeeds; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="json"/> is empty or whitespace.</exception>
     public static bool TryFromJson(string json, out BatchProcessingServiceTests? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
