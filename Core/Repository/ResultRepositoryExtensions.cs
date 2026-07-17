@@ -7,14 +7,18 @@ using GpuImageProcessing.Core.Models;
 namespace GpuImageProcessing.Core.Repository
 {
     /// <summary>
-    /// Extensions for ResultRepository
+    /// Provides extension methods for <see cref="ResultRepository"/> to simplify common repository operations.
     /// </summary>
     public static class ResultRepositoryExtensions
     {
         /// <summary>
-        /// Gets the most recent result for a specific processing job
+        /// Gets the most recent result for a specific processing job.
         /// </summary>
-        public static async Task<ProcessingResult> GetLatestResultAsync(this ResultRepository repository, Guid jobId)
+        /// <param name="repository">The repository instance.</param>
+        /// <param name="jobId">The job identifier to search for.</param>
+        /// <returns>The most recent processing result, or <see langword="null"/> if no results exist for the job.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="repository"/> is <see langword="null"/>.</exception>
+        public static async Task<ProcessingResult?> GetLatestResultAsync(this ResultRepository repository, Guid jobId)
         {
             ArgumentNullException.ThrowIfNull(repository);
             ArgumentNullException.ThrowIfNull(jobId);
@@ -24,8 +28,11 @@ namespace GpuImageProcessing.Core.Repository
         }
 
         /// <summary>
-        /// Gets the average processing time for successful results
+        /// Gets the average processing time in milliseconds for all successful results.
         /// </summary>
+        /// <param name="repository">The repository instance.</param>
+        /// <returns>The average processing time in milliseconds, or 0 if no successful results exist.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="repository"/> is <see langword="null"/>.</exception>
         public static async Task<float> GetAverageSuccessfulProcessingTimeAsync(this ResultRepository repository)
         {
             ArgumentNullException.ThrowIfNull(repository);
