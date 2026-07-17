@@ -3,12 +3,12 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
-using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using JsonException = System.Text.Json.JsonException;
 
 namespace GpuImageProcessing.Events
 {
@@ -17,7 +17,10 @@ namespace GpuImageProcessing.Events
     /// </summary>
     public static class ProcessingEventJsonExtensions
     {
-        private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
+        /// <summary>
+        /// JSON serializer options with camelCase naming policy.
+        /// </summary>
+        private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = false,
@@ -38,11 +41,11 @@ namespace GpuImageProcessing.Events
             ArgumentNullException.ThrowIfNull(value);
 
             var options = indented
-                ? new JsonSerializerOptions(_jsonOptions)
+                ? new JsonSerializerOptions(_jsonSerializerOptions)
                 {
                     WriteIndented = true
                 }
-                : _jsonOptions;
+                : _jsonSerializerOptions;
 
             return JsonSerializer.Serialize(value, options);
         }
@@ -52,18 +55,25 @@ namespace GpuImageProcessing.Events
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
         /// <returns>The deserialized processing event, or null if parsing fails.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
+        /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
         public static ProcessingEvent? FromJson(string json)
         {
-            ArgumentException.ThrowIfNullOrEmpty(json);
+            ArgumentNullException.ThrowIfNull(json);
+
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return null;
+            }
 
             try
             {
-                return JsonSerializer.Deserialize<ProcessingEvent>(json, _jsonOptions);
+                return JsonSerializer.Deserialize<ProcessingEvent>(json, _jsonSerializerOptions);
             }
-            catch (JsonException)
+            catch (JsonException ex)
             {
-                return null;
+                throw new JsonException("Failed to deserialize ProcessingEvent from JSON", ex);
             }
         }
 
@@ -71,21 +81,28 @@ namespace GpuImageProcessing.Events
         /// Attempts to parse a JSON string into a <see cref="ProcessingEvent"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <param name="value">Receives the deserialized processing event if successful.</param>
+        /// <param name="value">Receives the deserialized processing event if successful; otherwise, null.</param>
         /// <returns>True if parsing succeeds; otherwise, false.</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
         public static bool TryFromJson(string json, out ProcessingEvent? value)
         {
-            ArgumentException.ThrowIfNullOrEmpty(json);
+            value = null;
+
+            ArgumentNullException.ThrowIfNull(json);
+
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return false;
+            }
 
             try
             {
-                value = JsonSerializer.Deserialize<ProcessingEvent>(json, _jsonOptions);
-                return true;
+                value = JsonSerializer.Deserialize<ProcessingEvent>(json, _jsonSerializerOptions);
+                return value is not null;
             }
             catch (JsonException)
             {
-                value = null;
                 return false;
             }
         }
