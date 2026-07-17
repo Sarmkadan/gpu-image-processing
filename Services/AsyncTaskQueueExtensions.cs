@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +41,7 @@ namespace GpuImageProcessing.Services
             ArgumentNullException.ThrowIfNull(queue);
 
             return queue.GetAllTasks()
-                .Where(t => string.Equals(t.State, state.ToString(), StringComparison.Ordinal))
+                .Where(t => string.Equals(t.State, state.ToString(), StringComparison.OrdinalIgnoreCase))
                 .ToList()
                 .AsReadOnly();
         }
@@ -213,10 +212,8 @@ namespace GpuImageProcessing.Services
                 return -1;
 
             return tasks.Count(t => t.Priority < task.Priority ||
-                                (t.Priority == task.Priority &&
-                                 string.Compare(t.EnqueuedAt.ToString(CultureInfo.InvariantCulture),
-                                              task.EnqueuedAt.ToString(CultureInfo.InvariantCulture),
-                                              StringComparison.Ordinal) < 0));
+                (t.Priority == task.Priority &&
+                 t.EnqueuedAt < task.EnqueuedAt));
         }
 
         /// <summary>
