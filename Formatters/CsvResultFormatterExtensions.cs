@@ -17,13 +17,15 @@ namespace GpuImageProcessing.Formatters
         /// <summary>
         /// Escapes CSV field values by wrapping in quotes and escaping internal quotes.
         /// </summary>
+        /// <param name="value">The value to escape for CSV output</param>
+        /// <returns>Escaped CSV value wrapped in quotes, or empty string if input is null or empty</returns>
         private static string EscapeCsvValue(string value)
         {
             if (string.IsNullOrEmpty(value))
                 return string.Empty;
 
-            // Escape quotes by doubling them
-            return value.Replace("\"", "\"\"");
+            // Escape quotes by doubling them and wrap in quotes
+            return $"\"{value.Replace("\"", "\"\"")}\"";
         }
 
         /// <summary>
