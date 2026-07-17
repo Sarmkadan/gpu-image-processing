@@ -3460,4 +3460,72 @@ class Program
     }
 }
 
+## WebhookHandlerJsonExtensions
+
+The `WebhookHandlerJsonExtensions` class provides System.Text.Json serialization utilities for the `WebhookHandler` class, enabling serialization and deserialization of webhook handler state with support for both compact and indented JSON output formats. It includes methods for converting webhook handlers to JSON strings and reconstructing them from JSON, along with properties that expose the current webhook subscription statistics.
+
+### Key Features
+
+- Serializes `WebhookHandler` instances to JSON with camelCase property naming
+- Supports both compact and indented JSON output formats
+- Deserializes JSON strings back to `WebhookHandler` instances with logger injection
+- Provides safe deserialization with error handling via `TryFromJson`
+- Exposes webhook statistics through `ActiveWebhookCount` and `TotalWebhookCount` properties
+- Includes subscription information in serialized output
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Integration;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a logger (typically from dependency injection in real applications)
+        var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        var logger = loggerFactory.CreateLogger<WebhookHandler>();
+        
+        // Create a webhook handler instance
+        var webhookHandler = new WebhookHandler(logger);
+        
+        // Serialize to compact JSON
+        string compactJson = webhookHandler.ToJson();
+        Console.WriteLine("Compact JSON:");
+        Console.WriteLine(compactJson);
+        
+        // Serialize to indented JSON for readability
+        string indentedJson = webhookHandler.ToJson(indented: true);
+        Console.WriteLine("\nIndented JSON:");
+        Console.WriteLine(indentedJson);
+        
+        // Deserialize from JSON string
+        string json = @"{ "activeWebhookCount": 3, "totalWebhookCount": 5, "subscriptions": [] }";
+        var deserializedHandler = WebhookHandlerJsonExtensions.FromJson(json, logger);
+        
+        if (deserializedHandler != null)
+        {
+            Console.WriteLine($"\nDeserialized handler:");
+            Console.WriteLine($"Active webhooks: {webhookHandler.ActiveWebhookCount}");
+            Console.WriteLine($"Total webhooks: {webhookHandler.TotalWebhookCount}");
+        }
+        
+        // Try to deserialize with error handling
+        string invalidJson = @"{ invalid json }";
+        bool success = WebhookHandlerJsonExtensions.TryFromJson(invalidJson, logger, out var result);
+        Console.WriteLine($"\nTryFromJson with invalid JSON: {(success ? "Success" : "Failed (expected)")}");
+        
+        // Access webhook statistics
+        Console.WriteLine($"\nWebhook statistics:");
+        Console.WriteLine($"Active webhooks: {webhookHandler.ActiveWebhookCount}");
+        Console.WriteLine($"Total webhooks: {webhookHandler.TotalWebhookCount}");
+    }
+}
+
+```
+
 ## ProcessingPipeline
