@@ -1438,6 +1438,95 @@ string profileSummary = balancedProfile.GetProfileSummary();
 Console.WriteLine(profileSummary);
 ```
 
+## TimeoutUtilities
+
+The `TimeoutUtilities` class provides comprehensive timeout and cancellation utilities for managing asynchronous operations in GPU-accelerated image processing workflows. It includes methods for executing operations with timeout protection, retrying failed operations with exponential backoff, waiting for conditions to become true, and creating combined cancellation tokens. The utilities also provide formatting helpers for human-readable timeout representations and bounded timeout calculations to ensure safe operation durations.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Utilities;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Execute an operation with timeout protection
+        try
+        {
+            var result = await TimeoutUtilities.ExecuteWithTimeoutAsync(
+                async ct => 
+                {
+                    // Simulate a GPU processing operation
+                    await Task.Delay(2000, ct); // 2 second operation
+                    return "Processing completed successfully";
+                },
+                TimeSpan.FromSeconds(3),
+                "GPU Processing"
+            );
+            
+            Console.WriteLine(result);
+        }
+        catch (TimeoutException ex)
+        {
+            Console.WriteLine($"Operation timed out: {ex.Message}");
+        }
+
+        // Retry an operation with exponential backoff
+        try
+        {
+            var retryResult = await TimeoutUtilities.RetryWithTimeoutAsync(
+                async () => 
+                {
+                    // Simulate an operation that might fail initially
+                    if (DateTime.UtcNow.Second % 2 == 0)
+                        throw new InvalidOperationException("Temporary failure");
+                    return "Success after retry";
+                },
+                TimeSpan.FromSeconds(5),
+                maxRetries: 3,
+                initialDelay: TimeSpan.FromMilliseconds(200)
+            );
+            
+            Console.WriteLine(retryResult);
+        }
+        catch (TimeoutException ex)
+        {
+            Console.WriteLine($"Retry operation timed out: {ex.Message}");
+        }
+
+        // Wait for a condition with timeout
+        bool conditionMet = await TimeoutUtilities.WaitForConditionAsync(
+            async () => 
+            {
+                // Check if GPU device is ready
+                await Task.Delay(100);
+                return DateTime.UtcNow.Second % 3 == 0; // Simulate condition
+            },
+            TimeSpan.FromSeconds(2),
+            TimeSpan.FromMilliseconds(300)
+        );
+        
+        Console.WriteLine($"Condition met within timeout: {conditionMet}");
+
+        // Format timeout for user display
+        TimeSpan timeout = TimeSpan.FromMilliseconds(1250);
+        string formatted = TimeoutUtilities.FormatTimeout(timeout);
+        Console.WriteLine($"Formatted timeout: {formatted}");
+        
+        // Get bounded timeout to ensure safe values
+        TimeSpan bounded = TimeoutUtilities.GetBoundedTimeout(
+            TimeSpan.FromHours(2), // Requested timeout
+            TimeSpan.FromSeconds(1), // Minimum
+            TimeSpan.FromMinutes(10) // Maximum
+        );
+        Console.WriteLine($"Bounded timeout: {bounded.TotalSeconds}s");
+    }
+}
+```
+
 ## ConfigurationUtilities
 
 The `ConfigurationUtilities` class provides utility methods for configuration management and application settings. It offers a centralized way to access configuration values from environment variables with sensible defaults and environment-specific overrides. This utility is particularly useful for managing application settings across different environments (Development, Production, Testing) and provides methods for both simple configuration values and complex configuration dictionaries.
