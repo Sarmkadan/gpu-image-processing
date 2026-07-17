@@ -22,6 +22,7 @@ public static class ImageProcessingExtensionsValidation
     /// </summary>
     /// <param name="format">The image format to validate.</param>
     /// <returns>A list of validation problems; empty if valid.</returns>
+    /// <exception cref="ArgumentException">Thrown when format is <see cref="ImageFormat.Unknown"/>.</exception>
     public static IReadOnlyList<string> Validate(this ImageFormat format)
     {
         var problems = new List<string>();
@@ -60,6 +61,7 @@ public static class ImageProcessingExtensionsValidation
     /// </summary>
     /// <param name="filterType">The filter type to validate.</param>
     /// <returns>A list of validation problems; empty if valid.</returns>
+    /// <exception cref="ArgumentException">Thrown when filterType is <see cref="FilterType.None"/>.</exception>
     public static IReadOnlyList<string> Validate(this FilterType filterType)
     {
         var problems = new List<string>();
@@ -154,16 +156,17 @@ public static class ImageProcessingExtensionsValidation
     /// <param name="image">The image to check.</param>
     /// <returns>True if the image is valid; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when image is null.</exception>
-    public static bool IsValid(this Image image) => ImageProcessingExtensionsValidation.Validate(image).Count == 0;
+    public static bool IsValid(this Image image) => Validate(image).Count == 0;
 
     /// <summary>
     /// Ensures an <see cref="Image"/> instance is valid, throwing if not.
     /// </summary>
     /// <param name="image">The image to validate.</param>
     /// <exception cref="ArgumentException">Thrown when the image is invalid.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when image is null.</exception>
     public static void EnsureValid(this Image image)
     {
-        var problems = ImageProcessingExtensionsValidation.Validate(image);
+        var problems = Validate(image);
         if (problems.Count > 0)
         {
             throw new ArgumentException(string.Join("\n", problems), nameof(image));
@@ -200,16 +203,17 @@ public static class ImageProcessingExtensionsValidation
     /// <param name="extension">The file extension to check.</param>
     /// <returns>True if the extension is valid; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when extension is null.</exception>
-    public static bool IsValid(this string extension) => extension.Validate().Count == 0;
+    public static bool IsValid(this string extension) => Validate(extension).Count == 0;
 
     /// <summary>
     /// Ensures a file extension is valid, throwing if not.
     /// </summary>
     /// <param name="extension">The file extension to validate.</param>
     /// <exception cref="ArgumentException">Thrown when the extension is invalid.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when extension is null.</exception>
     public static void EnsureValid(this string extension)
     {
-        var problems = extension.Validate();
+        var problems = Validate(extension);
         if (problems.Count > 0)
         {
             throw new ArgumentException(string.Join("\n", problems), nameof(extension));
