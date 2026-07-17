@@ -807,6 +807,148 @@ class Program
 
 ```
 
+## OpenCLExceptionValidation
+
+The `OpenCLExceptionValidation` class provides validation helpers for `OpenCLException` instances and related OpenCL error types. It validates exception properties like device names, error codes, kernel sources, and compilation logs, returning detailed error messages through `Validate()` methods. This ensures that OpenCL exceptions contain valid, well-formed data suitable for error handling and debugging scenarios.
+
+### Key Features
+
+- Validates `OpenCLException` instances with comprehensive property validation
+- Validates derived exception types (`DeviceInitializationException`, `KernelCompilationException`) with type-specific rules
+- Returns detailed error messages through `Validate()` methods for debugging
+- Provides convenience methods like `IsValid()` and `EnsureValid()` for fluent validation patterns
+- Ensures proper OpenCL error code ranges (-1 to -1000) and device name formatting
+- Validates kernel source code and compilation logs for kernel compilation exceptions
+- Validates device initialization exception properties
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Core.Exceptions;
+using System;
+using System.Linq;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a valid OpenCLException
+        var validException = new OpenCLException("Device initialization failed")
+        {
+            DeviceName = "NVIDIA RTX 3090",
+            OpenCLErrorCode = -30 // CL_INVALID_VALUE
+        };
+
+        // Validate the exception
+        var validationErrors = validException.Validate();
+        Console.WriteLine($"Valid exception has {validationErrors.Count} errors"); // Output: 0
+
+        // Check if valid using convenience method
+        bool isValid = validException.IsValid();
+        Console.WriteLine($"Is valid: {isValid}"); // Output: Is valid: True
+
+        // Create an invalid exception (null device name)
+        var invalidException = new OpenCLException("Invalid device")
+        {
+            DeviceName = null, // Invalid - must not be null or whitespace
+            OpenCLErrorCode = -1001 // Invalid - outside valid range [-1000, -1]
+        };
+
+        // Validate and get detailed errors
+        var errors = invalidException.Validate();
+        Console.WriteLine("Validation errors:");
+        foreach (var error in errors)
+        {
+            Console.WriteLine($"- {error}");
+        }
+        /* Output:
+        - DeviceName must not be null or whitespace.
+        - OpenCLErrorCode must be a negative value in the range [-1000, -1] (was -1001).
+        */
+
+        // Validate DeviceInitializationException separately
+        var deviceInitException = new DeviceInitializationException("Failed to initialize device")
+        {
+            DeviceName = "", // Invalid - must not be null or whitespace
+            OpenCLErrorCode = -1002 // Invalid - outside valid range
+        };
+
+        var deviceErrors = deviceInitException.Validate();
+        Console.WriteLine($"\nDevice initialization validation has {deviceErrors.Count} errors");
+        foreach (var error in deviceErrors)
+        {
+            Console.WriteLine($"- {error}");
+        }
+        /* Output:
+        - DeviceName must not be null or whitespace for DeviceInitializationException.
+        - OpenCLErrorCode must be a negative value in the range [-1000, -1] (was -1002).
+        */
+
+        // Validate KernelCompilationException separately
+        var kernelException = new KernelCompilationException("Kernel compilation failed")
+        {
+            KernelSource = null, // Invalid - must not be null or whitespace
+            CompilationLog = "", // Invalid - must not be null or whitespace
+            DeviceName = "AMD Radeon RX 6800",
+            OpenCLErrorCode = -48 // CL_INVALID_PROGRAM
+        };
+
+        var kernelErrors = kernelException.Validate();
+        Console.WriteLine($"\nKernel compilation validation has {kernelErrors.Count} errors");
+        foreach (var error in kernelErrors)
+        {
+            Console.WriteLine($"- {error}");
+        }
+        /* Output:
+        - KernelSource must not be null or whitespace for KernelCompilationException.
+        - CompilationLog must not be null or whitespace for KernelCompilationException.
+        */
+
+        // Use EnsureValid() to throw exception on invalid exception
+        try
+        {
+            invalidException.EnsureValid();
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"\nEnsureValid caught error: {ex.Message}");
+        }
+
+        // Use EnsureValid() on device initialization exception
+        try
+        {
+            deviceInitException.EnsureValid();
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"EnsureValid on device exception caught error: {ex.Message}");
+        }
+
+        // Use EnsureValid() on kernel compilation exception
+        try
+        {
+            kernelException.EnsureValid();
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"EnsureValid on kernel exception caught error: {ex.Message}");
+        }
+
+        // Validate a complete exception with all fields
+        var completeException = new OpenCLException("Operation completed successfully")
+        {
+            DeviceName = "Intel UHD Graphics 630",
+            OpenCLErrorCode = -77 // CL_INVALID_KERNEL_NAME
+        };
+
+        var completeErrors = completeException.Validate();
+        Console.WriteLine($"\nComplete exception validation: {completeErrors.Count} errors"); // Output: 0
+    }
+}
+
+```
+
 ## CliParserExtensions
 
 The `CliParserExtensions` class provides extension methods for the `CliParser` and `ParsedCommand` classes that simplify command-line argument parsing and validation. It includes safe parsing methods that handle errors gracefully, and type-safe option retrieval methods for integers, booleans, doubles, and positional arguments.
