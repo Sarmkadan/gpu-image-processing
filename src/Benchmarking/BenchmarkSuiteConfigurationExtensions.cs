@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Globalization;
 
 namespace GpuImageProcessing.Benchmarking
 {
@@ -15,17 +14,17 @@ namespace GpuImageProcessing.Benchmarking
         /// Validates the configuration and throws appropriate exceptions if invalid.
         /// </summary>
         /// <param name="config">The benchmark suite configuration to validate.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="config"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="config"/> is <see langword="null"/>.</exception>
         /// <exception cref="ArgumentException">Thrown when required properties are invalid.</exception>
         public static void MaybeValidateAndThrow(this BenchmarkSuiteConfiguration config)
         {
             ArgumentNullException.ThrowIfNull(config);
-            
-            if (string.IsNullOrEmpty(config.RunName))
+
+            if (string.IsNullOrWhiteSpace(config.RunName))
             {
-                throw new ArgumentException("RunName must be non-empty", nameof(config.RunName));
+                throw new ArgumentException("RunName must not be blank", nameof(config.RunName));
             }
-            
+
             if (!config.GetEnabledCategories().Any())
             {
                 throw new ArgumentException("At least one benchmark category must be enabled");
@@ -37,17 +36,16 @@ namespace GpuImageProcessing.Benchmarking
         /// </summary>
         /// <param name="config">The benchmark suite configuration.</param>
         /// <returns>Formatted string listing enabled categories.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="config"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="config"/> is <see langword="null"/>.</exception>
         public static string GetEnabledCategorySummary(this BenchmarkSuiteConfiguration config)
         {
             ArgumentNullException.ThrowIfNull(config);
-            
-            var categories = config.GetEnabledCategories();
-            return categories.Count switch
+
+            return config.GetEnabledCategories() switch
             {
-                0 => "No benchmarks enabled",
-                1 => $"1 benchmark category enabled: {categories[0]}",
-                _ => $"{categories.Count} benchmark categories enabled: {string.Join(", ", categories)}"
+                var categories when categories.Count == 0 => "No benchmarks enabled",
+                var categories when categories.Count == 1 => $"1 benchmark category enabled: {categories[0]}",
+                var categories => $"{categories.Count} benchmark categories enabled: {string.Join(", ", categories)}"
             };
         }
 
@@ -55,15 +53,23 @@ namespace GpuImageProcessing.Benchmarking
         /// Ensures the output directory exists, creating it if necessary.
         /// </summary>
         /// <param name="config">The benchmark suite configuration.</param>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="config"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="config"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="config.OutputDirectory"/> is an invalid path.</exception>
         /// <exception cref="IOException">Thrown when directory creation fails.</exception>
         public static void MaybeEnsureOutputDirectory(this BenchmarkSuiteConfiguration config)
         {
             ArgumentNullException.ThrowIfNull(config);
-            
-            if (!string.IsNullOrEmpty(config.OutputDirectory))
+
+            if (config.OutputDirectory is { Length: > 0 } outputDir)
             {
-                Directory.CreateDirectory(config.OutputDirectory);
+                try
+                {
+                    Directory.CreateDirectory(outputDir);
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or PathTooLongException)
+                {
+                    throw new IOException($"Failed to create output directory '{outputDir}': {ex.Message}", ex);
+                }
             }
         }
     }
