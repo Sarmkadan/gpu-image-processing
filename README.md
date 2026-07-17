@@ -115,6 +115,53 @@ class Program
 }
 ```
 
+## ProcessingPipeline
+
+The `ProcessingPipeline` orchestrates the chaining of middleware components for image processing tasks. It manages middleware registration, ordering by priority, and execution flow, allowing for highly flexible and extensible processing workflows.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Middleware;
+using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize the pipeline
+        var logger = new LoggerFactory().CreateLogger<ProcessingPipeline>();
+        var pipeline = new ProcessingPipeline(logger);
+
+        // Register middleware components (implements IProcessingMiddleware)
+        pipeline.RegisterMiddleware(new LoggingMiddleware());
+        pipeline.RegisterMiddleware(new CompressionMiddleware());
+
+        // Set the final processing handler
+        pipeline.SetFinalHandler(async () => 
+        {
+            Console.WriteLine("Executing final image processing operation...");
+            return new MiddlewareResult { IsSuccess = true };
+        });
+
+        // Get and display the middleware order
+        var order = pipeline.GetMiddlewareOrder();
+        Console.WriteLine($"Pipeline order: {string.Join(" -> ", order)}");
+
+        // Execute the pipeline
+        var context = new MiddlewareContext();
+        var result = await pipeline.ExecuteAsync(context);
+        Console.WriteLine($"Pipeline success: {result.IsSuccess}");
+
+        // Remove a middleware and clear the pipeline if needed
+        pipeline.RemoveMiddleware("LoggingMiddleware");
+        pipeline.ClearMiddleware();
+    }
+}
+```
+
 ## DeviceService
 
 The `DeviceService` manages GPU and CPU compute devices for image processing operations. It provides functionality for detecting available devices, selecting devices for processing, checking device capabilities and memory availability, and retrieving device statistics. The service automatically initializes with the most capable device and provides methods for refreshing device information and getting capabilities summaries.
