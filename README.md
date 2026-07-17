@@ -5624,3 +5624,54 @@ class Program
     }
 }
 ```
+
+## NotificationService
+
+The `NotificationService` handles user notifications regarding processing events. It supports multiple delivery channels and provides asynchronous methods to notify about completion, failures, resource limits, and health status.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Services;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Setup dependencies
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        var logger = loggerFactory.CreateLogger<NotificationService>();
+        
+        var notificationService = new NotificationService(logger);
+
+        // Register a console channel for testing
+        notificationService.RegisterChannel(new ConsoleNotificationChannel(logger));
+
+        // Send a processing completed notification
+        await notificationService.NotifyProcessingCompletedAsync("job-123", 50, true);
+
+        // Send a custom notification
+        await notificationService.NotifyAsync("Manual Notification", "System maintenance scheduled", NotificationSeverity.Info);
+        
+        // Example of creating a custom notification object directly
+        var customNotification = new Notification
+        {
+            Id = Guid.NewGuid().ToString("N"),
+            Type = NotificationType.Custom,
+            Title = "Alert",
+            Message = "Critical alert details",
+            Severity = NotificationSeverity.Critical,
+            Timestamp = DateTime.UtcNow,
+            Details = new Dictionary<string, object> { { "key", "value" } }
+        };
+        
+        // Accessing notification properties
+        Console.WriteLine($"Notification: {customNotification.Title} (Severity: {customNotification.Severity})");
+    }
+}
+```
+
