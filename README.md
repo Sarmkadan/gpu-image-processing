@@ -1121,40 +1121,54 @@ The `ConfigurationException` is thrown when there is an issue with application c
 using GpuImageProcessing.Exceptions;
 using System;
 
-// Example: Validating configuration before starting image processing
-try
-{
-  var maxBatchSize = GetConfigurationValue("MaxBatchSize");
-  if (maxBatchSize <= 0)
-  {
-    throw new ConfigurationException(
-      "MaxBatchSize must be a positive integer",
-      "MaxBatchSize",
-      maxBatchSize.ToString()
-    );
-  }
-}
-catch (ConfigurationException ex)
-{
-  Console.WriteLine($"Configuration error occurred: {ex.Message}");
-  Console.WriteLine($"Configuration key: {ex.ConfigurationKey}");
-  Console.WriteLine($"Configuration value: {ex.ConfigurationValue}");
-  Console.WriteLine($"Exception details: {ex}");
 
-  // Log the error and use a default value or exit gracefully
-  Logger.LogError(ex, "Invalid configuration detected");
-  Environment.Exit(1);
-}
+## ProcessingJob
 
-static int GetConfigurationValue(string key)
+The `ProcessingJob` class represents a comprehensive unit of work for batch image processing. It orchestrates the lifecycle of a processing task, managing input images, applied filters, and transformation operations while providing real-time progress tracking, status management, and metadata support for observability.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Models;
+using GpuImageProcessing.Core.Constants;
+using System;
+using System.Collections.Generic;
+
+// Initialize a new processing job
+var job = new ProcessingJob
 {
-  // Simulate getting configuration value from app settings
-  return key switch
-  {
-    "MaxBatchSize" => -1, // Invalid configuration
-    _ => 10
-  };
-}
+    Name = "BatchProcessing_001",
+    Description = "Apply blur and color correction to summer photos",
+    OutputDirectory = "/output/summer-enhanced"
+};
+
+// Configure the job with images, filters, and transforms
+job.ImageIds.Add(Guid.NewGuid());
+job.ImageIds.Add(Guid.NewGuid());
+job.FilterIds.Add(Guid.NewGuid()); // e.g., GaussianBlur
+job.TransformIds.Add(Guid.NewGuid()); // e.g., ColorCorrection
+job.TotalImages = job.ImageIds.Count;
+
+// Add custom metadata
+job.AddMetadata("Priority", "High");
+job.AddMetadata("Source", "UserUpload");
+
+// Start the job
+job.Start();
+Console.WriteLine($"Job started: {job.Id}, Status: {job.Status}");
+
+// Update progress during processing (simulated)
+job.UpdateProgress(imagesProcessed: 1, imagesFailed: 0);
+Console.WriteLine($"Progress: {job.ProgressPercentage}%");
+
+// Complete the job
+job.Complete();
+Console.WriteLine($"Job completed successfully. Status: {job.Status}, Completed At: {job.CompletedAt}");
+
+// Access job information for logging or monitoring
+Console.WriteLine($"Total processed: {job.ProcessedImages}, Total failed: {job.FailedImages}");
+Console.WriteLine($"Elapsed time: {job.GetElapsedTime().TotalSeconds:F2}s");
+```
 ```
 
 ## ProcessingException
