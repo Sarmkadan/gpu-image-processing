@@ -12,8 +12,8 @@ namespace GpuImageProcessing.Tests.Pipeline
         /// Executes the <c>RunAsync_NullBatch_ThrowsArgumentNullException</c> test on the supplied instance.
         /// </summary>
         /// <param name="test">The <see cref="BatchProcessingPipelineTests"/> instance.</param>
-        /// <returns>A task that completes when the underlying test finishes.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="test"/> is <c>null</c>.</exception>
+        /// <returns>A <see cref="Task"/> that completes when the underlying test finishes.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="test"/> is <see langword="null"/>.</exception>
         public static async Task VerifyNullBatchThrowsAsync(this BatchProcessingPipelineTests test)
         {
             ArgumentNullException.ThrowIfNull(test);
@@ -24,8 +24,8 @@ namespace GpuImageProcessing.Tests.Pipeline
         /// Executes the <c>RunAsync_AllImagesSucceed_ReturnsFullSuccessResult</c> test on the supplied instance.
         /// </summary>
         /// <param name="test">The <see cref="BatchProcessingPipelineTests"/> instance.</param>
-        /// <returns>A task that completes when the underlying test finishes.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="test"/> is <c>null</c>.</exception>
+        /// <returns>A <see cref="Task"/> that completes when the underlying test finishes.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="test"/> is <see langword="null"/>.</exception>
         public static async Task VerifyAllImagesSucceedAsync(this BatchProcessingPipelineTests test)
         {
             ArgumentNullException.ThrowIfNull(test);
@@ -36,8 +36,8 @@ namespace GpuImageProcessing.Tests.Pipeline
         /// Executes the <c>RunAsync_PartialFailure_ReturnsCorrectCounts</c> test on the supplied instance.
         /// </summary>
         /// <param name="test">The <see cref="BatchProcessingPipelineTests"/> instance.</param>
-        /// <returns>A task that completes when the underlying test finishes.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="test"/> is <c>null</c>.</exception>
+        /// <returns>A <see cref="Task"/> that completes when the underlying test finishes.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="test"/> is <see langword="null"/>.</exception>
         public static async Task VerifyPartialFailureAsync(this BatchProcessingPipelineTests test)
         {
             ArgumentNullException.ThrowIfNull(test);
@@ -48,8 +48,8 @@ namespace GpuImageProcessing.Tests.Pipeline
         /// Executes the <c>RunAsync_RetriesFailedImageUpToMaxRetries</c> test on the supplied instance.
         /// </summary>
         /// <param name="test">The <see cref="BatchProcessingPipelineTests"/> instance.</param>
-        /// <returns>A task that completes when the underlying test finishes.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="test"/> is <c>null</c>.</exception>
+        /// <returns>A <see cref="Task"/> that completes when the underlying test finishes.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="test"/> is <see langword="null"/>.</exception>
         public static async Task VerifyRetriesFailedImageAsync(this BatchProcessingPipelineTests test)
         {
             ArgumentNullException.ThrowIfNull(test);
