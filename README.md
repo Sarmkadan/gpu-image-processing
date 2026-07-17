@@ -2550,6 +2550,105 @@ class Program
 
 ```
 
+## DirectoryBatchProcessorTests
+
+The `DirectoryBatchProcessorTests` class provides comprehensive unit tests for the `DirectoryBatchProcessor` class, which implements the directory batch-processing pipeline for the `batch-dir` CLI subcommand. These tests verify that the processor correctly handles supported and unsupported file formats, reports progress accurately, produces byte-identical results compared to direct filter application, and handles edge cases like empty directories, missing input directories, and cancellation requests. The test suite uses temporary directories and the CPU fallback processor to ensure it runs without requiring a GPU.
+
+### Key Features
+
+- Tests processing of all supported file formats with automatic output generation
+- Validates that unsupported file extensions are properly skipped
+- Verifies progress reporting for every file in processing order
+- Ensures output is byte-identical to direct filter application
+- Tests handling of empty directories (yields zero total)
+- Validates proper exception throwing for missing input directories
+- Tests cancellation behavior to ensure operations can be interrupted
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Batch;
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Fallback;
+using Microsoft.Extensions.Logging.Abstractions;
+using System;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+
+class Program
+{
+static async Task Main()
+{
+// Create a CPU-based image processor (works without GPU)
+var processor = new CpuImageProcessor(NullLogger<CpuImageProcessor>.Instance);
+var batchProcessor = new DirectoryBatchProcessor(processor);
+
+// Create test input/output directories
+string inputDir = Path.Combine(Path.GetTempPath(), "batch-input-" + Guid.NewGuid().ToString("N"));
+string outputDir = Path.Combine(Path.GetTempPath(), "batch-output-" + Guid.NewGuid().ToString("N"));
+Directory.CreateDirectory(inputDir);
+Directory.CreateDirectory(outputDir);
+
+try
+{
+// Create test image files (PPM format is supported)
+File.WriteAllText(Path.Combine(inputDir, "test1.ppm"), CreateTestPpm());
+File.WriteAllText(Path.Combine(inputDir, "test2.ppm"), CreateTestPpm());
+File.WriteAllText(Path.Combine(inputDir, "unsupported.txt"), "This should be skipped");
+
+// Process directory with progress reporting
+var progressReports = new System.Collections.Generic.List<BatchProgress>();
+var progress = new Progress<BatchProgress>(report => progressReports.Add(report));
+
+// Process all supported files with grayscale filter
+var summary = await batchProcessor.ProcessDirectoryAsync(
+inputDir: inputDir,
+outputDir: outputDir,
+filterType: FilterType.Grayscale,
+progress: progress
+);
+
+Console.WriteLine($"Processing completed!");
+Console.WriteLine($"Total files: {summary.Total}");
+Console.WriteLine($"Succeeded: {summary.Succeeded}");
+Console.WriteLine($"Failed: {summary.Failed}");
+Console.WriteLine($"Elapsed: {summary.Elapsed.TotalSeconds:F2}s");
+
+// Verify progress was reported for each file
+Console.WriteLine($"\nProgress reports received: {progressReports.Count}");
+foreach (var report in progressReports)
+{
+Console.WriteLine($"  File {report.CurrentFile}: {report.Completed}/{report.Total}");
+}
+
+// Check output files were created
+foreach (var file in Directory.GetFiles(outputDir))
+{
+Console.WriteLine($"Output created: {Path.GetFileName(file)}");
+}
+}
+finally
+{
+// Cleanup
+Directory.Delete(inputDir, recursive: true);
+Directory.Delete(outputDir, recursive: true);
+}
+}
+
+private static string CreateTestPpm()
+{
+// Create a simple 3x3 RGB PPM image
+return @"P6
+3 3
+255
+" + new string('A', 27); // 3x3x3 bytes = 27 bytes
+}
+}
+
+```
+
 ## CsvResultFormatter
 
 The `CsvResultFormatter` class formats GPU image processing results, device information, job status, errors, and statistics into CSV (comma-separated values) format. It generates structured tabular data that is ideal for importing into spreadsheet applications, data analysis tools, and reporting systems.
