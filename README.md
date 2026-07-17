@@ -13,6 +13,108 @@ together, the data flow, key design decisions and extension points are documente
 
 The sections below are per-type reference notes with usage examples.
 
+## ImageProcessingService
+
+The `ImageProcessingService` is the main service for GPU-accelerated image processing operations. It provides comprehensive functionality for registering images, applying filters and transforms, batch processing, and retrieving processing statistics. The service automatically handles GPU device selection, memory management, and error recovery, falling back to CPU processing when GPU acceleration is unavailable. It supports custom processing profiles for optimizing throughput, quality, or memory usage based on specific workload requirements.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Services;
+using GpuImageProcessing.Core.Models;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize required services (typically via dependency injection in real applications)
+        var imageRepository = new ImageRepository();
+        var filterRepository = new GenericRepository<Filter>();
+        var transformRepository = new GenericRepository<Transform>();
+        var profileRepository = new GenericRepository<ProcessingProfile>();
+        var deviceService = new DeviceService();
+        var computeShaderPipeline = new ComputeShaderPipeline(...);
+        var logger = new ConsoleLogger<ImageProcessingService>();
+        var filterService = new FilterService(...);
+        var transformService = new TransformService(...);
+        
+        var processingService = new ImageProcessingService(
+            imageRepository,
+            filterRepository,
+            transformRepository,
+            profileRepository,
+            deviceService,
+            computeShaderPipeline,
+            logger,
+            filterService,
+            transformService
+        );
+
+        // Register an image for processing
+        var imageId = await processingService.RegisterImageAsync("/path/to/input.jpg", "vacation-photo");
+        Console.WriteLine($"Registered image with ID: {imageId}");
+
+        // Get image statistics
+        var stats = await processingService.GetImageStatsAsync(imageId);
+        Console.WriteLine($"Image: {stats.ImageName}, Size: {stats.Width}x{stats.Height}, " +
+                        $"File: {stats.FileSizeBytes / 1024} KB");
+
+        // Check if processing is possible
+        bool canProcess = await processingService.CanProcessAsync(new List<Guid> { imageId }, 
+                                                               Guid.Empty);
+        Console.WriteLine($"Can process: {canProcess}");
+
+        // Create a processing profile
+        var profile = await processingService.CreateProfileAsync(
+            "HighQuality",
+            "Optimized for high-quality output with GPU acceleration"
+        );
+        Console.WriteLine($"Created profile: {profile.Name}");
+
+        // Apply a filter to the image
+        var filterResult = await processingService.ApplyFilterAsync(imageId, Guid.NewGuid());
+        Console.WriteLine($"Filter applied: {filterResult.Status}, Time: {filterResult.ProcessingTimeMs}ms");
+
+        // Process the image with filters and transforms
+        var processingResult = await processingService.ProcessImageAsync(
+            imageId,
+            new List<Guid> { Guid.NewGuid() }, // filterIds
+            new List<Guid> { Guid.NewGuid() }, // transformIds
+            profile.Id
+        );
+        
+        if (processingResult.IsSuccessful)
+        {
+            Console.WriteLine($"Processing successful! Output: {processingResult.OutputPath}");
+            Console.WriteLine($"Device used: {processingResult.DeviceUsed}");
+            Console.WriteLine($"Profile used: {processingResult.ProfileUsed}");
+        }
+        
+        // Get processing history for the image
+        var history = await processingService.GetProcessingResultsAsync(imageId);
+        Console.WriteLine($"Processing history: {history.Count} operations");
+
+        // Process multiple images in batch
+        var imageIds = new List<Guid> { imageId, Guid.NewGuid(), Guid.NewGuid() };
+        var batchResults = await processingService.ProcessBatchAsync(
+            imageIds,
+            new List<Guid> { Guid.NewGuid() }, // filters to apply to all
+            new List<Guid>(), // transforms
+            profile.Id
+        );
+        
+        Console.WriteLine($"Batch completed: {batchResults.Count(r => r.IsSuccessful)}/{batchResults.Count} successful");
+        
+        // Get all available profiles
+        var allProfiles = await processingService.GetAllProfilesAsync();
+        Console.WriteLine($"Available profiles: {allProfiles.Count()}");
+    }
+}
+```
+
 ## GpuException
 
 The `GpuException` is thrown when a GPU operation fails or when the requested GPU device is unavailable. It provides comprehensive diagnostic information, including the name of the affected device, a specific error code, and the timestamp when the failure occurred, making it easier to troubleshoot GPU-related issues in the processing pipeline.
