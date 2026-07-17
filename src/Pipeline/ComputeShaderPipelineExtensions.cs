@@ -21,9 +21,11 @@ public static class ComputeShaderPipelineExtensions
     /// Executes a compute shader pipeline asynchronously and throws if the result indicates failure.
     /// </summary>
     /// <param name="pipeline">The compute shader pipeline to execute.</param>
-    /// <param name="passes">The passes to execute.</param>
+    /// <param name="passes">The passes to execute. Must not be null or empty.</param>
     /// <param name="deviceId">The ID of the device to use.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="pipeline"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="passes"/> is null.</exception>
     /// <exception cref="InvalidOperationException">Thrown if the pipeline execution result indicates failure.</exception>
     public static async Task ExecuteAndAssertSuccessAsync(
         this ComputeShaderPipeline pipeline,
@@ -46,8 +48,10 @@ public static class ComputeShaderPipelineExtensions
     /// <param name="pipeline">The compute shader pipeline.</param>
     /// <param name="pass">The pass to optimize.</param>
     /// <param name="deviceId">The ID of the device to use.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
     /// <returns>The optimized workgroup configuration.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="pipeline"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="pass"/> is null.</exception>
     public static async Task<WorkgroupConfiguration> OptimizeWorkgroupAndAssertSuccessAsync(
         this ComputeShaderPipeline pipeline,
         ComputeShaderPass pass,
