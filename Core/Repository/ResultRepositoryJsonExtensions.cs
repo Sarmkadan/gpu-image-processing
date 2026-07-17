@@ -20,7 +20,8 @@ namespace GpuImageProcessing.Core.Repository
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = false,
             ReferenceHandler = ReferenceHandler.IgnoreCycles,
-            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+            Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
         };
 
         /// <summary>
@@ -34,25 +35,23 @@ namespace GpuImageProcessing.Core.Repository
         {
             ArgumentNullException.ThrowIfNull(value);
 
-            var options = indented
-                ? new JsonSerializerOptions(_jsonOptions)
-                {
-                    WriteIndented = true
-                }
-                : _jsonOptions;
-
-            return JsonSerializer.Serialize(value, options);
+            return JsonSerializer.Serialize(value, indented
+                ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
+                : _jsonOptions);
         }
 
         /// <summary>
         /// Creates a ResultRepository from its JSON representation
         /// </summary>
         /// <param name="json">JSON string to deserialize</param>
-        /// <returns>Deserialized repository instance, or null if JSON is null or empty</returns>
+        /// <returns>Deserialized repository instance, or null if JSON is null or whitespace</returns>
+        /// <exception cref="ArgumentNullException">Thrown when json is null</exception>
         /// <exception cref="JsonException">Thrown when the JSON is invalid</exception>
         public static ResultRepository? FromJson(string json)
         {
-            if (string.IsNullOrEmpty(json))
+            ArgumentNullException.ThrowIfNull(json);
+
+            if (string.IsNullOrWhiteSpace(json))
             {
                 return null;
             }
@@ -66,11 +65,14 @@ namespace GpuImageProcessing.Core.Repository
         /// <param name="json">JSON string to deserialize</param>
         /// <param name="value">Output parameter for the deserialized repository</param>
         /// <returns>True if deserialization succeeded; otherwise, false</returns>
+        /// <exception cref="ArgumentNullException">Thrown when json is null</exception>
         public static bool TryFromJson(string json, out ResultRepository? value)
         {
             value = null;
 
-            if (string.IsNullOrEmpty(json))
+            ArgumentNullException.ThrowIfNull(json);
+
+            if (string.IsNullOrWhiteSpace(json))
             {
                 return false;
             }
