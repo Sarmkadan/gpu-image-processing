@@ -26,6 +26,7 @@ public static class FilterConfigurationExtensions
     /// <param name="defaultValue">The default value to return if the parameter is not found or cannot be cast.</param>
     /// <returns>The parameter value if found and of correct type, otherwise the default value.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="configuration"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
     public static T GetParameter<T>(this FilterConfiguration configuration, string key, T defaultValue) where T : class
     {
         ArgumentNullException.ThrowIfNull(configuration);
@@ -42,13 +43,15 @@ public static class FilterConfigurationExtensions
     /// <param name="value">The parameter value.</param>
     /// <exception cref="ArgumentNullException"><paramref name="configuration"/> is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentNullException"><paramref name="key"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
     public static void SetParameter<T>(this FilterConfiguration configuration, string key, T value) where T : notnull
     {
         ArgumentNullException.ThrowIfNull(configuration);
         ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentNullException.ThrowIfNull(value);
 
         var typeName = typeof(T).FullName ?? typeof(T).Name;
-        configuration.SetParameter(key, value!, typeName);
+        configuration.SetParameter(key, value, typeName);
     }
 
     /// <summary>
@@ -125,18 +128,13 @@ public static class FilterConfigurationExtensions
         if (!configuration.Parameters.TryGetValue(key, out var value))
             return defaultValue;
 
-        if (value is float f)
-            return Math.Clamp(f, 0f, 1f);
-
-        if (value is int i)
-            return Math.Clamp(i / 100f, 0f, 1f);
-
-        if (value is double d)
-            return Math.Clamp((float)d, 0f, 1f);
-
-        if (value is string s && float.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
-            return Math.Clamp(parsed, 0f, 1f);
-
-        return defaultValue;
+        return value switch
+        {
+            float f => Math.Clamp(f, 0f, 1f),
+            int i => Math.Clamp(i / 100f, 0f, 1f),
+            double d => Math.Clamp((float)d, 0f, 1f),
+            string s when float.TryParse(s, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed) => Math.Clamp(parsed, 0f, 1f),
+            _ => defaultValue
+        };
     }
 }
