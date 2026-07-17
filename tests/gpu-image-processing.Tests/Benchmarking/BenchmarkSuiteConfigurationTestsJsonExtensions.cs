@@ -31,12 +31,7 @@ public static class BenchmarkSuiteConfigurationTestsJsonExtensions
     public static string ToJson(this BenchmarkSuiteConfigurationTests value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
-
-        var options = indented
-            ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
-            : _jsonSerializerOptions;
-
-        return JsonSerializer.Serialize(value, options);
+        return JsonSerializer.Serialize(value, CreateOptions(indented));
     }
 
     /// <summary>
@@ -50,12 +45,9 @@ public static class BenchmarkSuiteConfigurationTestsJsonExtensions
     {
         ArgumentNullException.ThrowIfNull(json);
 
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return null;
-        }
-
-        return JsonSerializer.Deserialize<BenchmarkSuiteConfigurationTests>(json, _jsonSerializerOptions);
+        return string.IsNullOrWhiteSpace(json)
+            ? null
+            : JsonSerializer.Deserialize<BenchmarkSuiteConfigurationTests>(json, _jsonSerializerOptions);
     }
 
     /// <summary>
@@ -65,20 +57,29 @@ public static class BenchmarkSuiteConfigurationTestsJsonExtensions
     /// <param name="value">Receives the deserialized test instance if successful; otherwise, null.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
     public static bool TryFromJson(string json, out BenchmarkSuiteConfigurationTests? value)
     {
         ArgumentNullException.ThrowIfNull(json);
 
-        value = null;
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            value = null;
+            return false;
+        }
 
         try
         {
             value = JsonSerializer.Deserialize<BenchmarkSuiteConfigurationTests>(json, _jsonSerializerOptions);
-            return true;
+            return value is not null;
         }
         catch (JsonException)
         {
+            value = null;
             return false;
         }
     }
+
+    private static JsonSerializerOptions CreateOptions(bool indented)
+        => new(_jsonSerializerOptions) { WriteIndented = indented };
 }
