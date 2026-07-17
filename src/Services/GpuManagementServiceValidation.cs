@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =====================================================================
+// ====================================================================
 
 using System;
 using System.Collections.Generic;
@@ -64,12 +64,10 @@ public static class GpuManagementServiceValidation
     /// </summary>
     /// <param name="device">The device to validate.</param>
     /// <returns>List of human-readable validation problems; empty if valid.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="device"/> is null.</exception>
     public static IReadOnlyList<string> Validate(this GpuDevice device)
     {
-        if (device == null)
-        {
-            return ["Device reference is null."];
-        }
+        ArgumentNullException.ThrowIfNull(device);
 
         var problems = new List<string>();
 
@@ -94,65 +92,17 @@ public static class GpuManagementServiceValidation
             problems.Add("Device.Driver is null, empty, or whitespace.");
         }
 
-        // Validate numeric properties
-        if (device.GlobalMemoryBytes <= 0)
-        {
-            problems.Add("Device.GlobalMemoryBytes must be positive, but was " + device.GlobalMemoryBytes.ToString(CultureInfo.InvariantCulture));
-        }
-
-        if (device.LocalMemoryBytes < 0)
-        {
-            problems.Add("Device.LocalMemoryBytes must be non-negative, but was " + device.LocalMemoryBytes.ToString(CultureInfo.InvariantCulture));
-        }
-
-        if (device.MaxAllocatableMemoryBytes < 0)
-        {
-            problems.Add("Device.MaxAllocatableMemoryBytes must be non-negative, but was " + device.MaxAllocatableMemoryBytes.ToString(CultureInfo.InvariantCulture));
-        }
-
-        if (device.MaxComputeUnits <= 0)
-        {
-            problems.Add("Device.MaxComputeUnits must be positive, but was " + device.MaxComputeUnits.ToString(CultureInfo.InvariantCulture));
-        }
-
-        if (device.MaxWorkGroupSize <= 0)
-        {
-            problems.Add("Device.MaxWorkGroupSize must be positive, but was " + device.MaxWorkGroupSize.ToString(CultureInfo.InvariantCulture));
-        }
-
-        if (device.MaxWorkItemDimensions < 0)
-        {
-            problems.Add("Device.MaxWorkItemDimensions must be non-negative, but was " + device.MaxWorkItemDimensions.ToString(CultureInfo.InvariantCulture));
-        }
-
-        if (device.MaxWorkItemSizes == null)
-        {
-            problems.Add("Device.MaxWorkItemSizes is null.");
-        }
-        else if (device.MaxWorkItemSizes.Length != device.MaxWorkItemDimensions)
-        {
-            problems.Add("Device.MaxWorkItemSizes length " + device.MaxWorkItemSizes.Length + " does not match MaxWorkItemDimensions " + device.MaxWorkItemDimensions + ".");
-        }
-
-        if (device.MaxClockFrequencyMhz < 0)
-        {
-            problems.Add("Device.MaxClockFrequencyMhz must be non-negative, but was " + device.MaxClockFrequencyMhz.ToString(CultureInfo.InvariantCulture));
-        }
-
-        if (device.ComputeCapabilityMajor < 0)
-        {
-            problems.Add("Device.ComputeCapabilityMajor must be non-negative, but was " + device.ComputeCapabilityMajor.ToString(CultureInfo.InvariantCulture));
-        }
-
-        if (device.ComputeCapabilityMinor < 0)
-        {
-            problems.Add("Device.ComputeCapabilityMinor must be non-negative, but was " + device.ComputeCapabilityMinor.ToString(CultureInfo.InvariantCulture));
-        }
-
-        if (device.WavefrontSize < 0)
-        {
-            problems.Add("Device.WavefrontSize must be non-negative, but was " + device.WavefrontSize.ToString(CultureInfo.InvariantCulture));
-        }
+        // Validate numeric properties using pattern matching
+        AddIfInvalid(problems, device.GlobalMemoryBytes, nameof(device.GlobalMemoryBytes), v => v > 0);
+        AddIfInvalid(problems, device.LocalMemoryBytes, nameof(device.LocalMemoryBytes), v => v >= 0);
+        AddIfInvalid(problems, device.MaxAllocatableMemoryBytes, nameof(device.MaxAllocatableMemoryBytes), v => v >= 0);
+        AddIfInvalid(problems, device.MaxComputeUnits, nameof(device.MaxComputeUnits), v => v > 0);
+        AddIfInvalid(problems, device.MaxWorkGroupSize, nameof(device.MaxWorkGroupSize), v => v > 0);
+        AddIfInvalid(problems, device.MaxWorkItemDimensions, nameof(device.MaxWorkItemDimensions), v => v >= 0);
+        AddIfInvalid(problems, device.MaxClockFrequencyMhz, nameof(device.MaxClockFrequencyMhz), v => v >= 0);
+        AddIfInvalid(problems, device.ComputeCapabilityMajor, nameof(device.ComputeCapabilityMajor), v => v >= 0);
+        AddIfInvalid(problems, device.ComputeCapabilityMinor, nameof(device.ComputeCapabilityMinor), v => v >= 0);
+        AddIfInvalid(problems, device.WavefrontSize, nameof(device.WavefrontSize), v => v >= 0);
 
         // Validate device type
         if (device.DeviceType == GpuDeviceType.Unknown)
@@ -187,14 +137,41 @@ public static class GpuManagementServiceValidation
     }
 
     /// <summary>
+    /// Adds a validation error if the value doesn't satisfy the predicate.
+    /// </summary>
+    /// <typeparam name="T">The type of value to validate.</typeparam>
+    /// <param name="problems">The collection to add problems to.</param>
+    /// <param name="value">The value to validate.</param>
+    /// <param name="propertyName">The name of the property being validated.</param>
+    /// <param name="predicate">The validation predicate.</param>
+    private static void AddIfInvalid<T>(ICollection<string> problems, T value, string propertyName, Func<T, bool> predicate) where T : IConvertible
+    {
+        if (!predicate(value))
+        {
+            // Determine if we're checking for positive or non-negative based on the predicate logic
+            bool isPositiveCheck = false;
+            try
+            {
+                // Test with minimum positive value for the type
+                var minPositive = (T)Convert.ChangeType(1, typeof(T));
+                isPositiveCheck = predicate(minPositive);
+            }
+            catch
+            {
+                // If conversion fails, assume non-negative
+                isPositiveCheck = false;
+            }
+
+            problems.Add($"{propertyName} must be {(isPositiveCheck ? "positive" : "non-negative")}, but was {value.ToString(CultureInfo.InvariantCulture)}.");
+        }
+    }
+
+    /// <summary>
     /// Determines whether a <see cref="GpuManagementService"/> instance is valid.
     /// </summary>
     /// <param name="value">The service instance to check.</param>
     /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
-    public static bool IsValid(this GpuManagementService value)
-    {
-        return Validate(value).Count == 0;
-    }
+    public static bool IsValid(this GpuManagementService value) => Validate(value).Count == 0;
 
     /// <summary>
     /// Ensures that a <see cref="GpuManagementService"/> instance is valid, throwing an exception if not.
@@ -251,9 +228,9 @@ public static class GpuManagementServiceValidation
         }
 
         // Validate device itself
-        problems.AddRange(GpuManagementServiceValidation.Validate(device));
+        problems.AddRange(Validate(device));
 
-        if (device.IsAvailable == false)
+        if (!device.IsAvailable)
         {
             problems.Add("Device " + device.Name + " is not available.");
         }
@@ -317,6 +294,11 @@ public static class GpuManagementServiceValidation
         }
     }
 
+    /// <summary>
+    /// Formats a byte count into a human-readable string with appropriate units.
+    /// </summary>
+    /// <param name="bytes">The number of bytes to format.</param>
+    /// <returns>A formatted string with units.</returns>
     private static string FormatBytes(long bytes)
     {
         string[] suffixes = ["B", "KB", "MB", "GB", "TB"];
