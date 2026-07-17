@@ -1,7 +1,6 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace GpuImageProcessing.Caching
 {
@@ -90,12 +89,7 @@ namespace GpuImageProcessing.Caching
             ArgumentNullException.ThrowIfNull(cache);
 
             var stats = cache.GetStatistics();
-            return string.Format(
-                CultureInfo.InvariantCulture,
-                "Cache entries: {0}/{1} ({2:F2}% utilized)",
-                stats.EntryCount,
-                stats.MaxEntries,
-                stats.UtilizationPercent);
+            return $"Cache entries: {stats.EntryCount}/{stats.MaxEntries} ({stats.UtilizationPercent:F2}% utilized)";
         }
     }
 }
