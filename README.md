@@ -2069,6 +2069,82 @@ static bool IsValidImageFormat(string format)
 }
 ```
 
+## ProcessingCache
+
+The `ProcessingCache` class provides an in-memory caching service for processing results and intermediate data in GPU-accelerated image processing pipelines. It implements an LRU (Least Recently Used) eviction policy with TTL (Time-To-Live) support, automatically removing expired entries and evicting least recently accessed items when the cache reaches capacity. The cache is thread-safe and suitable for high-performance scenarios with concurrent access patterns.
+
+### Public Members
+
+- `int Count` - Gets the number of entries currently in the cache
+- `void Set(string key, object value)` - Adds or updates a cache entry with default TTL
+- `void Set(string key, object value, TimeSpan? ttl)` - Adds or updates a cache entry with specific TTL
+- `bool TryGet<T>(string key, out T value)` - Retrieves a value from the cache if it exists and hasn't expired
+- `bool ContainsKey(string key)` - Checks if a cache entry exists and is valid
+- `bool Remove(string key)` - Removes a cache entry by key
+- `void Clear()` - Clears all entries from the cache
+- `CacheStatistics GetStatistics()` - Gets cache statistics including size and utilization
+- `void Dispose()` - Clears all entries and disposes the cache
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Caching;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize logger and cache
+        using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+        ILogger<ProcessingCache> logger = loggerFactory.CreateLogger<ProcessingCache>();
+        
+        // Create cache with custom settings (max 500 entries, default TTL of 2 hours)
+        var cache = new ProcessingCache(logger, maxEntries: 500, defaultTtl: TimeSpan.FromHours(2));
+        
+        // Store processing results in cache
+        var processingResult = new { ImageId = Guid.NewGuid(), Status = "Processed", OutputPath = "/output/image.jpg" };
+        cache.Set("image:123:processing_result", processingResult);
+        
+        // Store intermediate data with custom TTL (30 minutes)
+        var intermediateData = new byte[] { 0x01, 0x02, 0x03 };
+        cache.Set("image:123:intermediate_data", intermediateData, TimeSpan.FromMinutes(30));
+        
+        // Retrieve cached data
+        if (cache.TryGet<object>("image:123:processing_result", out var cachedResult))
+        {
+            Console.WriteLine("Cache hit! Processing result retrieved.");
+            if (cachedResult is dynamic result)
+            {
+                Console.WriteLine($"Image ID: {result.ImageId}");
+                Console.WriteLine($"Status: {result.Status}");
+            }
+        }
+        
+        // Check if cache contains a key
+        bool hasKey = cache.ContainsKey("image:123:intermediate_data");
+        Console.WriteLine($"Cache contains intermediate data: {hasKey}");
+        
+        // Get cache statistics
+        var stats = cache.GetStatistics();
+        Console.WriteLine($"Cache statistics:");
+        Console.WriteLine($"  Entries: {stats.EntryCount}/{stats.MaxEntries}");
+        Console.WriteLine($"  Utilization: {stats.UtilizationPercent:F1}%");
+        
+        // Remove a specific entry
+        bool removed = cache.Remove("image:123:intermediate_data");
+        Console.WriteLine($"Entry removed: {removed}");
+        
+        // Clear the entire cache
+        cache.Clear();
+        
+        // Cache automatically disposes and clears all entries
+    }
+}
+```
+
 ## FilterParameter
 
 The `FilterParameter` class represents a configurable parameter for image filters with validation, normalization, and clamping capabilities. It defines the range, type, and metadata for filter parameters like blur radius, intensity values, or threshold levels. Parameters can be validated to ensure values are within bounds, normalized for UI controls, and cloned for safe reuse across filter instances.
