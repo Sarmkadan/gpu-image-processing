@@ -36,9 +36,7 @@ namespace GpuImageProcessing.Utilities
 
             var options = indented
                 ? new JsonSerializerOptions(_jsonSerializerOptions)
-                {
-                    WriteIndented = true
-                }
+                { WriteIndented = true }
                 : _jsonSerializerOptions;
 
             return JsonSerializer.Serialize(timer, options);
@@ -49,10 +47,12 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
         /// <returns>A <see cref="PerformanceTimer"/> instance populated from the JSON data, or null if the JSON is empty or whitespace.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
         /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
         public static PerformanceTimer? FromJson(string json)
         {
-            ArgumentException.ThrowIfNullOrEmpty(json);
+            ArgumentNullException.ThrowIfNull(json);
 
             if (string.IsNullOrWhiteSpace(json))
             {
@@ -68,16 +68,23 @@ namespace GpuImageProcessing.Utilities
         /// <param name="json">The JSON string to deserialize.</param>
         /// <param name="timer">Receives the deserialized <see cref="PerformanceTimer"/> instance if successful; otherwise, null.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         public static bool TryFromJson(string json, out PerformanceTimer? timer)
         {
-            ArgumentException.ThrowIfNullOrEmpty(json);
+            ArgumentNullException.ThrowIfNull(json);
+
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                timer = null;
+                return false;
+            }
 
             timer = null;
 
             try
             {
                 timer = JsonSerializer.Deserialize<PerformanceTimer>(json, _jsonSerializerOptions);
-                return true;
+                return timer is not null;
             }
             catch (JsonException)
             {
