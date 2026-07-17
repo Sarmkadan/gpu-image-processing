@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 
 namespace GpuImageProcessing.Events
 {
@@ -109,10 +110,7 @@ namespace GpuImageProcessing.Events
         /// <param name="value">The processing event to check.</param>
         /// <returns>True if the event is valid; otherwise, false.</returns>
         /// <exception cref="ArgumentNullException">Thrown when value is null.</exception>
-        public static bool IsValid(this ProcessingEvent? value)
-        {
-            return value?.Validate().Count == 0;
-        }
+        public static bool IsValid(this ProcessingEvent? value) => value?.Validate().Count == 0;
 
         /// <summary>
         /// Ensures that the specified processing event is valid, throwing an exception if it is not.
