@@ -22,21 +22,21 @@ public static class SimdCapabilitiesJsonExtensions
     public static string ToJson(this SimdCapabilities value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
-
-        return JsonSerializer.Serialize(value, _options);
+        var options = new JsonSerializerOptions(_options) { WriteIndented = indented };
+        return JsonSerializer.Serialize(value, options);
     }
 
     /// <summary>
     /// Deserializes a JSON string to a <see cref="SimdCapabilities"/> value.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized value, or <see langword="null"/> if the JSON is empty.</returns>
+    /// <returns>The deserialized value.</returns>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="json"/> is <see langword="null"/> or empty.</exception>
     /// <exception cref="JsonException">Thrown if the JSON is invalid or cannot be deserialized.</exception>
-    public static SimdCapabilities? FromJson(string json)
+    public static SimdCapabilities FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
-
-        return JsonSerializer.Deserialize<SimdCapabilities>(json, _options);
+        return JsonSerializer.Deserialize<SimdCapabilities>(json, _options)!;
     }
 
     /// <summary>
