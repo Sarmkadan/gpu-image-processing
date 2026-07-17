@@ -25,12 +25,7 @@ namespace GpuImageProcessing.Integration
         {
             ArgumentNullException.ThrowIfNull(value);
 
-            var errors = new List<string>();
-
-            // HttpImageClient doesn't expose internal state for validation
-            // All validation is done through method parameters at call time
-
-            return errors.AsReadOnly();
+            return Array.Empty<string>();
         }
 
         /// <summary>
@@ -38,10 +33,7 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         /// <param name="value">The instance to check.</param>
         /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
-        public static bool IsValid(this HttpImageClient value)
-        {
-            return value?.Validate().Count == 0;
-        }
+        public static bool IsValid(this HttpImageClient value) => value?.Validate().Count == 0;
 
         /// <summary>
         /// Ensures that an <see cref="HttpImageClient"/> instance is valid.
@@ -67,8 +59,11 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         /// <param name="url">The URL to validate.</param>
         /// <returns>A list of validation errors; empty if valid.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="url"/> is null.</exception>
         public static IReadOnlyList<string> ValidateUrl(string? url)
         {
+            ArgumentNullException.ThrowIfNull(url);
+
             var errors = new List<string>();
 
             if (string.IsNullOrWhiteSpace(url))
@@ -94,8 +89,11 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         /// <param name="filePath">The file path to validate.</param>
         /// <returns>A list of validation errors; empty if valid.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="filePath"/> is null.</exception>
         public static IReadOnlyList<string> ValidateFilePath(string? filePath)
         {
+            ArgumentNullException.ThrowIfNull(filePath);
+
             var errors = new List<string>();
 
             if (string.IsNullOrWhiteSpace(filePath))
@@ -117,8 +115,11 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         /// <param name="filePath">The file path to check.</param>
         /// <returns>A list of validation errors; empty if file exists.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="filePath"/> is null.</exception>
         public static IReadOnlyList<string> ValidateFileExists(string filePath)
         {
+            ArgumentNullException.ThrowIfNull(filePath);
+
             var errors = new List<string>();
 
             if (!System.IO.File.Exists(filePath))
@@ -134,8 +135,11 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         /// <param name="outputPath">The output path to validate.</param>
         /// <returns>A list of validation errors; empty if valid.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="outputPath"/> is null.</exception>
         public static IReadOnlyList<string> ValidateOutputDirectory(string? outputPath)
         {
+            ArgumentNullException.ThrowIfNull(outputPath);
+
             var errors = new List<string>();
 
             if (string.IsNullOrWhiteSpace(outputPath))
