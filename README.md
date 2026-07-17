@@ -127,6 +127,80 @@ class Program
 }
 ```
 
+## PathUtilitiesJsonExtensions
+
+The `PathUtilitiesJsonExtensions` class provides System.Text.Json serialization utilities for `PathUtilitiesConfiguration` instances. It enables serialization and deserialization of path utilities configurations with support for both compact and indented JSON output formats, safe error handling, and thread-safe serialization with optimized JsonSerializerOptions.
+
+### Key Features
+
+- JSON serialization of `PathUtilitiesConfiguration` instances using camelCase property naming
+- Support for both compact and indented JSON output formats
+- Safe deserialization with null handling and error recovery
+- Configuration state management for path utilities
+- Thread-safe serialization with optimized JsonSerializerOptions
+- Access to `SupportedExtensions`, `DefaultPathNormalization`, and `CrossPlatformSupport` properties
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Utilities;
+using System;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a PathUtilities configuration with supported extensions and platform settings
+        var pathConfig = new PathUtilitiesJsonExtensions.PathUtilitiesConfiguration
+        {
+            SupportedExtensions = new[] { ".jpg", ".jpeg", ".png", ".bmp", ".ppm", ".pgm" },
+            DefaultPathNormalization = true,
+            CrossPlatformSupport = true
+        };
+
+        // Serialize to compact JSON
+        string compactJson = pathConfig.ToJson();
+        Console.WriteLine("Compact JSON configuration:");
+        Console.WriteLine(compactJson);
+
+        // Serialize to indented JSON for readability
+        string indentedJson = pathConfig.ToJson(indented: true);
+        Console.WriteLine("\nIndented JSON configuration:");
+        Console.WriteLine(indentedJson);
+
+        // Deserialize from JSON string
+        string json = @"{
+    "supportedExtensions": [".jpg", ".jpeg", ".png"],
+    "defaultPathNormalization": true,
+    "crossPlatformSupport": false
+}
+";
+        var deserialized = PathUtilitiesJsonExtensions.FromJson(json);
+
+        if (deserialized != null)
+        {
+            Console.WriteLine($"\nDeserialized configuration:");
+            Console.WriteLine($"Supported extensions: {string.Join(", ", deserialized.SupportedExtensions)}");
+            Console.WriteLine($"Default path normalization: {deserialized.DefaultPathNormalization}");
+            Console.WriteLine($"Cross-platform support: {deserialized.CrossPlatformSupport}");
+        }
+
+        // Try to deserialize with error handling
+        string invalidJson = @"{ invalid json }";
+        bool success = PathUtilitiesJsonExtensions.TryFromJson(invalidJson, out var result);
+        Console.WriteLine($"\nTryFromJson with invalid JSON: {(success ? "Success" : "Failed (expected)")}");
+
+        // Serialize and deserialize round-trip to verify data integrity
+        string roundTripJson = pathConfig.ToJson();
+        var roundTripResult = PathUtilitiesJsonExtensions.FromJson(roundTripJson);
+        Console.WriteLine($"\nRound-trip successful: {roundTripResult != null}");
+    }
+}
+
+```
+
 
 ## MetricsUtilities
 
