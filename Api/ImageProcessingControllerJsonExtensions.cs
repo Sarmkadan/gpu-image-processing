@@ -48,15 +48,15 @@ namespace GpuImageProcessing.Api
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
         /// <returns>The deserialized image processing controller, or null if the JSON is null or empty.</returns>
-        /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+/// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
         public static ImageProcessingController? FromJson(string json)
         {
-            if (string.IsNullOrEmpty(json))
-            {
-                return null;
-            }
+    ArgumentNullException.ThrowIfNull(json);
 
-            return JsonSerializer.Deserialize<ImageProcessingController>(json, _jsonSerializerOptions);
+    return string.IsNullOrEmpty(json)
+        ? null
+        : JsonSerializer.Deserialize<ImageProcessingController>(json, _jsonSerializerOptions);
         }
 
         /// <summary>
@@ -65,24 +65,15 @@ namespace GpuImageProcessing.Api
         /// <param name="json">The JSON string to deserialize.</param>
         /// <param name="value">Receives the deserialized image processing controller if successful.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-        public static bool TryFromJson(string json, out ImageProcessingController? value)
-        {
-            value = null;
 
-            if (string.IsNullOrEmpty(json))
-            {
-                return false;
-            }
+/// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+/// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
+public static bool TryFromJson(string json, out ImageProcessingController? value)
+{
+    ArgumentNullException.ThrowIfNull(json);
+    value = null;
 
-            try
-            {
-                value = JsonSerializer.Deserialize<ImageProcessingController>(json, _jsonSerializerOptions);
-                return true;
-            }
-            catch (JsonException)
-            {
-                return false;
-            }
-        }
+    return !string.IsNullOrEmpty(json) && (value = JsonSerializer.Deserialize<ImageProcessingController>(json, _jsonSerializerOptions)) is not null;
+}
     }
 }
