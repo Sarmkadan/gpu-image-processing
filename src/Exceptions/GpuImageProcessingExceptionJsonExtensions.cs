@@ -43,9 +43,12 @@ public static class GpuImageProcessingExceptionJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>A deserialized <see cref="GpuImageProcessingException"/> instance, or null if the JSON is empty or whitespace.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static GpuImageProcessingException? FromJson(string json)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         if (string.IsNullOrWhiteSpace(json))
         {
             return null;
@@ -60,12 +63,14 @@ public static class GpuImageProcessingExceptionJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">The resulting <see cref="GpuImageProcessingException"/> if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out GpuImageProcessingException? value)
     {
-        value = null;
+        ArgumentNullException.ThrowIfNull(json);
 
         if (string.IsNullOrWhiteSpace(json))
         {
+            value = null;
             return true;
         }
 
@@ -76,6 +81,7 @@ public static class GpuImageProcessingExceptionJsonExtensions
         }
         catch (JsonException)
         {
+            value = null;
             return false;
         }
     }
