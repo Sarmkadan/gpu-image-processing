@@ -883,6 +883,61 @@ if (device.IsAvailable && device.GlobalMemoryBytes > 8 * 1024 * 1024 * 1024)
 }
 ```
 
+## GenericRepository
+
+The `GenericRepository<T>` class provides a thread-safe, in-memory implementation of the repository pattern, offering standardized CRUD operations for any entity type `T` that contains a `Guid` property named `Id`. It simplifies data management by providing asynchronous methods for retrieval, addition, updating, and deletion, along with support for pagination, entity existence checks, and bulk operations.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Repository;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+// Example entity that GenericRepository can manage
+public class ImageEntity { public Guid Id { get; set; } = Guid.NewGuid(); }
+
+class Program
+{
+    static async Task Main()
+    {
+        var repository = new GenericRepository<ImageEntity>();
+
+        // Add an entity
+        var entity = new ImageEntity();
+        await repository.AddAsync(entity);
+
+        // Check if exists
+        bool exists = await repository.ExistsAsync(entity.Id);
+        Console.WriteLine($"Entity exists: {exists}");
+
+        // Get by ID
+        var retrieved = await repository.GetByIdAsync(entity.Id);
+
+        // Update
+        await repository.UpdateAsync(retrieved!);
+
+        // Count
+        int count = await repository.CountAsync();
+        Console.WriteLine($"Total count: {count}");
+
+        // Get page
+        var page = await repository.GetPageAsync(1, 10);
+
+        // Save changes
+        await repository.SaveChangesAsync();
+
+        // Delete by ID
+        await repository.DeleteAsync(entity.Id);
+        
+        // Clear all
+        repository.Clear();
+    }
+}
+```
+
 ## ValidationException
 
 The `ValidationException` is thrown when input validation fails during GPU image processing operations. It provides detailed information about the validation failure including the name of the validated entity and a dictionary of validation errors with field names as keys and error messages as values. This exception is particularly useful for batch processing pipelines where multiple images or entities need to be validated before processing begins.
