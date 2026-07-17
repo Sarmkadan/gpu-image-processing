@@ -351,6 +351,113 @@ Console.WriteLine($"Test failed: {ex.Message}");
 
 ```
 
+## HttpImageClientValidation
+
+The `HttpImageClientValidation` class provides comprehensive validation utilities for `HttpImageClient` instances and related HTTP image operations. It includes validation methods for URLs, file paths, directory existence, HTTP status codes, timeouts, and retry configurations, ensuring robust error handling for HTTP-based image processing workflows.
+
+### Key Features
+
+- Validates `HttpImageClient` instances with null checks and instance validation
+- Validates HTTP URLs for proper scheme (http/https) and format
+- Validates file paths for invalid characters and existence
+- Validates output directories for existence or creation requirements
+- Validates HTTP status codes (100-599 range)
+- Validates timeout durations (1-300 seconds range)
+- Validates maximum retry counts (0-10 range)
+- Provides both error collection and boolean validation methods
+- Includes convenience methods like `IsValid()` and `EnsureValid()` for fluent validation patterns
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Integration;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+
+class Program
+{
+    static void Main()
+    {
+        // Create an HttpImageClient instance
+        var httpClient = new HttpClient();
+        var imageClient = new HttpImageClient(httpClient, "https://api.example.com/images");
+
+        // Validate the client instance
+        var clientErrors = imageClient.Validate();
+        if (clientErrors.Count > 0)
+        {
+            Console.WriteLine("Client validation errors:");
+            foreach (var error in clientErrors)
+            {
+                Console.WriteLine($" - {error}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("HttpImageClient instance is valid");
+        }
+
+        // Check if valid using convenience method
+        bool isValid = imageClient.IsValid();
+        Console.WriteLine($"Is valid: {isValid}");
+
+        // Validate a URL
+        string testUrl = "https://example.com/image.jpg";
+        var urlErrors = HttpImageClientValidation.ValidateUrl(testUrl);
+        Console.WriteLine($"URL validation: {(urlErrors.Count == 0 ? "Valid" : string.Join(", ", urlErrors))}");
+
+        // Validate an invalid URL
+        string invalidUrl = "ftp://example.com/image.jpg";
+        var invalidUrlErrors = HttpImageClientValidation.ValidateUrl(invalidUrl);
+        Console.WriteLine($"Invalid URL validation has {invalidUrlErrors.Count} errors");
+
+        // Validate a file path
+        string filePath = "/data/images/input.jpg";
+        var pathErrors = HttpImageClientValidation.ValidateFilePath(filePath);
+        Console.WriteLine($"File path validation: {(pathErrors.Count == 0 ? "Valid" : string.Join(", ", pathErrors))}");
+
+        // Validate file existence
+        var fileExistsErrors = HttpImageClientValidation.ValidateFileExists("/nonexistent/file.jpg");
+        Console.WriteLine($"File existence check: {(fileExistsErrors.Count == 0 ? "File exists" : string.Join(", ", fileExistsErrors))}");
+
+        // Validate output directory
+        string outputDir = "/data/output";
+        var dirErrors = HttpImageClientValidation.ValidateOutputDirectory(outputDir);
+        Console.WriteLine($"Output directory validation: {(dirErrors.Count == 0 ? "Valid" : string.Join(", ", dirErrors))}");
+
+        // Validate HTTP status code
+        var statusErrors = HttpImageClientValidation.ValidateHttpStatusCode(404);
+        Console.WriteLine($"Status code validation: {(statusErrors.Count == 0 ? "Valid" : string.Join(", ", statusErrors))}");
+
+        // Validate timeout
+        var timeoutErrors = HttpImageClientValidation.ValidateTimeout(TimeSpan.FromSeconds(45));
+        Console.WriteLine($"Timeout validation: {(timeoutErrors.Count == 0 ? "Valid" : string.Join(", ", timeoutErrors))}");
+
+        // Validate maximum retries
+        var retryErrors = HttpImageClientValidation.ValidateMaxRetries(3);
+        Console.WriteLine($"Retry validation: {(retryErrors.Count == 0 ? "Valid" : string.Join(", ", retryErrors))}");
+
+        // Use EnsureValid() to throw exception on invalid client
+        try
+        {
+            var invalidClient = new HttpImageClient(null!, "");
+            invalidClient.EnsureValid();
+        }
+        catch (ArgumentNullException ex)
+        {
+            Console.WriteLine($"EnsureValid caught null client: {ex.Message}");
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"EnsureValid validation failed: {ex.Message}");
+        }
+    }
+}
+
+```
+
 ## BatchProcessingUtilities
 
 The `BatchProcessingUtilities` class provides utilities for managing and processing batches of images efficiently. It includes batch splitting, progress tracking, and result aggregation.
