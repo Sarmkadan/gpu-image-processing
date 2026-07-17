@@ -19,7 +19,8 @@ public static class FilterConfigurationRepositoryExtensionsJsonExtensions
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        ReferenceHandler = ReferenceHandler.IgnoreCycles
     };
 
     /// <summary>
@@ -44,11 +45,14 @@ public static class FilterConfigurationRepositoryExtensionsJsonExtensions
     /// Deserializes a JSON string to a <see cref="FilterConfigurationRepository"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized repository instance, or null if the JSON is empty or whitespace.</returns>
+    /// <returns>The deserialized repository instance, or null if the JSON is null or empty.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static FilterConfigurationRepository? FromJson(string json)
     {
-        if (string.IsNullOrWhiteSpace(json))
+        ArgumentNullException.ThrowIfNull(json);
+
+        if (string.IsNullOrEmpty(json))
         {
             return null;
         }
@@ -60,13 +64,16 @@ public static class FilterConfigurationRepositoryExtensionsJsonExtensions
     /// Attempts to deserialize a JSON string to a <see cref="FilterConfigurationRepository"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">Receives the deserialized instance if successful.</param>
+    /// <param name="value">Receives the deserialized instance if successful; otherwise, null.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="json"/> is <see langword="null"/>.</exception>
     public static bool TryFromJson(string json, out FilterConfigurationRepository? value)
     {
         value = null;
 
-        if (string.IsNullOrWhiteSpace(json))
+        ArgumentNullException.ThrowIfNull(json);
+
+        if (string.IsNullOrEmpty(json))
         {
             return false;
         }
