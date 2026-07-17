@@ -46,9 +46,12 @@ namespace GpuImageProcessing.Caching
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
         /// <returns>The deserialized distributed cache, or null if the JSON is null or empty.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
         public static DistributedCache? FromJson(string json)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
             if (string.IsNullOrEmpty(json))
             {
                 return null;
@@ -63,9 +66,12 @@ namespace GpuImageProcessing.Caching
         /// <param name="json">The JSON string to deserialize.</param>
         /// <param name="value">Receives the deserialized distributed cache if successful.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         public static bool TryFromJson(string json, out DistributedCache? value)
         {
             value = null;
+
+            ArgumentNullException.ThrowIfNull(json);
 
             if (string.IsNullOrEmpty(json))
             {

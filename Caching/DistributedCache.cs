@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace GpuImageProcessing.Caching
@@ -15,24 +16,29 @@ namespace GpuImageProcessing.Caching
     /// Distributed cache abstraction supporting both in-memory and external backends.
     /// Provides key-value storage with TTL, statistics, and eviction policies.
     /// </summary>
-    public class DistributedCache
+    [JsonSerializable(typeof(DistributedCache))]
+    public sealed class DistributedCache
     {
-        private readonly Dictionary<string, CacheEntry> _memoryStore;
+        private Dictionary<string, CacheEntry> _memoryStore;
         private readonly CacheEvictionPolicy _evictionPolicy;
         private readonly long _maxMemoryBytes;
         private long _currentMemoryBytes;
+        [JsonIgnore]
         private readonly object _lockObject = new();
 
         public event EventHandler<CacheEventArgs> ItemEvicted;
         public event EventHandler<CacheEventArgs> ItemExpired;
 
+        [JsonConstructor]
         public DistributedCache(
             long maxMemoryBytes = 500 * 1024 * 1024,
-            CacheEvictionPolicy evictionPolicy = CacheEvictionPolicy.LRU)
+            CacheEvictionPolicy evictionPolicy = CacheEvictionPolicy.LRU,
+            Dictionary<string, CacheEntry> memoryStore = null,
+            long currentMemoryBytes = 0)
         {
-            _memoryStore = new Dictionary<string, CacheEntry>();
+            _memoryStore = memoryStore ?? new Dictionary<string, CacheEntry>();
             _maxMemoryBytes = maxMemoryBytes;
-            _currentMemoryBytes = 0;
+            _currentMemoryBytes = currentMemoryBytes;
             _evictionPolicy = evictionPolicy;
         }
 
@@ -218,7 +224,7 @@ namespace GpuImageProcessing.Caching
             ItemEvicted?.Invoke(this, new CacheEventArgs { Key = entryToEvict.Key });
         }
 
-        private class CacheEntry
+        public sealed class CacheEntry
         {
             public string Key { get; set; }
             public string Value { get; set; }
