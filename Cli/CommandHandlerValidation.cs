@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
 using System.Collections.Generic;
@@ -20,6 +20,7 @@ namespace GpuImageProcessing.Cli
         /// <param name="value">The command handler to validate.</param>
         /// <returns>A list of validation errors; empty if valid.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when <see cref="CommandHandler.GetDescription"/> or <see cref="CommandHandler.GetUsage"/> returns null.</exception>
         public static IReadOnlyList<string> Validate(this CommandHandler value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -27,13 +28,15 @@ namespace GpuImageProcessing.Cli
             var errors = new List<string>();
 
             // Validate command description
-            if (string.IsNullOrWhiteSpace(value.GetDescription()))
+            string? description = value.GetDescription();
+            if (string.IsNullOrWhiteSpace(description))
             {
                 errors.Add("Command description cannot be null or whitespace.");
             }
 
             // Validate command usage
-            if (string.IsNullOrWhiteSpace(value.GetUsage()))
+            string? usage = value.GetUsage();
+            if (string.IsNullOrWhiteSpace(usage))
             {
                 errors.Add("Command usage cannot be null or whitespace.");
             }
@@ -47,10 +50,7 @@ namespace GpuImageProcessing.Cli
         /// <param name="value">The command handler to check.</param>
         /// <returns>True if valid; otherwise, false.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-        public static bool IsValid(this CommandHandler value)
-        {
-            return value?.Validate().Count == 0;
-        }
+        public static bool IsValid(this CommandHandler value) => value?.Validate().Count == 0;
 
         /// <summary>
         /// Ensures the command handler is valid, throwing an exception if not.
@@ -66,9 +66,9 @@ namespace GpuImageProcessing.Cli
             if (errors.Count > 0)
             {
                 throw new ArgumentException(
-                    $"CommandHandler is invalid:{Environment.NewLine}  - {
+                    $"CommandHandler is invalid:{Environment.NewLine} - {
                         string.Join(
-                            $"{Environment.NewLine}  - ",
+                            $"{Environment.NewLine} - ",
                             errors
                         )
                     }");
