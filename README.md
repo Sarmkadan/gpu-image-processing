@@ -2152,6 +2152,70 @@ class Program
 
 ```
 
+## ComputeShaderPipelineOptionsExtensions
+
+The `ComputeShaderPipelineOptionsExtensions` class provides extension methods for the `ComputeShaderPipelineOptions` type that simplify common configuration scenarios. It includes methods for cloning options, applying development/testing settings, applying production settings, getting clamped local memory values, and converting options to a dictionary for serialization or logging purposes.
+
+### Key Features
+
+- Clone existing options with `Clone()` for creating modified copies
+- Apply development settings with profiling enabled using `WithDevelopmentSettings()`
+- Apply production settings with performance optimizations using `WithProductionSettings()`
+- Get safe local memory values with `GetClampedLocalMemoryPerThreadBytes()`
+- Convert options to dictionary with `ToDictionary()` for serialization
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Configuration;
+using GpuImageProcessing.Domain;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        // Create default options
+        var options = new ComputeShaderPipelineOptions
+        {
+            DefaultStrategy = ShaderOptimizationStrategy.Aggressive,
+            MaxWorkgroupDimension = 64,
+            BenchmarkGuidedOptimization = false,
+            EnableProfiling = false,
+            MaxPipelineDepth = 8,
+            DefaultLocalMemoryPerThreadBytes = 256,
+            OccupancyWarningThreshold = 0.3
+        };
+
+        // Clone options for modification
+        var clonedOptions = options.Clone();
+        clonedOptions.MaxWorkgroupDimension = 128;
+
+        // Apply development settings (enables profiling and benchmarking)
+        var devOptions = options.Clone().WithDevelopmentSettings(enableBenchmarking: true);
+        Console.WriteLine($"Development - Profiling: {devOptions.EnableProfiling}, Benchmarking: {devOptions.BenchmarkGuidedOptimization}");
+
+        // Apply production settings (optimizes for performance)
+        var prodOptions = options.WithProductionSettings(maxWorkgroupDimension: 256);
+        Console.WriteLine($"Production - Workgroup: {prodOptions.MaxWorkgroupDimension}, Profiling: {prodOptions.EnableProfiling}");
+
+        // Get clamped local memory value
+        int clampedMemory = options.GetClampedLocalMemoryPerThreadBytes();
+        Console.WriteLine($"Clamped memory: {clampedMemory} bytes");
+
+        // Convert to dictionary for logging/serialization
+        Dictionary<string, string> optionsDict = options.ToDictionary();
+        foreach (var kvp in optionsDict)
+        {
+            Console.WriteLine($"{kvp.Key}: {kvp.Value}");
+        }
+    }
+}
+
+```
+
 ## BatchItemResult
 
 The `BatchItemResult` record represents the outcome for a single file processed during a batch directory operation. It captures the input file path, optional output file path, success status, and any error message that occurred during processing. This type is returned by `DirectoryBatchProcessor.ProcessDirectoryAsync` as part of the `BatchRunSummary.Items` collection, allowing callers to inspect individual file results and handle failures appropriately.
