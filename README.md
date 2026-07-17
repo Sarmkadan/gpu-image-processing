@@ -466,6 +466,71 @@ class Program
 }
 ```
 
+## ProcessingProfile
+
+The `ProcessingProfile` class represents a configuration profile for optimized image processing operations. It encapsulates processing parameters such as GPU acceleration settings, parallel operation limits, memory constraints, precision formats, and tiling options. Processing profiles enable consistent configuration across batch operations and can be customized for different workload requirements including speed-optimized, quality-optimized, or balanced processing scenarios.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Models;
+using System;
+using System.Collections.Generic;
+
+// Create a custom processing profile for high-performance GPU processing
+var performanceProfile = new ProcessingProfile
+{
+    Name = "High Performance",
+    Description = "Optimized for maximum throughput with GPU acceleration",
+    UseGPUAcceleration = true,
+    MaxParallelOperations = 8,
+    BatchSize = 25,
+    MaxMemoryUsageBytes = 4_000_000_000, // 4GB
+    EnablePrecisionReduction = true,
+    PrecisionFormat = "float16",
+    EnableTiling = true,
+    TileSizePixels = 1024,
+    OptimizationSettings = new Dictionary<string, float>
+    {
+        { "QualityBoost", 1.2f },
+        { "MemoryEfficiency", 0.9f }
+    }
+};
+
+// Use predefined profiles for common scenarios
+var speedProfile = ProcessingProfile.CreateSpeedOptimized();
+var qualityProfile = ProcessingProfile.CreateQualityOptimized();
+var balancedProfile = ProcessingProfile.CreateBalanced();
+
+// Access profile properties for configuration
+Console.WriteLine($"Profile: {balancedProfile.Name}");
+Console.WriteLine($"Description: {balancedProfile.Description}");
+Console.WriteLine($"GPU Acceleration: {balancedProfile.UseGPUAcceleration}");
+Console.WriteLine($"Max Parallel Operations: {balancedProfile.MaxParallelOperations}");
+Console.WriteLine($"Batch Size: {balancedProfile.BatchSize}");
+Console.WriteLine($"Precision: {(balancedProfile.EnablePrecisionReduction ? balancedProfile.PrecisionFormat : "full")}");
+Console.WriteLine($"Max Memory: {balancedProfile.MaxMemoryUsageBytes / (1024.0 * 1024.0):F2} MB");
+
+// Validate the profile configuration
+if (balancedProfile.IsValid())
+{
+    Console.WriteLine("Profile configuration is valid");
+}
+
+// Clone a profile for customization
+var customProfile = balancedProfile.Clone();
+customProfile.Name = "Custom Balanced";
+customProfile.MaxParallelOperations = 6;
+
+// Get effective batch size based on memory constraints
+int effectiveBatchSize = balancedProfile.GetEffectiveBatchSize(150_000_000); // ~150MB per image
+Console.WriteLine($"Effective batch size: {effectiveBatchSize}");
+
+// Get profile summary for logging
+string profileSummary = balancedProfile.GetProfileSummary();
+Console.WriteLine(profileSummary);
+```
+
 ## CommandDispatcher
 
 The `CommandDispatcher` class routes CLI commands to appropriate handlers, managing command registration, discovery, and execution. It supports dynamic command registration at runtime, provides introspection capabilities to list available commands, and handles command instantiation with dependency injection through an `IServiceProvider`. The dispatcher validates command types and provides error handling for command execution failures.
