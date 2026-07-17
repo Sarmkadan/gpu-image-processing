@@ -25,13 +25,7 @@ public static class BenchmarkSuiteConfigurationTestsValidation
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var errors = new List<string>();
-
-        // BenchmarkSuiteConfigurationTests is a test class with no actual properties to validate
-        // The validation simply ensures the test class instance is properly initialized
-        // This mirrors the pattern used in other test validation classes in this project
-
-        return errors.AsReadOnly();
+        return Array.Empty<string>();
     }
 
     /// <summary>
