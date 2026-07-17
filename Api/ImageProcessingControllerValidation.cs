@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using GpuImageProcessing.Core.Models;
+using ImageFormat = GpuImageProcessing.Core.Constants.ImageFormat;
 
 namespace GpuImageProcessing.Api
 {
@@ -31,6 +32,16 @@ namespace GpuImageProcessing.Api
             if (value.Id == Guid.Empty)
             {
                 errors.Add("Id must be a non-empty GUID.");
+            }
+
+            // Validate Name
+            if (string.IsNullOrWhiteSpace(value.Name))
+            {
+                errors.Add("Name must be a non-empty string.");
+            }
+            else if (value.Name.Length > 256)
+            {
+                errors.Add("Name must be 256 characters or less.");
             }
 
             // Validate Path/FilePath
@@ -73,6 +84,12 @@ namespace GpuImageProcessing.Api
                 errors.Add("Channels must be 16 or less.");
             }
 
+            // Validate Format
+            if (value.Format < ImageFormat.Jpeg || value.Format > ImageFormat.Unknown)
+            {
+                errors.Add("Format must be a valid ImageFormat value.");
+            }
+
             // Validate FileSizeBytes
             if (value.FileSizeBytes <= 0)
             {
@@ -83,20 +100,69 @@ namespace GpuImageProcessing.Api
                 errors.Add("FileSizeBytes must be 1GB or less.");
             }
 
+            // Validate CreatedAt
+            if (value.CreatedAt == default)
+            {
+                errors.Add("CreatedAt must be a valid DateTime.");
+            }
+            else if (value.CreatedAt > DateTime.UtcNow.AddHours(1))
+            {
+                errors.Add("CreatedAt cannot be in the future.");
+            }
+
+            // Validate ModifiedAt
+            if (value.ModifiedAt == default)
+            {
+                errors.Add("ModifiedAt must be a valid DateTime.");
+            }
+            else if (value.ModifiedAt > DateTime.UtcNow.AddHours(1))
+            {
+                errors.Add("ModifiedAt cannot be in the future.");
+            }
+            else if (value.ModifiedAt < value.CreatedAt)
+            {
+                errors.Add("ModifiedAt cannot be earlier than CreatedAt.");
+            }
+
             // Validate Description
             if (value.Description != null && value.Description.Length > 2048)
             {
                 errors.Add("Description must be 2048 characters or less.");
             }
 
-            // Validate RegisteredAt/CreatedAt
-            if (value.RegisteredAt == default)
+            // Validate Metadata
+            if (value.Metadata.Count > 100)
             {
-                errors.Add("RegisteredAt must be a valid DateTime.");
+                errors.Add("Metadata cannot contain more than 100 entries.");
             }
-            else if (value.RegisteredAt > DateTime.UtcNow.AddHours(1))
+            else
             {
-                errors.Add("RegisteredAt cannot be in the future.");
+                foreach (var kvp in value.Metadata)
+                {
+                    if (string.IsNullOrWhiteSpace(kvp.Key))
+                    {
+                        errors.Add("Metadata keys must be non-empty strings.");
+                        break;
+                    }
+
+                    if (kvp.Key.Length > 128)
+                    {
+                        errors.Add("Metadata keys must be 128 characters or less.");
+                        break;
+                    }
+
+                    if (kvp.Value != null && kvp.Value.Length > 1024)
+                    {
+                        errors.Add("Metadata values must be 1024 characters or less.");
+                        break;
+                    }
+                }
+            }
+
+            // Validate ParentImageId
+            if (value.ParentImageId.HasValue && value.ParentImageId.Value == Guid.Empty)
+            {
+                errors.Add("ParentImageId must be a non-empty GUID if specified.");
             }
 
             return errors.AsReadOnly();
@@ -107,10 +173,8 @@ namespace GpuImageProcessing.Api
         /// </summary>
         /// <param name="value">The image instance to check.</param>
         /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
-        public static bool IsValid(this Image value)
-        {
-            return Validate(value).Count == 0;
-        }
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
+        public static bool IsValid(this Image value) => Validate(value).Count == 0;
 
         /// <summary>
         /// Ensures that the specified <see cref="Image"/> instance is valid.
@@ -130,8 +194,8 @@ namespace GpuImageProcessing.Api
             }
 
             throw new ArgumentException(
-                $"Image validation failed:{Environment.NewLine}- {
-                    string.Join($"{Environment.NewLine}- ", errors)}");
+                $"Image validation failed:{Environment.NewLine}- {string.Join($"{Environment.NewLine}- ", errors)}",
+                nameof(value));
         }
     }
 }
