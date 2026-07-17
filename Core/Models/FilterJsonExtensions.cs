@@ -25,12 +25,12 @@ namespace GpuImageProcessing.Core.Models
         };
 
         /// <summary>
-        /// Serializes the specified <see cref="Filter"/> instance to a JSON string
+        /// Serializes the specified <see cref="Filter"/> instance to a JSON string.
         /// </summary>
-        /// <param name="value">The filter to serialize</param>
-        /// <param name="indented">Whether to format the JSON with indentation for readability</param>
-        /// <returns>A JSON string representation of the filter</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
+        /// <param name="value">The filter to serialize.</param>
+        /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
+        /// <returns>A JSON string representation of the filter.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
         public static string ToJson(this Filter value, bool indented = false)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -48,9 +48,9 @@ namespace GpuImageProcessing.Core.Models
         /// <summary>
         /// Deserializes a JSON string to a <see cref="Filter"/> instance
         /// </summary>
-        /// <param name="json">The JSON string to deserialize</param>
-        /// <returns>A deserialized Filter instance, or null if the JSON is invalid</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty</exception>
+        /// <param name="json">The JSON string to deserialize.</param>
+        /// <returns>A deserialized <see cref="Filter"/> instance if successful; otherwise, <see langword="null"/>.</returns>
+        /// <exception cref="ArgumentException"><paramref name="json"/> is <see langword="null"/> or empty.</exception>
         public static Filter? FromJson(string json)
         {
             ArgumentException.ThrowIfNullOrEmpty(json);
@@ -66,12 +66,12 @@ namespace GpuImageProcessing.Core.Models
         }
 
         /// <summary>
-        /// Attempts to deserialize a JSON string to a <see cref="Filter"/> instance
+        /// Attempts to deserialize a JSON string to a <see cref="Filter"/> instance.
         /// </summary>
-        /// <param name="json">The JSON string to deserialize</param>
-        /// <param name="value">Receives the deserialized Filter instance if successful</param>
-        /// <returns>True if deserialization succeeded; otherwise, false</returns>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty</exception>
+        /// <param name="json">The JSON string to deserialize.</param>
+        /// <param name="value">Receives the deserialized <see cref="Filter"/> instance if successful; otherwise, <see langword="null"/>.</param>
+        /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentException"><paramref name="json"/> is <see langword="null"/> or empty.</exception>
         public static bool TryFromJson(string json, out Filter? value)
         {
             ArgumentException.ThrowIfNullOrEmpty(json);
