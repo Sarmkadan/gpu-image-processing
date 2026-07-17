@@ -2170,6 +2170,133 @@ var blurRadius = new FilterParameter
 bool isValid = blurRadius.IsValid();
 Console.WriteLine($"Parameter is valid: {isValid}"); // True (5.0 is within 1.0-25.0 range)
 
+// Normalize the value for UI slider (0-100 scale)
+float normalizedValue = blurRadius.Normalize();
+Console.WriteLine($"Normalized value: {normalizedValue:F2}"); // ~18.75
+
+// Clamp an out-of-range value
+blurRadius.Value = 30.0f;
+blurRadius.Clamp();
+Console.WriteLine($"Clamped value: {blurRadius.Value}"); // 25.0
+
+// Clone a parameter for reuse
+var clonedParameter = blurRadius.Clone();
+Console.WriteLine($"Cloned parameter: {clonedParameter.Name} = {clonedParameter.Value}");
+
+// Create an intensity parameter with percentage unit
+var intensity = new FilterParameter
+{
+    Name = "Intensity",
+    Value = 75.0f,
+    Min = 0.0f,
+    Max = 100.0f,
+    Unit = "%",
+    Description = "Effect strength percentage"
+};
+
+// Check if parameter needs UI update
+bool needsUpdate = blurRadius.NeedsUpdate();
+Console.WriteLine($"Parameter needs update: {needsUpdate}"); // False (value is within valid range)
+```
+
+## DistributedCache
+
+The `DistributedCache` class provides a distributed caching solution for GPU image processing workloads, enabling efficient sharing of processing results, filter configurations, and transformation parameters across multiple processing nodes. It supports atomic operations for setting, retrieving, and removing cache entries with type-safe serialization, along with memory management and statistics tracking. The cache automatically handles expiration, cleanup of expired entries, and provides detailed memory usage metrics.
+
+### Public Members
+
+- `public async Task SetAsync<T>(string key, T value)` - Sets a cache entry with automatic serialization
+- `public async Task<(bool Found, T Value)> TryGetAsync<T>(string key)` - Retrieves a cached value if it exists and hasn't expired
+- `public async Task<bool> RemoveAsync(string key)` - Removes a cache entry by key
+- `public async Task ClearAsync()` - Clears all entries from the cache
+- `public async Task CleanupExpiredAsync()` - Removes all expired cache entries
+- `public CacheStats GetStats()` - Gets cache statistics including memory usage and item count
+- `public string Key` - Gets the cache key
+- `public string Value` - Gets the cached value as a string
+- `public int SizeBytes` - Gets the size of the cached value in bytes
+- `public DateTime CreatedAt` - Gets when the cache entry was created
+- `public DateTime LastAccessedAt` - Gets when the cache entry was last accessed
+- `public DateTime? ExpiresAt` - Gets when the cache entry expires (null if no expiration)
+- `public long AccessCount` - Gets the number of times the entry has been accessed
+- `public int ItemCount` - Gets the number of items in the cache
+- `public long UsedMemoryBytes` - Gets the total memory used by all cache entries
+- `public long MaxMemoryBytes` - Gets the maximum memory capacity of the cache
+- `public float MemoryUsagePercent` - Gets the current memory usage as a percentage
+- `public double AverageItemSize` - Gets the average size of cache entries
+- `public long TotalAccesses` - Gets the total number of cache accesses across all entries
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Caching;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize distributed cache with 512MB maximum memory
+        var distributedCache = new DistributedCache(maxMemoryBytes: 512 * 1024 * 1024);
+
+        // Set cache entries with automatic expiration
+        await distributedCache.SetAsync<string>("image:metadata:12345", 
+            "{\"width\":1920,\"height\":1080,\"format\":\"JPEG\"}");
+
+        await distributedCache.SetAsync<string>("filter:config:gaussian_blur",
+            "{\"radius\":5.5,\"sigma\":1.4}");
+
+        await distributedCache.SetAsync<string>("transform:resize:800x600",
+            "{\"width\":800,\"height\":600,\"maintainAspectRatio\":true}");
+
+        // Try to get a cached value
+        var (found, value) = await distributedCache.TryGetAsync<string>("image:metadata:12345");
+        if (found)
+        {
+            Console.WriteLine($"Retrieved metadata: {value}");
+        }
+
+        // Check cache statistics
+        var stats = distributedCache.GetStats();
+        Console.WriteLine($"Cache stats - Items: {stats.ItemCount}, " +
+                        $"Used: {stats.UsedMemoryBytes / (1024.0 * 1024.0):F2} MB, " +
+                        $"Memory usage: {stats.MemoryUsagePercent:P0}");
+
+        // Remove a cache entry
+        bool removed = await distributedCache.RemoveAsync("filter:config:gaussian_blur");
+        Console.WriteLine($"Entry removed: {removed}");
+
+        // Clear all entries
+        await distributedCache.ClearAsync();
+        Console.WriteLine($"Cache cleared. Item count: {distributedCache.ItemCount}");
+
+        // Clean up expired entries
+        await distributedCache.CleanupExpiredAsync();
+    }
+}
+```
+
+## FilterParameter
+
+```csharp
+using GpuImageProcessing.Core.Models;
+using System;
+
+// Create a blur radius parameter with range validation
+var blurRadius = new FilterParameter
+{
+    Name = "BlurRadius",
+    Value = 5.0f,
+    Min = 1.0f,
+    Max = 25.0f,
+    Unit = "pixels",
+    Description = "Radius for Gaussian blur effect"
+};
+
+// Validate the parameter value
+bool isValid = blurRadius.IsValid();
+Console.WriteLine($"Parameter is valid: {isValid}"); // True (5.0 is within 1.0-25.0 range)
+
 // Clamp an out-of-range value
 blurRadius.Value = 30.0f;
 blurRadius.ClampValue();
