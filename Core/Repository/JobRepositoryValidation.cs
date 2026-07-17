@@ -1,12 +1,13 @@
 #nullable enable
 // =============================================================================
-// Author: [Your Name]
+// Author: Vladyslav Zaiets | https://sarmkadan.com
+// CTO & Software Architect
 // =============================================================================
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
+using System.Threading.Tasks;
 using GpuImageProcessing.Core.Models;
 using GpuImageProcessing.Core.Repository;
 
@@ -22,13 +23,23 @@ namespace GpuImageProcessing.Core.Repository
         /// </summary>
         /// <param name="value">The instance to validate.</param>
         /// <returns>A list of problems; empty if the instance is valid.</returns>
-        public static IReadOnlyList<string> Validate(this JobRepository value)
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
+        public static async Task<IReadOnlyList<string>> ValidateAsync(this JobRepository value)
         {
             ArgumentNullException.ThrowIfNull(value);
 
             var problems = new List<string>();
 
-            var stats = value.GetStatisticsAsync().Result;
+            JobStatistics stats;
+            try
+            {
+                stats = await value.GetStatisticsAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                problems.Add($"Unable to obtain statistics: {ex.Message}");
+                return problems.AsReadOnly();
+            }
 
             if (stats.TotalJobs < 0) problems.Add("Total jobs cannot be negative.");
             if (stats.PendingJobs < 0) problems.Add("Pending jobs cannot be negative.");
@@ -49,20 +60,25 @@ namespace GpuImageProcessing.Core.Repository
         /// </summary>
         /// <param name="value">The instance to check.</param>
         /// <returns>True if the instance is valid; false otherwise.</returns>
-        public static bool IsValid(this JobRepository value)
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
+        public static async Task<bool> IsValidAsync(this JobRepository value)
         {
-            return !Validate(value).Any();
+            ArgumentNullException.ThrowIfNull(value);
+            return (await ValidateAsync(value).ConfigureAwait(false)).Count == 0;
         }
 
         /// <summary>
         /// Ensures a <see cref="JobRepository"/> instance is valid, throwing an exception if it's not.
         /// </summary>
         /// <param name="value">The instance to ensure.</param>
-        /// <exception cref="ArgumentException">Thrown if the instance is invalid.</exception>
-        public static void EnsureValid(this JobRepository value)
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
+        /// <exception cref="ArgumentException">Thrown when the instance is invalid.</exception>
+        public static async Task EnsureValidAsync(this JobRepository value)
         {
-            var problems = Validate(value);
-            if (problems.Any())
+            ArgumentNullException.ThrowIfNull(value);
+
+            var problems = await ValidateAsync(value).ConfigureAwait(false);
+            if (problems.Count > 0)
             {
                 throw new ArgumentException($"Invalid JobRepository instance: {string.Join(", ", problems)}", nameof(value));
             }
