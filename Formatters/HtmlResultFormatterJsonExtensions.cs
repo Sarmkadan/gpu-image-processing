@@ -66,24 +66,9 @@ namespace GpuImageProcessing.Formatters
         /// <param name="json">The JSON string to deserialize.</param>
         /// <param name="value">Receives the deserialized instance if successful.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-        public static bool TryFromJson(string json, out HtmlResultFormatter? value)
-        {
-            value = null;
-
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return false;
-            }
-
-            try
-            {
-                value = JsonSerializer.Deserialize<HtmlResultFormatter>(json, _jsonOptions);
-                return true;
-            }
-            catch (JsonException)
-            {
-                return false;
-            }
-        }
+        public static bool TryFromJson(string json, out HtmlResultFormatter? value) =>
+            (value = string.IsNullOrWhiteSpace(json)
+                ? null
+                : JsonSerializer.Deserialize<HtmlResultFormatter>(json, _jsonOptions)) is not null;
     }
 }
