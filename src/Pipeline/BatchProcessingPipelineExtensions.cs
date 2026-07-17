@@ -15,7 +15,7 @@ public static class BatchProcessingPipelineExtensions
     /// </summary>
     /// <param name="pipeline">The pipeline instance.</param>
     /// <param name="batch">The batch to process.</param>
-    /// <param name="cancellationToken">The cancellation token.</param>
+    /// <param name="cancellationToken">The cancellation token to monitor for cancellation requests.</param>
     /// <returns>A <see cref="BatchPipelineResult"/> summarising per-image outcomes.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="pipeline"/> or <paramref name="batch"/> is null.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the batch contains failed images.</exception>
@@ -29,12 +29,11 @@ public static class BatchProcessingPipelineExtensions
 
         var result = await pipeline.RunAsync(batch, cancellationToken);
 
-        if (result.FailedCount > 0)
+        return result.FailedCount switch
         {
-            throw new InvalidOperationException($"Batch '{result.BatchName}' completed with {result.FailedCount} failures.");
-        }
-
-        return result;
+            > 0 => throw new InvalidOperationException($"Batch '{result.BatchName}' completed with {result.FailedCount} failures."),
+            _ => result
+        };
     }
 
     /// <summary>
