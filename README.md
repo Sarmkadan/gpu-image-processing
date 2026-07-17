@@ -206,6 +206,44 @@ class Program
 }
 ```
 
+## IProcessingMiddleware
+
+The `IProcessingMiddleware` interface defines a contract for components that intercept and process the pipeline's `MiddlewareContext`. Middleware implementations can inspect or modify the context, perform operations, and return a `MiddlewareResult` indicating success or failure. This allows for modular, chainable processing steps like logging, compression, or validation.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Middleware;
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+public class ExampleMiddleware : IProcessingMiddleware
+{
+    public string GetName() => "ExampleMiddleware";
+    public int GetPriority() => 10;
+
+    public async Task<MiddlewareResult> ExecuteAsync(MiddlewareContext context)
+    {
+        // Accessing members from MiddlewareContext
+        string opId = context.OperationId;
+        context.SetParameter("processedBy", "ExampleMiddleware");
+        context.SetState("exampleState", "initialized");
+
+        // Passing control to the next middleware
+        var result = await context.Next();
+
+        // Accessing members from MiddlewareResult
+        if (result.IsSuccess)
+        {
+            result.AddMetric("exampleMetric", 123.45);
+        }
+        
+        return result;
+    }
+}
+```
+
 ## DeviceService
 
 The `DeviceService` manages GPU and CPU compute devices for image processing operations. It provides functionality for detecting available devices, selecting devices for processing, checking device capabilities and memory availability, and retrieving device statistics. The service automatically initializes with the most capable device and provides methods for refreshing device information and getting capabilities summaries.
