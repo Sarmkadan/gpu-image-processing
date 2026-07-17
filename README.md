@@ -1330,6 +1330,76 @@ class Program
 
 ```
 
+## ConfigurationUtilitiesJsonExtensions
+
+The `ConfigurationUtilitiesJsonExtensions` class provides System.Text.Json serialization utilities for reading and updating application configuration state. It enables serialization of current configuration to JSON, and deserialization of configuration updates from JSON strings, with support for both compact and indented output formats, and safe error handling for configuration updates.
+
+### Key Features
+
+- Serialize current configuration state to JSON with `ToJson()` method
+- Deserialize configuration updates from JSON with `FromJson()` method
+- Safe deserialization with error handling using `TryFromJson()` method
+- Support for both compact and indented JSON output formats
+- Thread-safe serialization with optimized JsonSerializerOptions
+- Configuration state management for environment variables and application settings
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Utilities;
+using System;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        // Serialize current configuration to compact JSON
+        string compactJson = ConfigurationUtilitiesJsonExtensions.ToJson();
+        Console.WriteLine("Current configuration (compact):");
+        Console.WriteLine(compactJson);
+
+        // Serialize current configuration to indented JSON for readability
+        string indentedJson = ConfigurationUtilitiesJsonExtensions.ToJson(indented: true);
+        Console.WriteLine("\nCurrent configuration (indented):");
+        Console.WriteLine(indentedJson);
+
+        // Example configuration JSON that you might receive or create
+        string exampleConfigJson = @"{
+    "environment": "Production",
+    "dataDirectory": "/var/lib/gpu-image-processing",
+    "logDirectory": "/var/log/gpu-image-processing",
+    "tempDirectory": "/tmp/gpu-image-processing",
+    "maxConcurrentOperations": 8,
+    "operationTimeoutSeconds": 30,
+    "preferredDeviceId": 0,
+    "logLevel": "Info",
+    "enablePerformanceLogging": true,
+    "enableDebugLogging": false,
+    "cacheSizeMb": 512,
+    "useGpuAcceleration": true,
+    "defaultProfile": "high-performance"
+}";
+
+        // Apply configuration from JSON string
+        ConfigurationUtilitiesJsonExtensions.FromJson(exampleConfigJson);
+        Console.WriteLine("\nConfiguration applied successfully!");
+
+        // Try to apply configuration with error handling
+        string invalidJson = @"{ invalid json }";
+        bool success = ConfigurationUtilitiesJsonExtensions.TryFromJson(invalidJson, out var result);
+        Console.WriteLine($"\nTryFromJson with invalid JSON: {(success ? "Success" : "Failed (expected)")}");
+
+        // Serialize and deserialize round-trip to verify data integrity
+        string roundTripJson = ConfigurationUtilitiesJsonExtensions.ToJson();
+        ConfigurationUtilitiesJsonExtensions.FromJson(roundTripJson);
+        Console.WriteLine("\nRound-trip serialization successful!");
+    }
+}
+
+```
+
 ## CliParserExtensions
 
 The `CliParserExtensions` class provides extension methods for the `CliParser` and `ParsedCommand` classes that simplify command-line argument parsing and validation. It includes safe parsing methods that handle errors gracefully, and type-safe option retrieval methods for integers, booleans, doubles, and positional arguments.
