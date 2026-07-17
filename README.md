@@ -5718,3 +5718,75 @@ class Program
         ```
 
 
+
+## TelemetryService
+
+The `TelemetryService` provides comprehensive application monitoring and metrics collection for GPU image processing operations. It tracks performance metrics, system statistics, and operational events, enabling observability into processing pipelines, device utilization, and batch operations. The service supports timing measurements, counter increments, gauge tracking, and detailed statistics retrieval for both individual operations and system-wide monitoring.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Services;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize telemetry service
+        var telemetryService = new TelemetryService();
+
+        // Record a custom event
+        telemetryService.RecordEvent("BatchProcessingStarted", new {
+            BatchName = "SummerPhotos-2024",
+            ImageCount = 150,
+            Priority = "High"
+        });
+
+        // Start timing an operation
+        var timingToken = telemetryService.StartTiming("ImageFiltering");
+        
+        // Simulate work
+        await Task.Delay(100);
+
+        // Record timing completion (automatically recorded when timingToken is disposed)
+        // timingToken.Dispose();
+
+        // Increment a counter for tracking operations
+        telemetryService.IncrementCounter("ImagesProcessed");
+        telemetryService.IncrementCounter("ImagesProcessed", 5); // Increment by 5
+
+        // Set a gauge value (e.g., current memory usage)
+        telemetryService.SetGauge("MemoryUsageMB", 2048.5);
+
+        // Get operation statistics
+        var operationStats = telemetryService.GetOperationStats("ImageFiltering");
+        if (operationStats != null)
+        {
+            Console.WriteLine($"Total operations: {operationStats.TotalCount}");
+            Console.WriteLine($"Total time: {operationStats.TotalMilliseconds}ms");
+            Console.WriteLine($"Average time: {operationStats.AverageMilliseconds}ms");
+            Console.WriteLine($"Success rate: {operationStats.SuccessRate:P0}");
+        }
+
+        // Get all recorded events
+        var events = telemetryService.GetEvents();
+        Console.WriteLine($"Total events recorded: {events.Count}");
+
+        // Get system telemetry statistics
+        var systemStats = telemetryService.GetSystemStats();
+        Console.WriteLine($"Total operations: {systemStats.TotalOperations}");
+        Console.WriteLine($"Successful operations: {systemStats.SuccessfulOperations}");
+        Console.WriteLine($"Failed operations: {systemStats.FailedOperations}");
+        Console.WriteLine($"Success rate: {systemStats.SuccessRate:P0}");
+        Console.WriteLine($"Average latency: {systemStats.AverageLatencyMs:F2}ms");
+        Console.WriteLine($"Event count: {systemStats.EventCount}");
+        Console.WriteLine($"Counter count: {systemStats.CounterCount}");
+
+        // Clear statistics for reuse
+        telemetryService.Clear();
+        Console.WriteLine($"After clear - Total events: {telemetryService.GetEvents().Count}");
+    }
+}
+```
