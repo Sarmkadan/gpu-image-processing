@@ -26,7 +26,7 @@ public static class ProcessingResultRepositoryJsonExtensions
     /// Serializes the <see cref="ProcessingResultRepository"/> to a JSON string.
     /// </summary>
     /// <param name="value">The repository to serialize.</param>
-    /// <param name="indented">Whether to indent the JSON for readability.</param>
+    /// <param name="indented">Whether to indent the JSON for readability. When true, produces human-readable formatted JSON; when false, produces compact JSON.</param>
     /// <returns>A JSON string representation of the repository.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static string ToJson(this ProcessingResultRepository value, bool indented = false)
@@ -44,7 +44,8 @@ public static class ProcessingResultRepositoryJsonExtensions
     /// Deserializes a JSON string to a <see cref="ProcessingResultRepository"/>.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized repository, or null if the JSON is empty.</returns>
+    /// <returns>The deserialized repository, or null if the JSON is empty or whitespace.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid.</exception>
     public static ProcessingResultRepository? FromJson(string json)
     {
@@ -60,6 +61,7 @@ public static class ProcessingResultRepositoryJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized repository if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out ProcessingResultRepository? value)
     {
         value = null;
