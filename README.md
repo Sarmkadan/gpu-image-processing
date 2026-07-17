@@ -949,6 +949,86 @@ class Program
 
 ```
 
+## JobRepositoryExtensions
+
+The `JobRepositoryExtensions` class provides extension methods for the `JobRepository` class that extend the repository with additional query capabilities for processing jobs. It includes methods for filtering jobs by status, progress, creation date, searching by name or description, retrieving statistics, and finding long-running jobs. These extensions simplify common job management operations and provide a fluent API for job repository queries.
+
+### Key Features
+
+- Filter jobs by status, progress percentage, or creation date range
+- Search jobs by name or description with case-insensitive matching
+- Retrieve statistics and metrics for jobs by status
+- Find active jobs and long-running jobs
+- Get most recently completed jobs
+- Count total jobs across all statuses
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Core.Repository;
+using GpuImageProcessing.Core.Models;
+using GpuImageProcessing.Core.Constants;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize the job repository (typically via dependency injection)
+        var jobRepository = new JobRepository(...);
+
+        // Get jobs by status
+        var pendingJobs = await jobRepository.GetByStatusAsync(ProcessingStatus.Pending);
+        Console.WriteLine($"Pending jobs: {pendingJobs.Count}");
+
+        // Get active jobs (Pending, Running, or WarningState)
+        var activeJobs = await jobRepository.GetActiveJobsAsync();
+        Console.WriteLine($"Active jobs: {activeJobs.Count}");
+        foreach (var job in activeJobs)
+        {
+            Console.WriteLine($" - {job.Name} (Status: {job.Status}, Progress: {job.ProgressPercentage}%)");
+        }
+
+        // Get jobs with progress above 75%
+        var highProgressJobs = await jobRepository.GetJobsAboveProgressAsync(75f);
+        Console.WriteLine($"Jobs with >75% progress: {highProgressJobs.Count}");
+
+        // Get jobs created between specific dates
+        var startDate = DateTime.UtcNow.AddDays(-7);
+        var endDate = DateTime.UtcNow;
+        var recentJobs = await jobRepository.GetJobsCreatedBetweenAsync(startDate, endDate);
+        Console.WriteLine($"Jobs created in last 7 days: {recentJobs.Count}");
+
+        // Get the 20 most recently completed jobs
+        var completedJobs = await jobRepository.GetMostRecentCompletedAsync(20);
+        Console.WriteLine($"Most recent completed jobs: {completedJobs.Count}");
+
+        // Search jobs by name or description
+        var searchResults = await jobRepository.SearchByNameOrDescriptionAsync("resize");
+        Console.WriteLine($"Jobs matching 'resize': {searchResults.Count}");
+
+        // Get statistics for completed jobs
+        var completedStats = await jobRepository.GetStatisticsByStatusAsync(ProcessingStatus.Completed);
+        Console.WriteLine($"Completed jobs stats:");
+        Console.WriteLine($"  Total: {completedStats.TotalJobs}");
+        Console.WriteLine($"  Success rate: {completedStats.SuccessRate:F1}%");
+        Console.WriteLine($"  Avg completion time: {completedStats.AverageCompletionTime:F2}s");
+
+        // Find jobs running longer than 1 hour
+        var longRunningJobs = await jobRepository.GetLongRunningJobsAsync(3600);
+        Console.WriteLine($"Jobs running >1 hour: {longRunningJobs.Count}");
+
+        // Get total job count
+        var totalJobs = await jobRepository.GetTotalJobsCountAsync();
+        Console.WriteLine($"Total jobs in system: {totalJobs}");
+    }
+}
+
+```
+
 ## CliParserExtensions
 
 The `CliParserExtensions` class provides extension methods for the `CliParser` and `ParsedCommand` classes that simplify command-line argument parsing and validation. It includes safe parsing methods that handle errors gracefully, and type-safe option retrieval methods for integers, booleans, doubles, and positional arguments.
