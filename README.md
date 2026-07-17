@@ -1965,6 +1965,91 @@ class Program
 ```
 
 
+## GpuExceptionExtensionsJsonExtensions
+
+The `GpuExceptionExtensionsJsonExtensions` class provides System.Text.Json serialization utilities for GPU exception configuration in the GpuImageProcessing.Core library. It enables easy serialization and deserialization of GPU exception detection settings with support for timeout detection, memory detection, and compute pipeline detection configurations.
+
+### Key Features
+
+- JSON serialization of GPU exception configuration using camelCase property naming
+- Support for both compact and indented JSON output formats
+- Safe deserialization with null handling and error recovery
+- Configuration validation through JSON parsing
+- Thread-safe serialization with optimized JsonSerializerOptions
+- Timeout, memory, and compute pipeline detection configuration
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Core;
+using System;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a GPU exception configuration with custom settings
+        var config = new GpuExceptionExtensionsJsonExtensions.GpuExceptionExtensionsConfig
+        {
+            IsTimeoutDetectionEnabled = true,
+            IsMemoryDetectionEnabled = true,
+            IsComputePipelineDetectionEnabled = false
+        };
+
+        // Serialize to compact JSON
+        string compactJson = GpuExceptionExtensionsJsonExtensions.ToJson(config);
+        Console.WriteLine("Compact JSON configuration:");
+        Console.WriteLine(compactJson);
+
+        // Serialize to indented JSON for readability
+        string indentedJson = GpuExceptionExtensionsJsonExtensions.ToJson(config, indented: true);
+        Console.WriteLine("\nIndented JSON configuration:");
+        Console.WriteLine(indentedJson);
+
+        // Deserialize from JSON string
+        string json = @"{ "type": "GpuExceptionExtensions", "isTimeoutDetectionEnabled": false, "isMemoryDetectionEnabled": true, "isComputePipelineDetectionEnabled": true }";
+        GpuExceptionExtensionsJsonExtensions.GpuExceptionExtensionsConfig? deserialized = GpuExceptionExtensionsJsonExtensions.FromJson(json);
+
+        if (deserialized is not null)
+        {
+            Console.WriteLine($"\nDeserialized configuration:");
+            Console.WriteLine($"Type: {deserialized.Type}");
+            Console.WriteLine($"IsTimeoutDetectionEnabled: {deserialized.IsTimeoutDetectionEnabled}");
+            Console.WriteLine($"IsMemoryDetectionEnabled: {deserialized.IsMemoryDetectionEnabled}");
+            Console.WriteLine($"IsComputePipelineDetectionEnabled: {deserialized.IsComputePipelineDetectionEnabled}");
+        }
+
+        // Try to deserialize with error handling
+        string invalidJson = @"{ invalid json }";
+        bool success = GpuExceptionExtensionsJsonExtensions.TryFromJson(invalidJson, out var result);
+        Console.WriteLine($"\nTryFromJson with invalid JSON: {(success ? "Success" : "Failed (expected)")}");
+
+        // Serialize and deserialize round-trip to verify data integrity
+        string roundTripJson = GpuExceptionExtensionsJsonExtensions.ToJson(config);
+        GpuExceptionExtensionsJsonExtensions.GpuExceptionExtensionsConfig? roundTripResult = GpuExceptionExtensionsJsonExtensions.FromJson(roundTripJson);
+
+        if (roundTripResult is not null)
+        {
+            Console.WriteLine($"\nRound-trip successful: {roundTripResult.Type == config.Type && roundTripResult.IsTimeoutDetectionEnabled == config.IsTimeoutDetectionEnabled}");
+        }
+
+        // Create configuration with all properties set
+        var fullConfig = new GpuExceptionExtensionsJsonExtensions.GpuExceptionExtensionsConfig
+        {
+            IsTimeoutDetectionEnabled = false,
+            IsMemoryDetectionEnabled = true,
+            IsComputePipelineDetectionEnabled = true
+        };
+
+        Console.WriteLine($"\nFull configuration:");
+        Console.WriteLine(GpuExceptionExtensionsJsonExtensions.ToJson(fullConfig));
+    }
+}
+
+```
+
 ## DeviceUtilities
 
 The `DeviceUtilities` class provides utilities for GPU device discovery, capability detection, and resource management. It helps identify optimal GPU devices for image processing workloads by scoring devices based on memory, compute units, clock frequency, and current utilization. The class also analyzes memory pressure and recommends appropriate batch sizes to prevent out-of-memory errors.
