@@ -12,7 +12,7 @@ using GpuImageProcessing.Tests.Domain;
 namespace GpuImageProcessing.Tests.Domain;
 
 /// <summary>
-/// JSON serialization helpers for <see cref="FilterChainTests"/>.
+/// Provides JSON serialization and deserialization extensions for <see cref="FilterChainTests"/>.
 /// </summary>
 public static class FilterChainTestsJsonExtensions
 {
@@ -64,8 +64,9 @@ public static class FilterChainTestsJsonExtensions
     /// Attempts to create a <see cref="FilterChainTests"/> instance from a JSON string.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The deserialized <see cref="FilterChainTests"/> instance, or <c>null</c> if deserialization fails.</param>
+    /// <param name="value">When this method returns, contains the deserialized <see cref="FilterChainTests"/> instance if deserialization succeeds; otherwise, <c>null</c>.</param>
     /// <returns><c>true</c> if deserialization succeeds; otherwise, <c>false</c>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is <c>null</c>.</exception>
     public static bool TryFromJson(string json, out FilterChainTests? value)
     {
         try
