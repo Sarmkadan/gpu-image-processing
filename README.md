@@ -5112,3 +5112,65 @@ if (image.Validate())
 
 
 ```
+## CacheMaintenanceWorker
+
+The `CacheMaintenanceWorker` is a background worker that performs periodic cache maintenance tasks including cleanup of expired entries and monitoring of cache health. It automatically removes stale cache entries to prevent memory bloat and provides real-time status updates through events, including warnings when memory usage exceeds configured thresholds.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.BackgroundWorkers;
+using GpuImageProcessing.Caching;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+class Program
+{
+  static async Task Main()
+  {
+    // Create cache instance (typically injected via DI in real applications)
+    var cache = new DistributedCache(maxMemoryBytes: 1024L * 1024L * 1024L); // 1GB
+    
+    // Initialize cache maintenance worker with custom settings
+    var worker = new CacheMaintenanceWorker(
+      cache: cache,
+      cleanupInterval: TimeSpan.FromMinutes(10), // Clean every 10 minutes
+      memoryWarningThreshold: 75.0f // Warn at 75% memory usage
+    );
+
+    // Subscribe to worker events for monitoring
+    worker.StatusChanged += (sender, args) =>
+      Console.WriteLine($"[{args.Timestamp:T}] Status: {args.Status}");
+    
+    worker.ProgressUpdated += (sender, args) =>
+    {
+      string prefix = args.IsWarning ? "WARNING: " : "";
+      Console.WriteLine($"[{args.Timestamp:T}] {prefix}{args.Message}");
+    };
+    
+    worker.ErrorOccurred += (sender, args) =>
+      Console.WriteLine($"[{args.Timestamp:T}] ERROR: {args.Message}");
+
+    // Start the worker asynchronously
+    var cts = new CancellationTokenSource();
+    var workerTask = worker.StartAsync(cts.Token);
+    
+    Console.WriteLine("Cache maintenance worker started...");
+    Console.WriteLine("Press Ctrl+C to stop the worker.");
+
+    // Keep the worker running
+    try
+    {
+      await workerTask;
+    }
+    catch (OperationCanceledException)
+    {
+      Console.WriteLine("Worker stopped via cancellation.");
+    }
+    
+    // Gracefully stop the worker
+    worker.Stop();
+  }
+}
+```
