@@ -58,11 +58,14 @@ public static class FilterConfigurationValidation
         }
 
         // Validate Parameters dictionary consistency
-        foreach (var param in value.Parameters)
+        if (value.Parameters is not null)
         {
-            if (!value.ParameterTypes.ContainsKey(param.Key))
+            foreach (var param in value.Parameters)
             {
-                problems.Add($"Parameter '{param.Key}' has a value but no type definition.");
+                if (!value.ParameterTypes.ContainsKey(param.Key))
+                {
+                    problems.Add($"Parameter '{param.Key}' has a value but no type definition.");
+                }
             }
         }
 
@@ -78,11 +81,8 @@ public static class FilterConfigurationValidation
     /// <param name="value">The filter configuration to check.</param>
     /// <returns>True if valid; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-    public static bool IsValid(this FilterConfiguration value)
-    {
-        var problems = FilterConfigurationValidation.Validate(value);
-        return problems.Count == 0;
-    }
+    public static bool IsValid(this FilterConfiguration value) =>
+        FilterConfigurationValidation.Validate(value).Count == 0;
 
     /// <summary>
     /// Ensures that the filter configuration is valid, throwing an exception if not.
@@ -99,16 +99,21 @@ public static class FilterConfigurationValidation
         if (problems.Count > 0)
         {
             throw new ArgumentException(
-                $"FilterConfiguration is invalid. Problems:\n  - {
-                    string.Join("\n  - ", problems)
-                }",
+                $"FilterConfiguration is invalid. Problems:\n - {string.Join("\n - ", problems)}",
                 nameof(value));
         }
     }
 
     private static IReadOnlyList<string> ValidateFilterSpecificParameters(FilterConfiguration config)
     {
+        ArgumentNullException.ThrowIfNull(config);
+
         var problems = new List<string>();
+
+        if (config.Parameters is null)
+        {
+            return problems.AsReadOnly();
+        }
 
         switch (config.FilterType)
         {
@@ -251,6 +256,8 @@ public static class FilterConfigurationValidation
 
     private static IReadOnlyList<string> ValidateConvolutionKernel(FilterConfiguration config)
     {
+        ArgumentNullException.ThrowIfNull(config);
+
         var problems = new List<string>();
 
         if (config.ConvolutionKernel is null)
@@ -284,8 +291,7 @@ public static class FilterConfigurationValidation
 
         if (side % 2 == 0)
         {
-            problems.Add(
-                $"ConvolutionKernel side length must be odd. Provided side length: {side}.");
+            problems.Add($"ConvolutionKernel side length must be odd. Provided side length: {side}.");
         }
 
         return problems.AsReadOnly();
