@@ -1692,6 +1692,95 @@ class Program
 
 ```
 
+## ConfigurationValidatorValidation
+
+The `ConfigurationValidatorValidation` class provides comprehensive validation utilities for configuration validation scenarios in the GPU Image Processing library. It includes validation methods for configuration dictionaries, integer ranges, timeout durations, batch sizes, memory specifications, URLs, and environment variables, ensuring that configurations are valid and safe for processing.
+
+### Key Features
+
+- Validates configuration dictionaries and required keys with comprehensive error reporting
+- Validates integer configuration values within specified bounds
+- Validates timeout durations against minimum and maximum constraints
+- Validates batch sizes are positive integers
+- Validates memory size specifications (e.g., "1GB", "512MB") against minimum requirements
+- Validates URL formats (HTTP/HTTPS only)
+- Validates environment variable existence when required
+- Returns detailed error messages through `Validate()` methods for debugging
+- Provides consistent validation patterns across all configuration types
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Utilities;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+static void Main()
+{
+// Example 1: Validate configuration dictionary with required keys
+var config = new Dictionary<string, string>
+{
+{ "apiKey", "your-api-key-here" },
+{ "timeout", "30" },
+{ "maxConcurrent", "8" }
+};
+
+var requiredKeys = new[] { "apiKey", "timeout", "maxConcurrent" };
+var configErrors = ConfigurationValidatorValidation.Validate(config, requiredKeys);
+
+if (configErrors.Count > 0)
+{
+Console.WriteLine("Configuration validation errors:");
+foreach (var error in configErrors)
+{
+Console.WriteLine($"- {error}");
+}
+}
+else
+{
+Console.WriteLine("Configuration is valid!");
+}
+
+// Example 2: Validate integer configuration value within bounds
+var intErrors = ConfigurationValidatorValidation.Validate("45", 1, 100, "BatchSize");
+Console.WriteLine($"\nInteger validation: {intErrors.Count} errors");
+
+// Example 3: Validate timeout duration
+var timeoutErrors = ConfigurationValidatorValidation.Validate(
+TimeSpan.FromSeconds(45),
+TimeSpan.FromSeconds(1),
+TimeSpan.FromSeconds(300),
+"ProcessingTimeout"
+);
+Console.WriteLine($"Timeout validation: {timeoutErrors.Count} errors");
+
+// Example 4: Validate batch size
+var batchErrors = ConfigurationValidatorValidation.Validate(16);
+Console.WriteLine($"\nBatch size validation: {batchErrors.Count} errors");
+
+// Example 5: Validate memory size specification
+var memoryErrors = ConfigurationValidatorValidation.Validate("512MB", 1024 * 1024); // 512MB minimum
+Console.WriteLine($"Memory validation: {memoryErrors.Count} errors");
+
+// Example 6: Validate URL format
+var urlErrors = ConfigurationValidatorValidation.Validate("https://api.example.com/images");
+Console.WriteLine($"\nURL validation: {urlErrors.Count} errors");
+
+// Example 7: Validate environment variable
+var envErrors = ConfigurationValidatorValidation.Validate("GPU_IMAGE_PROCESSING_API_KEY", required: true);
+Console.WriteLine($"Environment variable validation: {envErrors.Count} errors");
+
+// Example 8: Validate configuration dictionary (basic validation)
+var dictErrors = ConfigurationValidatorValidation.Validate(config);
+Console.WriteLine($"\nDictionary validation: {dictErrors.Count} errors");
+}
+}
+
+```
+
 ## CliParserExtensions
 
 The `CliParserExtensions` class provides extension methods for the `CliParser` and `ParsedCommand` classes that simplify command-line argument parsing and validation. It includes safe parsing methods that handle errors gracefully, and type-safe option retrieval methods for integers, booleans, doubles, and positional arguments.
