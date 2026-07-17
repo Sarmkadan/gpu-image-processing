@@ -44,7 +44,9 @@ public static class SimdFallbackServiceJsonExtensions
     /// Deserializes a JSON string to a <see cref="SimdFallbackService"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized service instance, or <see langword="null"/> if JSON is empty.</returns>
+    /// <returns>The deserialized service instance, or <see langword="null"/> if JSON is empty or whitespace.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or consists only of whitespace.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static SimdFallbackService? FromJson(string json)
     {
@@ -59,6 +61,8 @@ public static class SimdFallbackServiceJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized service instance if successful.</param>
     /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or consists only of whitespace.</exception>
     public static bool TryFromJson(string json, out SimdFallbackService? value)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
