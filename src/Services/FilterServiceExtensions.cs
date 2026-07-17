@@ -15,6 +15,11 @@ namespace GpuImageProcessing.Services;
 /// </summary>
 public static class FilterServiceExtensions
 {
+    private const string DefaultGrayscaleDescription = "Converts image to grayscale";
+    private const string DefaultBlurDescription = "Applies Gaussian blur to the image";
+    private const string DefaultSharpenDescription = "Enhances image edges and details";
+    private const string DefaultConvolutionDescription = "Applies custom convolution kernel";
+
     /// <summary>
     /// Creates a new grayscale filter configuration with default parameters.
     /// </summary>
@@ -39,13 +44,13 @@ public static class FilterServiceExtensions
         {
             Name = name,
             FilterType = FilterType.Grayscale,
-            Description = "Converts image to grayscale",
+            Description = DefaultGrayscaleDescription,
             Priority = priority,
             Parameters = new Dictionary<string, object>(),
             ParameterTypes = new Dictionary<string, string>()
         };
 
-        return await service.CreateFilterAsync(config, cancellationToken);
+        return await service.CreateFilterAsync(config, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -74,13 +79,13 @@ public static class FilterServiceExtensions
         {
             Name = name,
             FilterType = FilterType.Blur,
-            Description = "Applies Gaussian blur to the image",
+            Description = DefaultBlurDescription,
             Priority = priority,
             Parameters = new Dictionary<string, object> { ["radius"] = radius },
             ParameterTypes = new Dictionary<string, string> { ["radius"] = "float" }
         };
 
-        return await service.CreateFilterAsync(config, cancellationToken);
+        return await service.CreateFilterAsync(config, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -109,13 +114,13 @@ public static class FilterServiceExtensions
         {
             Name = name,
             FilterType = FilterType.Sharpen,
-            Description = "Enhances image edges and details",
+            Description = DefaultSharpenDescription,
             Priority = priority,
             Parameters = new Dictionary<string, object> { ["strength"] = strength },
             ParameterTypes = new Dictionary<string, string> { ["strength"] = "float" }
         };
 
-        return await service.CreateFilterAsync(config, cancellationToken);
+        return await service.CreateFilterAsync(config, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -131,7 +136,7 @@ public static class FilterServiceExtensions
     {
         ArgumentNullException.ThrowIfNull(service);
 
-        var filters = await service.GetActiveFiltersAsync(cancellationToken);
+        var filters = await service.GetActiveFiltersAsync(cancellationToken).ConfigureAwait(false);
         return filters.OrderBy(f => f.Priority).ToList().AsReadOnly();
     }
 
@@ -157,7 +162,7 @@ public static class FilterServiceExtensions
 
         foreach (var filterId in filterIds)
         {
-            await service.ApplyFilterAsync(image, filterId, cancellationToken);
+            await service.ApplyFilterAsync(image, filterId, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -196,7 +201,7 @@ public static class FilterServiceExtensions
         {
             Name = name,
             FilterType = FilterType.CustomConvolution,
-            Description = "Applies custom convolution kernel",
+            Description = DefaultConvolutionDescription,
             Priority = priority,
             Parameters = new Dictionary<string, object>(),
             ParameterTypes = new Dictionary<string, string>(),
@@ -204,7 +209,7 @@ public static class FilterServiceExtensions
             NormalizeKernel = normalize
         };
 
-        return await service.CreateFilterAsync(config, cancellationToken);
+        return await service.CreateFilterAsync(config, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -222,7 +227,7 @@ public static class FilterServiceExtensions
     {
         ArgumentNullException.ThrowIfNull(service);
 
-        var filters = await service.GetFiltersByTypeAsync(type, cancellationToken);
+        var filters = await service.GetFiltersByTypeAsync(type, cancellationToken).ConfigureAwait(false);
         return filters.OrderBy(f => f.Priority).ToList().AsReadOnly();
     }
 
@@ -243,7 +248,7 @@ public static class FilterServiceExtensions
         ArgumentNullException.ThrowIfNull(service);
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
-        var filters = await service.GetActiveFiltersAsync(cancellationToken);
+        var filters = await service.GetActiveFiltersAsync(cancellationToken).ConfigureAwait(false);
         return filters.FirstOrDefault(f =>
             f.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
     }
@@ -264,7 +269,7 @@ public static class FilterServiceExtensions
     {
         ArgumentNullException.ThrowIfNull(service);
 
-        var config = await service.GetFilterAsync(filterId, cancellationToken);
+        var config = await service.GetFilterAsync(filterId, cancellationToken).ConfigureAwait(false);
         if (config == null)
         {
             throw new InvalidOperationException($"Filter {filterId} not found");
@@ -274,7 +279,7 @@ public static class FilterServiceExtensions
         {
             config.IsActive = true;
             config.ModifiedAt = DateTime.UtcNow;
-            return await service.UpdateFilterAsync(config, cancellationToken);
+            return await service.UpdateFilterAsync(config, cancellationToken).ConfigureAwait(false);
         }
 
         return config;
@@ -296,7 +301,7 @@ public static class FilterServiceExtensions
     {
         ArgumentNullException.ThrowIfNull(service);
 
-        var config = await service.GetFilterAsync(filterId, cancellationToken);
+        var config = await service.GetFilterAsync(filterId, cancellationToken).ConfigureAwait(false);
         if (config == null)
         {
             throw new InvalidOperationException($"Filter {filterId} not found");
@@ -306,7 +311,7 @@ public static class FilterServiceExtensions
         {
             config.IsActive = false;
             config.ModifiedAt = DateTime.UtcNow;
-            await service.UpdateFilterAsync(config, cancellationToken);
+            await service.UpdateFilterAsync(config, cancellationToken).ConfigureAwait(false);
             return true;
         }
 
