@@ -19,7 +19,7 @@ namespace GpuImageProcessing.Exceptions
         public static IReadOnlyList<string> GetErrorMessages(this ValidationException exception)
         {
             ArgumentNullException.ThrowIfNull(exception);
-            return exception.ValidationErrors?.Values.ToList() ?? Enumerable.Empty<string>().ToList();
+            return exception.ValidationErrors?.Values.ToList() ?? [];
         }
 
         /// <summary>
@@ -47,7 +47,7 @@ namespace GpuImageProcessing.Exceptions
             ArgumentNullException.ThrowIfNull(exception);
             ArgumentException.ThrowIfNullOrEmpty(fieldName);
 
-            return exception.ValidationErrors?.TryGetValue(fieldName, out var value) == true ? value : null;
+            return exception.ValidationErrors is { } errors && errors.TryGetValue(fieldName, out var value) ? value : null;
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace GpuImageProcessing.Exceptions
         public static bool IsEntityValid(this ValidationException exception)
         {
             ArgumentNullException.ThrowIfNull(exception);
-            return exception.ValidationErrors == null || exception.ValidationErrors.Count == 0;
+            return exception.ValidationErrors is null or { Count: 0 };
         }
     }
 }
