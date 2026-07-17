@@ -5,7 +5,6 @@
 // =============================================================================
 
 using System;
-using System.Collections.Generic;
 using System.Text.Json;
 
 namespace GpuImageProcessing.Cli
