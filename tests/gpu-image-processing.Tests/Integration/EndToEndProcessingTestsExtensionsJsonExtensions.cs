@@ -68,8 +68,11 @@ namespace GpuImageProcessing.Tests.Integration
         /// <param name="json">The JSON string to deserialize.</param>
         /// <returns>The deserialized instance, or null if the JSON is null or empty.</returns>
         /// <exception cref="JsonException">Thrown if the JSON is invalid or cannot be deserialized.</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
         public static EndToEndProcessingTestsExtensions? FromJson(string json)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
             if (string.IsNullOrEmpty(json))
             {
                 return null;
@@ -91,8 +94,11 @@ namespace GpuImageProcessing.Tests.Integration
         /// <param name="json">The JSON string to deserialize.</param>
         /// <param name="value">Receives the deserialized instance if successful.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
         public static bool TryFromJson(string json, out EndToEndProcessingTestsExtensions? value)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
             value = null;
 
             if (string.IsNullOrEmpty(json))
@@ -103,7 +109,7 @@ namespace GpuImageProcessing.Tests.Integration
             try
             {
                 value = JsonSerializer.Deserialize<EndToEndProcessingTestsExtensions>(json, _jsonOptions);
-                return true;
+                return value is not null;
             }
             catch (JsonException)
             {
