@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace GpuImageProcessing.Core.Configuration
@@ -27,6 +26,7 @@ namespace GpuImageProcessing.Core.Configuration
         /// <param name="configureForProduction">ConfigureForProduction method</param>
         /// <param name="configureForDevelopment">ConfigureForDevelopment method</param>
         /// <returns>List of validation errors, empty if valid</returns>
+        /// <exception cref="ArgumentNullException">Thrown if any parameter is null</exception>
         public static IReadOnlyList<string> Validate(
             Func<IServiceCollection, ApplicationSettings, IServiceCollection>? addGpuImageProcessing,
             Func<IServiceProvider, Task>? initializeServicesAsync,
@@ -36,44 +36,15 @@ namespace GpuImageProcessing.Core.Configuration
             Action<ApplicationSettings>? configureForProduction,
             Action<ApplicationSettings>? configureForDevelopment)
         {
-            var errors = new List<string>();
+            ArgumentNullException.ThrowIfNull(addGpuImageProcessing);
+            ArgumentNullException.ThrowIfNull(initializeServicesAsync);
+            ArgumentNullException.ThrowIfNull(createServiceProvider);
+            ArgumentNullException.ThrowIfNull(createAndInitializeServiceProviderAsync);
+            ArgumentNullException.ThrowIfNull(addApplicationLogging);
+            ArgumentNullException.ThrowIfNull(configureForProduction);
+            ArgumentNullException.ThrowIfNull(configureForDevelopment);
 
-            if (addGpuImageProcessing == null)
-            {
-                errors.Add("AddGpuImageProcessing method is null");
-            }
-
-            if (initializeServicesAsync == null)
-            {
-                errors.Add("InitializeServicesAsync method is null");
-            }
-
-            if (createServiceProvider == null)
-            {
-                errors.Add("CreateServiceProvider method is null");
-            }
-
-            if (createAndInitializeServiceProviderAsync == null)
-            {
-                errors.Add("CreateAndInitializeServiceProviderAsync method is null");
-            }
-
-            if (addApplicationLogging == null)
-            {
-                errors.Add("AddApplicationLogging method is null");
-            }
-
-            if (configureForProduction == null)
-            {
-                errors.Add("ConfigureForProduction method is null");
-            }
-
-            if (configureForDevelopment == null)
-            {
-                errors.Add("ConfigureForDevelopment method is null");
-            }
-
-            return errors.AsReadOnly();
+            return Array.Empty<string>();
         }
 
         /// <summary>
@@ -96,8 +67,13 @@ namespace GpuImageProcessing.Core.Configuration
             Action<ApplicationSettings>? configureForProduction,
             Action<ApplicationSettings>? configureForDevelopment)
         {
-            return Validate(addGpuImageProcessing, initializeServicesAsync, createServiceProvider,
-                createAndInitializeServiceProviderAsync, addApplicationLogging, configureForProduction,
+            return Validate(
+                addGpuImageProcessing,
+                initializeServicesAsync,
+                createServiceProvider,
+                createAndInitializeServiceProviderAsync,
+                addApplicationLogging,
+                configureForProduction,
                 configureForDevelopment).Count == 0;
         }
 
@@ -111,7 +87,7 @@ namespace GpuImageProcessing.Core.Configuration
         /// <param name="addApplicationLogging">AddApplicationLogging method</param>
         /// <param name="configureForProduction">ConfigureForProduction method</param>
         /// <param name="configureForDevelopment">ConfigureForDevelopment method</param>
-        /// <exception cref="ArgumentException">Thrown if any configuration method is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown if any parameter is null</exception>
         public static void EnsureValid(
             Func<IServiceCollection, ApplicationSettings, IServiceCollection>? addGpuImageProcessing,
             Func<IServiceProvider, Task>? initializeServicesAsync,
@@ -121,8 +97,13 @@ namespace GpuImageProcessing.Core.Configuration
             Action<ApplicationSettings>? configureForProduction,
             Action<ApplicationSettings>? configureForDevelopment)
         {
-            var errors = Validate(addGpuImageProcessing, initializeServicesAsync, createServiceProvider,
-                createAndInitializeServiceProviderAsync, addApplicationLogging, configureForProduction,
+            var errors = Validate(
+                addGpuImageProcessing,
+                initializeServicesAsync,
+                createServiceProvider,
+                createAndInitializeServiceProviderAsync,
+                addApplicationLogging,
+                configureForProduction,
                 configureForDevelopment);
 
             if (errors.Count > 0)
