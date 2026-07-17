@@ -115,6 +115,105 @@ class Program
 }
 ```
 
+## DeviceService
+
+The `DeviceService` manages GPU and CPU compute devices for image processing operations. It provides functionality for detecting available devices, selecting devices for processing, checking device capabilities and memory availability, and retrieving device statistics. The service automatically initializes with the most capable device and provides methods for refreshing device information and getting capabilities summaries.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Services;
+using GpuImageProcessing.Core.Models;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Program
+{
+static async Task Main()
+{
+// Initialize device service with GPU management service and logger
+// In real applications, these would typically come from dependency injection
+var gpuManagementService = new GpuManagementService();
+var logger = new ConsoleLogger<DeviceService>();
+var deviceService = new DeviceService(gpuManagementService, logger);
+
+// Initialize the service and detect available devices
+await deviceService.InitializeAsync();
+Console.WriteLine("Device service initialized successfully");
+
+// Get all available devices
+var allDevices = await deviceService.GetAllDevicesAsync();
+Console.WriteLine($"Total devices detected: {allDevices.Count()}");
+
+// Get GPU devices specifically
+var gpuDevices = await deviceService.GetGpuDevicesAsync();
+Console.WriteLine($"GPU devices: {gpuDevices.Count()}");
+
+foreach (var gpuDevice in gpuDevices)
+{
+Console.WriteLine($" - {gpuDevice.Name} ({gpuDevice.Vendor})");
+Console.WriteLine($"   Memory: {gpuDevice.GetFormattedMemory()}");
+Console.WriteLine($"   Capability: {gpuDevice.GetCapabilityScore():F1}/100");
+}
+
+// Get CPU devices
+var cpuDevices = await deviceService.GetCpuDevicesAsync();
+Console.WriteLine($"CPU devices: {cpuDevices.Count()}");
+
+// Get the most capable device
+var mostCapableDevice = await deviceService.GetMostCapableDeviceAsync();
+if (mostCapableDevice != null)
+{
+Console.WriteLine($"Most capable device: {mostCapableDevice.Name}");
+Console.WriteLine($"Capability score: {mostCapableDevice.GetCapabilityScore():F1}/100");
+}
+
+// Get statistics about all devices
+var statistics = await deviceService.GetStatisticsAsync();
+Console.WriteLine($"\nDevice Statistics:");
+Console.WriteLine($" Total devices: {statistics.TotalDevices}");
+Console.WriteLine($" Available devices: {statistics.AvailableDevices}");
+Console.WriteLine($" GPU devices: {statistics.GpuDevices}");
+Console.WriteLine($" CPU devices: {statistics.CpuDevices}");
+Console.WriteLine($" Total memory: {statistics.TotalMemoryBytes / (1024.0 * 1024.0):F2} MB");
+Console.WriteLine($" Total compute units: {statistics.TotalComputeUnits}");
+Console.WriteLine($" Average capability: {statistics.AverageCapabilityScore:F2}/100");
+
+// Select a specific device for processing
+if (gpuDevices.Any())
+{
+var selectedDevice = gpuDevices.First();
+bool selectionSuccess = await deviceService.SelectDeviceAsync(selectedDevice.Id);
+Console.WriteLine($"\nDevice selection {(selectionSuccess ? "succeeded" : "failed"}: {selectedDevice.Name}");
+
+// Get the currently selected device
+var currentDevice = deviceService.GetSelectedDevice();
+if (currentDevice != null)
+{
+Console.WriteLine($"Currently selected device: {currentDevice.Name}");
+}
+}
+
+// Check if a device has sufficient memory
+if (gpuDevices.Any())
+{
+var testDevice = gpuDevices.First();
+bool hasMemory = await deviceService.HasSufficientMemoryAsync(testDevice.Id, 1024L * 1024L * 1024L); // 1GB
+Console.WriteLine($"Device has sufficient memory: {hasMemory}");
+}
+
+// Get capabilities summary
+var capabilitiesSummary = await deviceService.GetCapabilitiesSummaryAsync();
+Console.WriteLine($"\nCapabilities Summary:\n{capabilitiesSummary}");
+
+// Refresh device information
+await deviceService.RefreshDevicesAsync();
+Console.WriteLine("Device information refreshed");
+}
+}
+```
+
 ## TransformService
 
 The `TransformService` manages image transformation operations including rotation, resizing, color space conversion, and normalization. It provides comprehensive CRUD operations for transforms, parameter management, activation/deactivation control, and statistics tracking. The service supports chaining multiple transforms for sequential execution and can export transform configurations for reuse across different processing pipelines.
