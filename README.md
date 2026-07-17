@@ -429,6 +429,77 @@ class Program
 
 ```
 
+## HelpCommandExtensions
+
+
+
+The `HelpCommandExtensions` class provides extension methods for the `HelpCommand` class that simplify displaying help information and command documentation in the command-line interface. It includes utilities for retrieving available commands, getting command usage patterns, descriptions, examples, and summaries, making it easier to build comprehensive help systems.
+
+### Key Features
+
+- Get a formatted list of all available commands with their descriptions
+- Retrieve usage patterns for specific commands
+- Get detailed descriptions for individual commands
+- Access realistic usage examples for each command
+- Obtain concise summaries for command listings
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Cli;
+using System;
+
+class Program
+{
+static void Main()
+{
+// Create a HelpCommand instance
+var helpCommand = new HelpCommand();
+
+// Get all available commands with their descriptions
+var availableCommands = helpCommand.GetAvailableCommands();
+Console.WriteLine("Available commands:");
+foreach (var (name, description) in availableCommands)
+{
+Console.WriteLine($"  {name,-10} - {description}");
+}
+
+// Get usage information for a specific command
+string processUsage = helpCommand.GetCommandUsage("process");
+if (processUsage != null)
+{
+Console.WriteLine("\nProcess command usage:");
+Console.WriteLine(processUsage);
+}
+
+// Get description for a specific command
+string filterDescription = helpCommand.GetCommandDescription("filter");
+if (filterDescription != null)
+{
+Console.WriteLine("\nFilter command description:");
+Console.WriteLine(filterDescription);
+}
+
+// Get examples for a specific command
+var batchExamples = helpCommand.GetCommandExamples("batch");
+Console.WriteLine("\nBatch command examples:");
+foreach (var example in batchExamples)
+{
+Console.WriteLine($"  {example}");
+}
+
+// Get summary for a specific command
+string versionSummary = helpCommand.GetCommandSummary("version");
+if (versionSummary != null)
+{
+Console.WriteLine($"\nVersion command summary: {versionSummary}");
+}
+}
+}
+
+```
+
 ## MetricsPublisherJsonExtensions
 
 The `MetricsPublisherJsonExtensions` class provides System.Text.Json serialization utilities for the `MetricsPublisher` class. It enables serialization and deserialization of metrics publisher configurations with support for both compact and indented JSON output formats, safe error handling, and thread-safe serialization with optimized JsonSerializerOptions.
