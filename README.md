@@ -914,6 +914,72 @@ static bool IsValidImageFormat(string format)
 }
 ```
 
+## FilterParameter
+
+The `FilterParameter` class represents a configurable parameter for image filters with validation, normalization, and clamping capabilities. It defines the range, type, and metadata for filter parameters like blur radius, intensity values, or threshold levels. Parameters can be validated to ensure values are within bounds, normalized for UI controls, and cloned for safe reuse across filter instances.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Models;
+using System;
+
+// Create a blur radius parameter with range validation
+var blurRadius = new FilterParameter
+{
+    Name = "BlurRadius",
+    Value = 5.0f,
+    Min = 1.0f,
+    Max = 25.0f,
+    Unit = "pixels",
+    Description = "Radius for Gaussian blur effect"
+};
+
+// Validate the parameter value
+bool isValid = blurRadius.IsValid();
+Console.WriteLine($"Parameter is valid: {isValid}"); // True (5.0 is within 1.0-25.0 range)
+
+// Clamp an out-of-range value
+blurRadius.Value = 30.0f;
+blurRadius.ClampValue();
+Console.WriteLine($"Clamped value: {blurRadius.Value}"); // 25.0
+
+// Create a normalized slider value (0-1 range) for UI
+float normalized = blurRadius.GetNormalizedValue();
+Console.WriteLine($"Normalized value: {normalized:F3}"); // ~0.923
+
+// Set value from normalized input
+blurRadius.SetFromNormalizedValue(0.5f);
+Console.WriteLine($"Value from normalized 0.5: {blurRadius.Value}"); // ~13.0
+
+// Clone for reuse in multiple filters
+var clonedParameter = blurRadius.Clone();
+Console.WriteLine($"Cloned parameter ID: {clonedParameter.Id}"); // Different Guid
+
+// Create an intensity parameter with percentage unit
+var intensity = new FilterParameter
+{
+    Name = "Intensity",
+    Value = 0.8f,
+    Min = 0.0f,
+    Max = 1.0f,
+    Unit = "%",
+    Description = "Effect strength as percentage"
+};
+
+// Validate required parameter
+var requiredParam = new FilterParameter
+{
+    Name = "Threshold",
+    Value = 0.5f,
+    Min = 0.0f,
+    Max = 1.0f,
+    IsRequired = true
+};
+
+Console.WriteLine($"Required parameter: {requiredParam.IsRequired}, Valid: {requiredParam.IsValid()}");
+```
+
 ## FilterChainBenchmarks
 
 The `FilterChainBenchmarks` class provides performance benchmarks for core `FilterChain` operations that are critical hot paths during GPU filter pipeline setup and execution. It measures realistic in-process operations including step management, validation, querying, and cloning that are called repeatedly during batch processing workflows.
