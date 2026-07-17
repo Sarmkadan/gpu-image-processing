@@ -25,8 +25,8 @@ public static class ImageProcessingServiceExtensions
     /// <param name="filterIds">Ordered list of filter configuration IDs to apply to all images.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A list of processing results for each successfully processed image.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="service"/> or <paramref name="imageIds"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="imageIds"/> is empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="service"/>, <paramref name="imageIds"/>, or <paramref name="filterIds"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="imageIds"/> is empty or <paramref name="filterIds"/> is empty.</exception>
     public static async Task<IReadOnlyList<ProcessingResult>> ProcessImagesAsync(
         this ImageProcessingService service,
         IEnumerable<Guid> imageIds,
@@ -35,11 +35,17 @@ public static class ImageProcessingServiceExtensions
     {
         ArgumentNullException.ThrowIfNull(service);
         ArgumentNullException.ThrowIfNull(imageIds);
+        ArgumentNullException.ThrowIfNull(filterIds);
 
         var imageList = imageIds.ToList();
         if (imageList.Count == 0)
         {
             return Array.Empty<ProcessingResult>();
+        }
+
+        if (filterIds.Count == 0)
+        {
+            throw new ArgumentException("Filter list cannot be empty", nameof(filterIds));
         }
 
         var results = new List<ProcessingResult>();
@@ -50,9 +56,11 @@ public static class ImageProcessingServiceExtensions
                 var result = await service.ProcessImageAsync(imageId, filterIds, cancellationToken);
                 results.Add(result);
             }
-            catch
+            catch (Exception ex)
             {
                 // Continue processing other images even if one fails
+                // The exception is intentionally swallowed to allow batch processing to continue
+                // Failed images are not tracked in results, which is the expected behavior
                 continue;
             }
         }
@@ -93,6 +101,7 @@ public static class ImageProcessingServiceExtensions
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>A formatted string containing the statistics report.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="service"/> is null.</exception>
+    /// <exception cref="KeyNotFoundException">Thrown when required statistics keys are missing from the stats dictionary.</exception>
     public static async Task<string> GetStatisticsReportAsync(
         this ImageProcessingService service,
         CultureInfo? cultureInfo = null,
@@ -103,25 +112,35 @@ public static class ImageProcessingServiceExtensions
         var stats = await service.GetStatisticsAsync(cancellationToken);
         var culture = cultureInfo ?? CultureInfo.InvariantCulture;
 
-        var totalImages = (int)stats["TotalImages"];
-        var processedImages = (int)stats["ProcessedImages"];
-        var successful = (int)stats["SuccessfulProcessing"];
-        var failed = (int)stats["FailedProcessing"];
-        var successRate = (double)stats["SuccessRate"];
-        var avgTime = (double)stats["AverageProcessingTime"];
-        var totalTime = (long)stats["TotalProcessingTime"];
+        var totalImages = GetStatValue<int>(stats, "TotalImages");
+        var processedImages = GetStatValue<int>(stats, "ProcessedImages");
+        var successful = GetStatValue<int>(stats, "SuccessfulProcessing");
+        var failed = GetStatValue<int>(stats, "FailedProcessing");
+        var successRate = GetStatValue<double>(stats, "SuccessRate");
+        var avgTime = GetStatValue<double>(stats, "AverageProcessingTime");
+        var totalTime = GetStatValue<long>(stats, "TotalProcessingTime");
 
-        return $"""
+        return $$"""
 Image Processing Statistics Report
 ================================
-Total Images: {totalImages}
-Processed Images: {processedImages}
-Successful: {successful}
-Failed: {failed}
-Success Rate: {successRate.ToString("F2", culture)}%
-Average Processing Time: {avgTime.ToString("F2", culture)} ms
-Total Processing Time: {TimeSpan.FromMilliseconds(totalTime).ToString("g", culture)}
+Total Images: {{totalImages}}
+Processed Images: {{processedImages}}
+Successful: {{successful}}
+Failed: {{failed}}
+Success Rate: {{successRate.ToString("F2", culture)}}%
+Average Processing Time: {{avgTime.ToString("F2", culture)}} ms
+Total Processing Time: {{TimeSpan.FromMilliseconds(totalTime).ToString("g", culture)}}
 """;
+
+        static T GetStatValue<T>(IReadOnlyDictionary<string, object> stats, string key)
+        {
+            if (!stats.TryGetValue(key, out var value))
+            {
+                throw new KeyNotFoundException($"Statistics dictionary does not contain key: {{key}}");
+            }
+
+            return (T)value;
+        }
     }
 
     /// <summary>
@@ -141,6 +160,6 @@ Total Processing Time: {TimeSpan.FromMilliseconds(totalTime).ToString("g", cultu
         ArgumentNullException.ThrowIfNull(service);
 
         var result = await service.GetProcessingResultAsync(imageId, cancellationToken);
-        return result ?? throw new InvalidOperationException($"No processing result found for image {imageId}");
+        return result ?? throw new InvalidOperationException($"No processing result found for image {{imageId}}");
     }
 }
