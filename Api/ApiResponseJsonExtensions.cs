@@ -52,9 +52,12 @@ namespace GpuImageProcessing.Api
         /// <typeparam name="T">The type of data contained in the response.</typeparam>
         /// <param name="json">The JSON string to deserialize.</param>
         /// <returns>The deserialized API response, or null if the JSON is null or empty.</returns>
+	/// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
-        public static ApiResponse<T>? FromJson<T>(string json)
+        public static ApiResponse<T>? FromJson<T>(string? json)
         {
+	ArgumentNullException.ThrowIfNull(json);
+
             if (string.IsNullOrEmpty(json))
             {
                 return null;
@@ -70,24 +73,28 @@ namespace GpuImageProcessing.Api
         /// <param name="json">The JSON string to deserialize.</param>
         /// <param name="value">Receives the deserialized API response if successful.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-        public static bool TryFromJson<T>(string json, out ApiResponse<T>? value)
-        {
-            value = null;
+	/// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+public static bool TryFromJson<T>(string? json, out ApiResponse<T>? value)
+{
+	ArgumentNullException.ThrowIfNull(json);
 
-            if (string.IsNullOrEmpty(json))
-            {
-                return false;
-            }
+	if (string.IsNullOrEmpty(json))
+	{
+		value = null;
+		return false;
+	}
 
-            try
-            {
-                value = JsonSerializer.Deserialize<ApiResponse<T>>(json, _jsonSerializerOptions);
-                return true;
-            }
-            catch (JsonException)
-            {
-                return false;
-            }
-        }
+	try
+	{
+		value = JsonSerializer.Deserialize<ApiResponse<T>>(json, _jsonSerializerOptions);
+		return true;
+	}
+	catch (JsonException)
+	{
+		value = null;
+		return false;
+	}
+}
+
     }
 }
