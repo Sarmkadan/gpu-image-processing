@@ -620,6 +620,123 @@ class Program
 }
 ```
 
+## MarkdownResultFormatter
+
+The `MarkdownResultFormatter` class formats GPU image processing results, device information, job status, and errors into well-structured Markdown documents. It generates comprehensive reports with tables, statistics, and formatted output suitable for documentation, logging, and reporting purposes.
+
+### Key Features
+
+- Formats processing results into structured Markdown reports
+- Generates summary statistics and performance metrics
+- Creates detailed tables for individual operations
+- Formats device information and job status
+- Handles error reporting with proper Markdown escaping
+- Supports batch processing with operation breakdowns
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Formatters;
+using GpuImageProcessing.Core.Models;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var formatter = new MarkdownResultFormatter();
+        
+        // Format a single processing result
+        var singleResult = new ProcessingResult
+        {
+            Id = "result-001",
+            ImageId = "image-001",
+            IsSuccessful = true,
+            ProcessingTimeMs = 150.5f,
+            OutputFileSizeBytes = 1024 * 1024, // 1MB
+            AppliedFilters = new List<string> { "GaussianBlur", "EdgeDetection" },
+            AppliedTransforms = new List<string> { "Resize" }
+        };
+        
+        string singleResultMarkdown = formatter.FormatResult(singleResult);
+        Console.WriteLine(singleResultMarkdown);
+        
+        // Format multiple processing results
+        var results = new List<ProcessingResult>
+        {
+            new ProcessingResult
+            {
+                Id = "result-001",
+                ImageId = "image-001",
+                IsSuccessful = true,
+                ProcessingTimeMs = 150.5f,
+                OutputFileSizeBytes = 1024 * 1024,
+                AppliedFilters = new List<string> { "GaussianBlur" }
+            },
+            new ProcessingResult
+            {
+                Id = "result-002",
+                ImageId = "image-002",
+                IsSuccessful = false,
+                ProcessingTimeMs = 250.0f,
+                OutputFileSizeBytes = 512 * 1024,
+                ErrorMessage = "Invalid image format"
+            },
+            new ProcessingResult
+            {
+                Id = "result-003",
+                ImageId = "image-003",
+                IsSuccessful = true,
+                ProcessingTimeMs = 120.25f,
+                OutputFileSizeBytes = 2 * 1024 * 1024,
+                AppliedTransforms = new List<string> { "Crop", "Rotate" }
+            }
+        };
+        
+        string multipleResultsMarkdown = formatter.FormatResults(results);
+        Console.WriteLine(multipleResultsMarkdown);
+        
+        // Format device information
+        var device = new DeviceInfo
+        {
+            Name = "NVIDIA RTX 3090",
+            Vendor = "NVIDIA",
+            DeviceType = "GPU",
+            IsAvailable = true,
+            GlobalMemoryBytes = 24L * 1024 * 1024 * 1024 // 24GB
+        };
+        
+        string deviceMarkdown = formatter.FormatDevice(device);
+        Console.WriteLine(deviceMarkdown);
+        
+        // Format a processing job
+        var job = new ProcessingJob
+        {
+            Name = "Batch Image Processing",
+            Status = "Completed",
+            ProcessedImages = 45,
+            TotalImages = 50,
+            ProgressPercentage = 90.0f
+        };
+        
+        string jobMarkdown = formatter.FormatJob(job);
+        Console.WriteLine(jobMarkdown);
+        
+        // Format an error
+        string errorMarkdown = formatter.FormatError(
+            "Failed to load image: Invalid file format",
+            "IMG-ERR-001"
+        );
+        Console.WriteLine(errorMarkdown);
+        
+        // Get file extension and MIME type
+        Console.WriteLine($"File extension: {formatter.GetFileExtension()}");
+        Console.WriteLine($"MIME type: {formatter.GetMimeType()}");
+    }
+}
+```
+
 ## PathUtilities
 
 The `PathUtilities` class provides a comprehensive set of utilities for path manipulation, normalization, and directory management. It handles cross-platform path operations, safe file operations, and directory traversal with robust error handling to ensure reliable file system operations across different operating systems.
