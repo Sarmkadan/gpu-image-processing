@@ -15,18 +15,16 @@ namespace GpuImageProcessing.Tests.Services
         /// <see cref="PerformanceMonitoringServiceTests"/>.
         /// </summary>
         /// <param name="tests">The test instance.</param>
-        /// <returns>An immutable list containing the method names.</returns>
+        /// <returns>An array containing the method names.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="tests"/> is <c>null</c>.</exception>
-        public static IReadOnlyList<string> GetTestMethodNames(this PerformanceMonitoringServiceTests tests)
+        public static string[] GetTestMethodNames(this PerformanceMonitoringServiceTests tests)
         {
             ArgumentNullException.ThrowIfNull(tests);
-            var methodNames = typeof(PerformanceMonitoringServiceTests)
+            return typeof(PerformanceMonitoringServiceTests)
                 .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
                 .Where(m => m.ReturnType == typeof(void) && m.GetParameters().Length == 0)
                 .Select(m => m.Name)
                 .ToArray();
-
-            return Array.AsReadOnly(methodNames);
         }
 
         /// <summary>
@@ -71,21 +69,23 @@ namespace GpuImageProcessing.Tests.Services
         public static void AssertAllTestsPass(this PerformanceMonitoringServiceTests tests)
         {
             ArgumentNullException.ThrowIfNull(tests);
-            var failures = new List<Exception>();
 
-            foreach (var method in typeof(PerformanceMonitoringServiceTests)
+            var failures = typeof(PerformanceMonitoringServiceTests)
                 .GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly)
-                .Where(m => m.ReturnType == typeof(void) && m.GetParameters().Length == 0))
-            {
-                try
+                .Where(m => m.ReturnType == typeof(void) && m.GetParameters().Length == 0)
+                .Aggregate(new List<Exception>(), (failures, method) =>
                 {
-                    method.Invoke(tests, null);
-                }
-                catch (TargetInvocationException ex) when (ex.InnerException is not null)
-                {
-                    failures.Add(new InvalidOperationException($"Test '{method.Name}' failed.", ex.InnerException));
-                }
-            }
+                    try
+                    {
+                        method.Invoke(tests, null);
+                    }
+                    catch (TargetInvocationException ex) when (ex.InnerException is not null)
+                    {
+                        failures.Add(new InvalidOperationException($"Test '{method.Name}' failed.", ex.InnerException));
+                    }
+
+                    return failures;
+                });
 
             if (failures.Count > 0)
                 throw new AggregateException("One or more PerformanceMonitoringServiceTests failed.", failures);
