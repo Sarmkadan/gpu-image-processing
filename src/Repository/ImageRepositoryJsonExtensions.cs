@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 namespace GpuImageProcessing.Repository;
 
 /// <summary>
-/// Provides System.Text.Json serialization extensions for ImageRepository.
+/// Provides System.Text.Json serialization extensions for <see cref="ImageRepository"/>.
 /// </summary>
 public static class ImageRepositoryJsonExtensions
 {
@@ -24,34 +24,30 @@ public static class ImageRepositoryJsonExtensions
     };
 
     /// <summary>
-    /// Serializes the ImageRepository to a JSON string.
+    /// Serializes the ImageRepository instance to a JSON string.
     /// </summary>
-    /// <param name="value">The ImageRepository to serialize.</param>
-    /// <param name="indented">Whether to format the JSON with indentation.</param>
-    /// <returns>A JSON string representation of the ImageRepository.</returns>
+    /// <param name="value">The repository instance to serialize.</param>
+    /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
+    /// <returns>JSON representation of the repository.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
     public static string ToJson(this ImageRepository value, bool indented = false)
     {
-        if (value == null)
-        {
-            return "{}";
-        }
+        ArgumentNullException.ThrowIfNull(value);
 
         var options = indented
-            ? new JsonSerializerOptions(_jsonOptions)
-            {
-                WriteIndented = true
-            }
+            ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
             : _jsonOptions;
 
         return JsonSerializer.Serialize(value, options);
     }
 
     /// <summary>
-    /// Deserializes an ImageRepository from a JSON string.
+    /// Deserializes a JSON string to an ImageRepository instance.
     /// </summary>
-    /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized ImageRepository, or null if the JSON is invalid or the input is null/empty.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <param name="json">JSON string to deserialize.</param>
+    /// <returns>Deserialized repository instance, or <see langword="null"/> if JSON is <see langword="null"/>, empty, or whitespace.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
+    /// <exception cref="JsonException">Thrown when the JSON is malformed and cannot be deserialized.</exception>
     public static ImageRepository? FromJson(string json)
     {
         ArgumentNullException.ThrowIfNull(json);
@@ -72,13 +68,26 @@ public static class ImageRepositoryJsonExtensions
     }
 
     /// <summary>
-    /// Attempts to deserialize an ImageRepository from a JSON string.
+    /// Attempts to deserialize a JSON string to an ImageRepository instance.
     /// </summary>
-    /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The deserialized ImageRepository, or null if deserialization failed.</param>
-    /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <param name="json">JSON string to deserialize.</param>
+    /// <param name="value">Output parameter containing the deserialized instance if successful.</param>
+    /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
     public static bool TryFromJson(string json, out ImageRepository? value)
     {
+        value = null;
+
+        if (json is null)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return false;
+        }
+
         try
         {
             value = JsonSerializer.Deserialize<ImageRepository>(json, _jsonOptions);
@@ -86,7 +95,6 @@ public static class ImageRepositoryJsonExtensions
         }
         catch (JsonException)
         {
-            value = null;
             return false;
         }
     }
