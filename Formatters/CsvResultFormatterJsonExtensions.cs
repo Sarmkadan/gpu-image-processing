@@ -5,7 +5,6 @@
 // =============================================================================
 
 using System;
-using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -16,6 +15,9 @@ namespace GpuImageProcessing.Formatters
     /// </summary>
     public static class CsvResultFormatterJsonExtensions
     {
+        /// <summary>
+        /// Gets the default JSON serializer options used for serializing and deserializing <see cref="CsvResultFormatter"/> instances.
+        /// </summary>
         private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -50,9 +52,12 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
         /// <returns>A deserialized <see cref="CsvResultFormatter"/> instance, or null if the JSON is empty or whitespace.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
         public static CsvResultFormatter? FromJson(string json)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
             if (string.IsNullOrWhiteSpace(json))
             {
                 return null;
@@ -67,9 +72,12 @@ namespace GpuImageProcessing.Formatters
         /// <param name="json">The JSON string to deserialize.</param>
         /// <param name="value">Receives the deserialized instance if successful.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
         public static bool TryFromJson(string json, out CsvResultFormatter? value)
         {
             value = null;
+
+            ArgumentNullException.ThrowIfNull(json);
 
             if (string.IsNullOrWhiteSpace(json))
             {
