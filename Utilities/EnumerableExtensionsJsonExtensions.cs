@@ -34,13 +34,10 @@ namespace GpuImageProcessing.Utilities
         /// <param name="batchSize">The maximum number of items in each batch. Must be positive.</param>
         /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
         /// <returns>A JSON string representation of the batching configuration.</returns>
-        /// <exception cref="ArgumentException"><paramref name="batchSize"/> is not positive.</exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="batchSize"/> is not positive.</exception>
         public static string ToJson(int batchSize, bool indented = false)
         {
-            if (batchSize <= 0)
-            {
-                throw new ArgumentException("Batch size must be positive", nameof(batchSize));
-            }
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(batchSize, 0);
 
             var config = new EnumerableBatchingConfiguration
             {
@@ -49,9 +46,7 @@ namespace GpuImageProcessing.Utilities
 
             var options = indented
                 ? new JsonSerializerOptions(JsonOptions)
-                {
-                    WriteIndented = true
-                }
+                { WriteIndented = true }
                 : JsonOptions;
 
             return JsonSerializer.Serialize(config, options);
@@ -62,14 +57,13 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         /// <param name="json">The JSON string to deserialize. Cannot be null or empty.</param>
         /// <returns>An enumerable batching configuration, or null if the JSON represents a null value.</returns>
-        /// <exception cref="ArgumentException"><paramref name="json"/> is null or empty.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="json"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="json"/> is empty.</exception>
         /// <exception cref="JsonException">The JSON is invalid or cannot be deserialized.</exception>
         public static EnumerableBatchingConfiguration? FromJson(string json)
         {
-            if (string.IsNullOrEmpty(json))
-            {
-                return null;
-            }
+            ArgumentNullException.ThrowIfNull(json);
+            ArgumentException.ThrowIfNullOrEmpty(json);
 
             return JsonSerializer.Deserialize<EnumerableBatchingConfiguration>(json, JsonOptions);
         }
@@ -80,7 +74,7 @@ namespace GpuImageProcessing.Utilities
         /// <param name="json">The JSON string to deserialize. Cannot be null or empty.</param>
         /// <param name="value">Receives the deserialized configuration if successful.</param>
         /// <returns>True if deserialization succeeds; otherwise, false.</returns>
-        /// <exception cref="ArgumentException"><paramref name="json"/> is null or empty.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="json"/> is null.</exception>
         public static bool TryFromJson(string json, out EnumerableBatchingConfiguration? value)
         {
             value = null;
