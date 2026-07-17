@@ -933,6 +933,126 @@ class Program
 
 ```
 
+## XmlResultFormatterExtensions
+
+The `XmlResultFormatterExtensions` class provides extension methods for the `XmlResultFormatter` class that extend the XML formatting capabilities with additional context and statistics. It includes methods for formatting processing results with statistics, job progress details, device information with extensions, and standardized XML envelopes, making it easier to generate comprehensive XML reports for image processing operations.
+
+### Key Features
+
+- Format collections of processing results with summary statistics (success rate, average duration, totals)
+- Format processing jobs with detailed breakdown by status and completion rate
+- Format device information with extended capabilities and OpenCL extensions
+- Create standardized XML envelopes around formatted content with metadata
+- Helper methods for XML formatting and statistics calculation
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Formatters;
+using GpuImageProcessing.Core.Models;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        var formatter = new XmlResultFormatter();
+
+        // Format processing results with statistics
+        var results = new List<ProcessingResult>
+        {
+            new ProcessingResult
+            {
+                Id = Guid.NewGuid(),
+                JobId = Guid.NewGuid(),
+                ImageId = Guid.NewGuid(),
+                Status = ProcessingStatus.Completed,
+                StartTime = DateTime.UtcNow.AddMinutes(-5),
+                CompletionTime = DateTime.UtcNow,
+                OutputImagePath = "/output/processed-image-001.jpg"
+            },
+            new ProcessingResult
+            {
+                Id = Guid.NewGuid(),
+                JobId = Guid.NewGuid(),
+                ImageId = Guid.NewGuid(),
+                Status = ProcessingStatus.Completed,
+                StartTime = DateTime.UtcNow.AddMinutes(-4),
+                CompletionTime = DateTime.UtcNow,
+                OutputImagePath = "/output/processed-image-002.jpg"
+            },
+            new ProcessingResult
+            {
+                Id = Guid.NewGuid(),
+                JobId = Guid.NewGuid(),
+                ImageId = Guid.NewGuid(),
+                Status = ProcessingStatus.Failed,
+                StartTime = DateTime.UtcNow.AddMinutes(-3),
+                CompletionTime = DateTime.UtcNow,
+                OutputImagePath = "/output/failed-image-003.jpg"
+            }
+        };
+
+        string formattedResults = formatter.FormatResultsWithStatistics(results);
+        Console.WriteLine(formattedResults);
+
+        // Format a processing job with detailed breakdown
+        var job = new ProcessingJob
+        {
+            Id = Guid.NewGuid(),
+            Name = "Batch Image Processing Job #12345",
+            Status = ProcessingStatus.Completed,
+            TotalImages = 100,
+            ProcessedImages = 95,
+            FailedImages = 5,
+            CreatedAt = DateTime.UtcNow.AddHours(-2),
+            StartedAt = DateTime.UtcNow.AddHours(-1)
+        };
+
+        string formattedJob = formatter.FormatJobWithDetails(job);
+        Console.WriteLine(formattedJob);
+
+        // Format device information with extensions
+        var device = new DeviceInfo
+        {
+            Id = 0,
+            Name = "NVIDIA RTX 3090",
+            Type = "GPU",
+            Vendor = "NVIDIA",
+            MemoryBytes = 24L * 1024 * 1024 * 1024, // 24GB
+            ComputeUnits = 82,
+            IsAvailable = true,
+            DriverVersion = "510.47.03",
+            Extensions = new Dictionary<string, string>
+            {
+                { "cl_khr_fp64", "1.2" },
+                { "cl_khr_global_int32_base_atomics", "1.0" },
+                { "cl_khr_local_int32_base_atomics", "1.1" }
+            }
+        };
+
+        string formattedDevice = formatter.FormatDeviceWithExtensions(device);
+        Console.WriteLine(formattedDevice);
+
+        // Create a standardized XML envelope with metadata
+        string envelope = formatter.WrapInEnvelope(
+            "ProcessingResults",
+            formattedResults,
+            new Dictionary<string, string>
+            {
+                { "generator", "GPU Image Processing v1.0" },
+                { "environment", "Production" },
+                { "processedCount", "2" }
+            }
+        );
+        Console.WriteLine(envelope);
+    }
+}
+
+```
+
 ## HelpCommandExtensions
 
 
