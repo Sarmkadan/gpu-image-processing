@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace GpuImageProcessing.Core.Models
 {
@@ -20,7 +19,7 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         /// <param name="value">The DeviceInfo instance to validate</param>
         /// <returns>A read-only list of validation error messages (empty if valid)</returns>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
         public static IReadOnlyList<string> Validate(this DeviceInfo value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -34,35 +33,26 @@ namespace GpuImageProcessing.Core.Models
             }
 
             // Validate Name
-            if (string.IsNullOrWhiteSpace(value.Name))
-            {
-                errors.Add("DeviceInfo.Name cannot be null or whitespace");
-            }
-            else if (value.Name.Length > 256)
+            ArgumentException.ThrowIfNullOrEmpty(value.Name?.Trim());
+            if (value.Name.Length > 256)
             {
                 errors.Add("DeviceInfo.Name cannot exceed 256 characters");
             }
 
             // Validate Vendor
-            if (string.IsNullOrWhiteSpace(value.Vendor))
-            {
-                errors.Add("DeviceInfo.Vendor cannot be null or whitespace");
-            }
-            else if (value.Vendor.Length > 128)
+            ArgumentException.ThrowIfNullOrEmpty(value.Vendor?.Trim());
+            if (value.Vendor.Length > 128)
             {
                 errors.Add("DeviceInfo.Vendor cannot exceed 128 characters");
             }
 
             // Validate DeviceType
-            if (string.IsNullOrWhiteSpace(value.DeviceType))
-            {
-                errors.Add("DeviceInfo.DeviceType cannot be null or whitespace");
-            }
-            else if (value.DeviceType.Length > 64)
+            ArgumentException.ThrowIfNullOrEmpty(value.DeviceType?.Trim());
+            if (value.DeviceType.Length > 64)
             {
                 errors.Add("DeviceInfo.DeviceType cannot exceed 64 characters");
             }
-            else if (value.DeviceType != "GPU" && value.DeviceType != "CPU" && value.DeviceType != "Accelerator")
+            else if (value.DeviceType is not ("GPU" or "CPU" or "Accelerator"))
             {
                 errors.Add("DeviceInfo.DeviceType must be one of: GPU, CPU, Accelerator");
             }
@@ -102,21 +92,15 @@ namespace GpuImageProcessing.Core.Models
             }
 
             // Validate OpenCLVersion
-            if (string.IsNullOrWhiteSpace(value.OpenCLVersion))
-            {
-                errors.Add("DeviceInfo.OpenCLVersion cannot be null or whitespace");
-            }
-            else if (value.OpenCLVersion.Length > 64)
+            ArgumentException.ThrowIfNullOrEmpty(value.OpenCLVersion?.Trim());
+            if (value.OpenCLVersion.Length > 64)
             {
                 errors.Add("DeviceInfo.OpenCLVersion cannot exceed 64 characters");
             }
 
             // Validate DriverVersion
-            if (string.IsNullOrWhiteSpace(value.DriverVersion))
-            {
-                errors.Add("DeviceInfo.DriverVersion cannot be null or whitespace");
-            }
-            else if (value.DriverVersion.Length > 128)
+            ArgumentException.ThrowIfNullOrEmpty(value.DriverVersion?.Trim());
+            if (value.DriverVersion.Length > 128)
             {
                 errors.Add("DeviceInfo.DriverVersion cannot exceed 128 characters");
             }
@@ -148,29 +132,20 @@ namespace GpuImageProcessing.Core.Models
             }
 
             // Validate Extensions
-            if (value.Extensions == null)
+            ArgumentNullException.ThrowIfNull(value.Extensions);
+
+            foreach (var kvp in value.Extensions)
             {
-                errors.Add("DeviceInfo.Extensions cannot be null");
-            }
-            else
-            {
-                foreach (var kvp in value.Extensions)
+                ArgumentException.ThrowIfNullOrEmpty(kvp.Key?.Trim());
+                if (kvp.Key.Length > 256)
                 {
-                    if (string.IsNullOrWhiteSpace(kvp.Key))
-                    {
-                        errors.Add("DeviceInfo.Extensions contains an entry with null or whitespace key");
-                        break;
-                    }
-                    if (kvp.Key.Length > 256)
-                    {
-                        errors.Add("DeviceInfo.Extensions key cannot exceed 256 characters");
-                        break;
-                    }
-                    if (kvp.Value != null && kvp.Value.Length > 256)
-                    {
-                        errors.Add("DeviceInfo.Extensions value cannot exceed 256 characters");
-                        break;
-                    }
+                    errors.Add("DeviceInfo.Extensions key cannot exceed 256 characters");
+                    break;
+                }
+                if (kvp.Value is not null && kvp.Value.Length > 256)
+                {
+                    errors.Add("DeviceInfo.Extensions value cannot exceed 256 characters");
+                    break;
                 }
             }
 
@@ -182,24 +157,16 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         /// <param name="value">The DeviceInfo instance to check</param>
         /// <returns>True if the instance is valid; otherwise, false</returns>
-        public static bool IsValid(this DeviceInfo value)
-        {
-            try
-            {
-                return Validate(value).Count == 0;
-            }
-            catch (ArgumentNullException)
-            {
-                return false;
-            }
-        }
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
+        public static bool IsValid(this DeviceInfo value) =>
+            value is not null && Validate(value).Count == 0;
 
         /// <summary>
         /// Ensures that a DeviceInfo instance is valid, throwing an exception if not
         /// </summary>
         /// <param name="value">The DeviceInfo instance to validate</param>
-        /// <exception cref="ArgumentNullException">Thrown when value is null</exception>
-        /// <exception cref="ArgumentException">Thrown when value contains validation errors</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="value"/> contains validation errors</exception>
         public static void EnsureValid(this DeviceInfo value)
         {
             ArgumentNullException.ThrowIfNull(value);
