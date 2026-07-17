@@ -66,12 +66,6 @@ public static class GpuManagementServiceJsonExtensions
         }
     }
 
-    private static JsonSerializerOptions GetIndentedOptions()
-    {
-        var options = new JsonSerializerOptions(_jsonOptions)
-        {
-            WriteIndented = true,
-        };
-        return options;
-    }
+    private static JsonSerializerOptions GetIndentedOptions() => new(_jsonOptions) { WriteIndented = true };
+
 }
