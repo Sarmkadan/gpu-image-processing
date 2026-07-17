@@ -4,6 +4,7 @@
 // CTO & Software Architect
 // =====================================================================
 
+using System.Reflection;
 using GpuImageProcessing.Core;
 
 namespace GpuImageProcessing.Domain;
@@ -35,24 +36,27 @@ public static class FilterChainBuilderValidation
             errors.Add("Chain name must not be blank.");
         }
 
-        // Validate description (optional, can be empty)
-        // No validation needed for description as it defaults to empty string
-
-        // Validate execution order (optional, defaults to 0)
-        // No validation needed for execution order
-
         // Validate parallel execution settings
-        if (value.GetAllowParallel() && value.GetMaxParallelSteps() < 1)
+        if (value.GetAllowParallel())
         {
-            errors.Add("When parallel execution is enabled, max parallel steps must be at least 1.");
-        }
+            if (value.GetMaxParallelSteps() < 1)
+            {
+                errors.Add("When parallel execution is enabled, max parallel steps must be at least 1.");
+            }
 
-        if (value.GetAllowParallel() && value.GetMaxParallelSteps() > AppConstants.Processing.DefaultThreadCount * 4)
+            if (value.GetMaxParallelSteps() > AppConstants.Processing.DefaultThreadCount * 4)
+            {
+                errors.Add($"When parallel execution is enabled, max parallel steps must not exceed {AppConstants.Processing.DefaultThreadCount * 4}.");
+            }
+        }
+        else
         {
-            errors.Add($"When parallel execution is enabled, max parallel steps must not exceed {AppConstants.Processing.DefaultThreadCount * 4}.");
+            // When parallel execution is disabled, max parallel steps should be 0 or 1
+            if (value.GetMaxParallelSteps() > 1)
+            {
+                errors.Add("When parallel execution is disabled, max parallel steps must be 0 or 1.");
+            }
         }
-
-        // Validate cache intermediates flag (boolean, no validation needed)
 
         // Validate that at least one filter step has been added
         if (value.GetStepCount() == 0)
@@ -98,47 +102,54 @@ public static class FilterChainBuilderValidation
     // These are used internally by the validation methods
     private static string GetName(this FilterChainBuilder builder)
     {
-        var field = typeof(FilterChainBuilder).GetField("_name", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        return field?.GetValue(builder) as string ?? string.Empty;
-    }
-
-    private static string GetDescription(this FilterChainBuilder builder)
-    {
-        var field = typeof(FilterChainBuilder).GetField("_description", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        ArgumentNullException.ThrowIfNull(builder);
+        var field = typeof(FilterChainBuilder).GetField("_name", BindingFlags.NonPublic | BindingFlags.Instance);
         return field?.GetValue(builder) as string ?? string.Empty;
     }
 
     private static bool GetAllowParallel(this FilterChainBuilder builder)
     {
-        var field = typeof(FilterChainBuilder).GetField("_allowParallel", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        ArgumentNullException.ThrowIfNull(builder);
+        var field = typeof(FilterChainBuilder).GetField("_allowParallel", BindingFlags.NonPublic | BindingFlags.Instance);
         return field?.GetValue(builder) as bool? ?? false;
     }
 
     private static int GetMaxParallelSteps(this FilterChainBuilder builder)
     {
-        var field = typeof(FilterChainBuilder).GetField("_maxParallelSteps", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        return field?.GetValue(builder) as int? ?? 0;
-    }
-
-    private static bool GetCacheIntermediates(this FilterChainBuilder builder)
-    {
-        var field = typeof(FilterChainBuilder).GetField("_cacheIntermediates", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-        return field?.GetValue(builder) as bool? ?? false;
-    }
-
-    private static int GetExecutionOrder(this FilterChainBuilder builder)
-    {
-        var field = typeof(FilterChainBuilder).GetField("_executionOrder", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        ArgumentNullException.ThrowIfNull(builder);
+        var field = typeof(FilterChainBuilder).GetField("_maxParallelSteps", BindingFlags.NonPublic | BindingFlags.Instance);
         return field?.GetValue(builder) as int? ?? 0;
     }
 
     private static int GetStepCount(this FilterChainBuilder builder)
     {
-        var field = typeof(FilterChainBuilder).GetField("_steps", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        ArgumentNullException.ThrowIfNull(builder);
+        var field = typeof(FilterChainBuilder).GetField("_steps", BindingFlags.NonPublic | BindingFlags.Instance);
         if (field?.GetValue(builder) is List<(Guid FilterId, double EstimatedMs)> steps)
         {
             return steps.Count;
         }
         return 0;
+    }
+
+    private static int GetExecutionOrder(this FilterChainBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        var field = typeof(FilterChainBuilder).GetField("_executionOrder", BindingFlags.NonPublic | BindingFlags.Instance);
+        return field?.GetValue(builder) as int? ?? 0;
+    }
+
+    private static bool GetCacheIntermediates(this FilterChainBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        var field = typeof(FilterChainBuilder).GetField("_cacheIntermediates", BindingFlags.NonPublic | BindingFlags.Instance);
+        return field?.GetValue(builder) as bool? ?? false;
+    }
+
+    private static string GetDescription(this FilterChainBuilder builder)
+    {
+        ArgumentNullException.ThrowIfNull(builder);
+        var field = typeof(FilterChainBuilder).GetField("_description", BindingFlags.NonPublic | BindingFlags.Instance);
+        return field?.GetValue(builder) as string ?? string.Empty;
     }
 }
