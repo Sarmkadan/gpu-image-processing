@@ -68,12 +68,5 @@ public static class FilterServiceJsonExtensions
         }
     }
 
-    private static JsonSerializerOptions GetIndentedOptions()
-    {
-        var options = new JsonSerializerOptions(_jsonOptions)
-        {
-            WriteIndented = true,
-        };
-        return options;
-    }
+private static JsonSerializerOptions GetIndentedOptions() => new JsonSerializerOptions(_jsonOptions) { WriteIndented = true };
 }
