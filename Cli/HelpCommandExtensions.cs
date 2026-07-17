@@ -22,8 +22,8 @@ namespace GpuImageProcessing.Cli
         /// Gets a formatted list of all available commands with their descriptions.
         /// </summary>
         /// <param name="helpCommand">The help command instance.</param>
-        /// <returns>A read-only list of command information tuples.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="helpCommand"/> is null.</exception>
+        /// <returns>A read-only list of command information tuples containing command names and descriptions.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="helpCommand"/> is <see langword="null"/>.</exception>
         public static IReadOnlyList<(string Name, string Description)> GetAvailableCommands(
             this HelpCommand helpCommand)
         {
@@ -45,9 +45,9 @@ namespace GpuImageProcessing.Cli
         /// </summary>
         /// <param name="helpCommand">The help command instance.</param>
         /// <param name="commandName">The name of the command to get usage for.</param>
-        /// <returns>The formatted usage string, or null if command not found.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="helpCommand"/> is null.</exception>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="commandName"/> is null or empty.</exception>
+        /// <returns>The formatted usage string, or <see langword="null"/> if command not found.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="helpCommand"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="commandName"/> is <see langword="null"/> or empty.</exception>
         public static string? GetCommandUsage(
             this HelpCommand helpCommand,
             string commandName)
@@ -62,83 +62,83 @@ namespace GpuImageProcessing.Cli
 Process a single image or batch of images with GPU acceleration.
 
 Options:
-  --filter <name>    Apply named filter (gaussian, sobel, median, canny)
-  --transform <type>  Apply transformation (rotate, resize, colorspace)
-  --angle <degrees>   Rotation angle for rotate transform
-  --scale <factor>    Scale factor for resize transform
-  --output <path>     Output file path
-  --batch             Enable batch processing for directory
-  --profile <name>    Processing profile (fast, balanced, quality)
-  --verbose           Enable verbose logging
+--filter <name>        Apply named filter (gaussian, sobel, median, canny)
+--transform <type>      Apply transformation (rotate, resize, colorspace)
+--angle <degrees>      Rotation angle for rotate transform
+--scale <factor>       Scale factor for resize transform
+--output <path>        Output file path
+--batch                Enable batch processing for directory
+--profile <name>       Processing profile (fast, balanced, quality)
+--verbose              Enable verbose logging
 
 Examples:
-  process image.jpg --filter gaussian
-  process images/ --batch --filter sobel --profile quality",
+process image.jpg --filter gaussian
+process images/ --batch --filter sobel --profile quality",
 
                 "device" => @"Usage: device [options]
 
 Manage GPU and compute devices for image processing.
 
 Options:
-  --list            List all available devices
-  --info <id>      Show device information
-  --select <id>     Select primary processing device
-  --benchmark       Run device benchmark
-  --memory-stats    Show memory usage statistics
+--list                List all available devices
+--info <id>          Show device information
+--select <id>        Select primary processing device
+--benchmark           Run device benchmark
+--memory-stats        Show memory usage statistics
 
 Examples:
-  device --list
-  device --select 1
-  device --benchmark",
+device --list
+device --select 1
+device --benchmark",
 
                 "filter" => @"Usage: filter [options]
 
 Manage image processing filters.
 
 Options:
-  --list            List available filters
-  --create <name>   Create custom filter
-  --type <type>     Filter type (gaussian, sobel, median, canny, bilateral)
-  --param <key=val> Set filter parameter (repeatable)
-  --info <id>      Show filter details
-  --delete <id>     Delete filter
-  --stats           Show filter statistics
+--list                List available filters
+--create <name>       Create custom filter
+--type <type>         Filter type (gaussian, sobel, median, canny, bilateral)
+--param <key=val>    Set filter parameter (repeatable)
+--info <id>          Show filter details
+--delete <id>        Delete filter
+--stats               Show filter statistics
 
 Examples:
-  filter --list
-  filter --create MyGaussian --type gaussian --param sigma=1.5
-  filter --stats",
+filter --list
+filter --create MyGaussian --type gaussian --param sigma=1.5
+filter --stats",
 
                 "batch" => @"Usage: batch [options]
 
 Manage batch image processing jobs.
 
 Options:
-  --list            List all jobs
-  --create <name>   Create new job
-  --status <id>     Show job status
-  --results <id>    Get job results
-  --cancel <id>     Cancel job
-  --remove <id>     Delete job
-  --export <path>   Export results to file
-  --retry <id>     Retry failed job
+--list                List all jobs
+--create <name>       Create new job
+--status <id>        Show job status
+--results <id>       Get job results
+--cancel <id>        Cancel job
+--remove <id>        Delete job
+--export <path>       Export results to file
+--retry <id>         Retry failed job
 
 Examples:
-  batch --list
-  batch --create MyJob --images img1.jpg,img2.png
-  batch --status job-123",
+batch --list
+batch --create MyJob --images img1.jpg,img2.png
+batch --status job-123",
 
                 "version" => @"Usage: version [options]
 
 Display application version and build information.
 
 Options:
-  --full    Show detailed version info
-  --check   Check for updates
+--full                Show detailed version info
+--check               Check for updates
 
 Examples:
-  version
-  version --full",
+version
+version --full",
 
                 _ => null
             };
@@ -149,9 +149,9 @@ Examples:
         /// </summary>
         /// <param name="helpCommand">The help command instance.</param>
         /// <param name="commandName">The name of the command to get description for.</param>
-        /// <returns>The formatted description string, or null if command not found.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="helpCommand"/> is null.</exception>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="commandName"/> is null or empty.</exception>
+        /// <returns>The formatted description string, or <see langword="null"/> if command not found.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="helpCommand"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="commandName"/> is <see langword="null"/> or empty.</exception>
         public static string? GetCommandDescription(
             this HelpCommand helpCommand,
             string commandName)
@@ -177,8 +177,8 @@ Examples:
         /// <param name="helpCommand">The help command instance.</param>
         /// <param name="commandName">The name of the command to get examples for.</param>
         /// <returns>A read-only list of example strings.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="helpCommand"/> is null.</exception>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="commandName"/> is null or empty.</exception>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="helpCommand"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="commandName"/> is <see langword="null"/> or empty.</exception>
         public static IReadOnlyList<string> GetCommandExamples(
             this HelpCommand helpCommand,
             string commandName)
@@ -236,9 +236,9 @@ Examples:
         /// </summary>
         /// <param name="helpCommand">The help command instance.</param>
         /// <param name="commandName">The name of the command to get summary for.</param>
-        /// <returns>The formatted summary string, or null if command not found.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="helpCommand"/> is null.</exception>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="commandName"/> is null or empty.</exception>
+        /// <returns>The formatted summary string, or <see langword="null"/> if command not found.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="helpCommand"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="commandName"/> is <see langword="null"/> or empty.</exception>
         public static string? GetCommandSummary(
             this HelpCommand helpCommand,
             string commandName)
