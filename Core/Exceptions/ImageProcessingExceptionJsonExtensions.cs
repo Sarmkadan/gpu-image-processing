@@ -1,4 +1,5 @@
 #nullable enable
+
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -23,12 +24,12 @@ namespace GpuImageProcessing.Core.Exceptions
         };
 
         /// <summary>
-        /// Serializes an <see cref="ImageProcessingException"/> to a JSON string
+        /// Serializes an <see cref="ImageProcessingException"/> to a JSON string using camelCase property naming.
         /// </summary>
-        /// <param name="value">The exception to serialize</param>
-        /// <param name="indented">Whether to format the JSON with indentation</param>
-        /// <returns>A JSON string representation of the exception</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
+        /// <param name="value">The exception to serialize. Must not be <see langword="null"/>.</param>
+        /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
+        /// <returns>A JSON string representation of the exception.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
         public static string ToJson(this ImageProcessingException value, bool indented = false)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -41,12 +42,12 @@ namespace GpuImageProcessing.Core.Exceptions
         }
 
         /// <summary>
-        /// Deserializes an <see cref="ImageProcessingException"/> from a JSON string
+        /// Deserializes an <see cref="ImageProcessingException"/> from a JSON string.
         /// </summary>
-        /// <param name="json">The JSON string to deserialize</param>
-        /// <returns>The deserialized exception, or null if the JSON is invalid</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null</exception>
-        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace</exception>
+        /// <param name="json">The JSON string to deserialize. Must not be <see langword="null"/> or empty/whitespace.</param>
+        /// <returns>The deserialized exception if successful; otherwise, <see langword="null"/>.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
         public static ImageProcessingException? FromJson(string json)
         {
             ArgumentNullException.ThrowIfNull(json);
@@ -63,12 +64,12 @@ namespace GpuImageProcessing.Core.Exceptions
         }
 
         /// <summary>
-        /// Attempts to deserialize an <see cref="ImageProcessingException"/> from a JSON string
+        /// Attempts to deserialize an <see cref="ImageProcessingException"/> from a JSON string.
         /// </summary>
-        /// <param name="json">The JSON string to deserialize</param>
-        /// <param name="value">Receives the deserialized exception if successful</param>
-        /// <returns>True if deserialization succeeded; otherwise, false</returns>
-        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null</exception>
+        /// <param name="json">The JSON string to deserialize. Must not be <see langword="null"/>.</param>
+        /// <param name="value">Receives the deserialized exception if successful; otherwise, <see langword="null"/>.</param>
+        /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
         public static bool TryFromJson(string json, out ImageProcessingException? value)
         {
             ArgumentNullException.ThrowIfNull(json);
