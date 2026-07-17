@@ -12,6 +12,10 @@ namespace GpuImageProcessing.Formatters
     /// <summary>
     /// Provides validation helpers for <see cref="XmlResultFormatter"/> instances.
     /// </summary>
+    /// <remarks>
+    /// This static class contains extension methods for validating <see cref="XmlResultFormatter"/> instances
+    /// to ensure they return correct values from their methods and meet expected formatting standards.
+    /// </remarks>
     public static class XmlResultFormatterValidation
     {
         /// <summary>
@@ -56,17 +60,14 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         /// <param name="value">The formatter to check.</param>
         /// <returns>True if the formatter is valid; otherwise false.</returns>
-        public static bool IsValid(this XmlResultFormatter value)
-        {
-            return value?.Validate().Count == 0;
-        }
+        public static bool IsValid(this XmlResultFormatter? value) => value?.Validate().Count == 0;
 
         /// <summary>
         /// Ensures that an <see cref="XmlResultFormatter"/> instance is valid.
         /// </summary>
         /// <param name="value">The formatter to validate.</param>
-        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
-        /// <exception cref="ArgumentException">Thrown if <paramref name="value"/> is invalid, containing a list of problems.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="value"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="value"/> is invalid, containing a list of problems.</exception>
         public static void EnsureValid(this XmlResultFormatter value)
         {
             ArgumentNullException.ThrowIfNull(value);
