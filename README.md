@@ -343,6 +343,88 @@ class Program
 }
 ```
 
+## PathUtilities
+
+The `PathUtilities` class provides a comprehensive set of utilities for path manipulation, normalization, and directory management. It handles cross-platform path operations, safe file operations, and directory traversal with robust error handling to ensure reliable file system operations across different operating systems.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Utilities;
+using System;
+using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        string basePath = "/home/user/projects/gpu-image-processing";
+        string tempDir = PathUtilities.CombinePaths(basePath, "temp");
+        
+        // Normalize and get absolute path
+        string normalizedPath = PathUtilities.NormalizePath("~/projects/../projects/gpu-image-processing");
+        Console.WriteLine($"Normalized: {normalizedPath}");
+        
+        // Get relative path
+        string relativePath = PathUtilities.GetRelativePath(basePath, "/home/user/data/images");
+        Console.WriteLine($"Relative: {relativePath}");
+        
+        // Combine multiple path segments
+        string combinedPath = PathUtilities.CombinePaths(basePath, "output", "processed", "images");
+        Console.WriteLine($"Combined: {combinedPath}");
+        
+        // Ensure directory exists
+        bool dirCreated = PathUtilities.EnsureDirectoryExists(tempDir);
+        Console.WriteLine($"Directory created: {dirCreated}");
+        
+        // Get absolute path
+        string absolutePath = PathUtilities.GetAbsolutePath("temp/../temp2");
+        Console.WriteLine($"Absolute: {absolutePath}");
+        
+        // Safe directory operations
+        bool cleared = PathUtilities.ClearDirectory(tempDir);
+        Console.WriteLine($"Directory cleared: {cleared}");
+        
+        // Count files recursively
+        int fileCount = PathUtilities.CountFiles(basePath, "*.cs");
+        Console.WriteLine($"C# files: {fileCount}");
+        
+        // Get all files recursively
+        var allFiles = PathUtilities.GetFilesRecursive(basePath, "*.md");
+        Console.WriteLine($"Markdown files found: {allFiles.Count}");
+        
+        // Generate unique filename
+        string testFile = PathUtilities.CombinePaths(tempDir, "test.txt");
+        File.WriteAllText(testFile, "test");
+        string uniqueFile = PathUtilities.GenerateUniqueFilename(testFile);
+        Console.WriteLine($"Unique filename: {Path.GetFileName(uniqueFile)}");
+        
+        // Get directory size
+        long dirSize = PathUtilities.GetDirectorySize(basePath);
+        Console.WriteLine($"Project size: {dirSize:N0} bytes");
+        
+        // Safe file operations
+        string destFile = PathUtilities.CombinePaths(tempDir, "copy.txt");
+        bool copied = PathUtilities.SafeCopyFile(testFile, destFile, overwrite: true);
+        Console.WriteLine($"File copied: {copied}");
+        
+        bool moved = PathUtilities.SafeMoveFile(destFile, PathUtilities.CombinePaths(tempDir, "moved.txt"), overwrite: true);
+        Console.WriteLine($"File moved: {moved}");
+        
+        // Get recent files (modified in last 24 hours)
+        var recentFiles = PathUtilities.GetRecentFiles(basePath, TimeSpan.FromHours(24), "*.cs");
+        Console.WriteLine($"Recently modified C# files: {recentFiles.Count}");
+        
+        // Get path size info
+        string sizeInfo = PathUtilities.GetPathSizeInfo(basePath);
+        Console.WriteLine($"Path size info: {sizeInfo}");
+        
+        // Cleanup
+        PathUtilities.SafeDeleteDirectory(tempDir);
+    }
+}
+```
+
 ## ProcessingPipeline
 
 ```csharp
@@ -522,6 +604,7 @@ class Program
     }
 }
 ```
+
 
 ## ProcessingPipeline
 
