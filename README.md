@@ -5231,6 +5231,89 @@ class Program
 }
 ```
 
+## SystemPerformanceMonitoringService
+
+The `SystemPerformanceMonitoringService` tracks and analyzes performance metrics for system operations, providing detailed statistics on execution times, memory usage, and throughput. It records measurements for individual operations, calculates comprehensive statistics (min, max, average, median), and maintains historical data for trend analysis. The service supports monitoring specific operations, retrieving statistics by operation name, and resetting collected data for fresh measurements.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Services;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Initialize the performance monitoring service
+        var monitoringService = new SystemPerformanceMonitoringService();
+
+        // Record metrics for different operations
+        monitoringService.RecordMetric("ImageProcessing");
+        monitoringService.RecordMetric("FilterApplication");
+        monitoringService.RecordMetric("TransformExecution");
+
+        // Simulate some processing work
+        await Task.Delay(100);
+        monitoringService.RecordMeasurement("ImageProcessing", 150);
+
+        await Task.Delay(75);
+        monitoringService.RecordMeasurement("FilterApplication", 75);
+
+        await Task.Delay(200);
+        monitoringService.RecordMeasurement("TransformExecution", 200);
+
+        // Get statistics for a specific operation
+        var imageProcessingStats = monitoringService.GetStatistics("ImageProcessing");
+        Console.WriteLine($"ImageProcessing Statistics:");
+        Console.WriteLine($"  Total measurements: {imageProcessingStats.TotalMeasurements}");
+        Console.WriteLine($"  Min time: {imageProcessingStats.MinMs}ms");
+        Console.WriteLine($"  Max time: {imageProcessingStats.MaxMs}ms");
+        Console.WriteLine($"  Average time: {imageProcessingStats.AverageMs}ms");
+        Console.WriteLine($"  Median time: {imageProcessingStats.MedianMs}ms");
+
+        // Get statistics for another operation
+        var filterStats = monitoringService.GetStatistics("FilterApplication");
+        Console.WriteLine($"\nFilterApplication Statistics:");
+        Console.WriteLine($"  Total measurements: {filterStats.TotalMeasurements}");
+        Console.WriteLine($"  Average time: {filterStats.AverageMs}ms");
+
+        // Get all statistics
+        var allStats = monitoringService.GetAllStatistics();
+        Console.WriteLine($"\nAll monitored operations: {string.Join(", ", allStats.Keys)}");
+
+        // Check for slow operations
+        var slowOps = monitoringService.GetSlowOperations(100); // Operations slower than 100ms
+        Console.WriteLine($"\nSlow operations (>100ms): {string.Join(", ", slowOps)}");
+
+        // Reset statistics for specific operation
+        monitoringService.ResetStatistics("TransformExecution");
+        Console.WriteLine($"\nTransformExecution statistics reset. New count: {monitoringService.GetStatistics("TransformExecution").TotalMeasurements}");
+
+        // Reset all statistics
+        monitoringService.ResetAll();
+        Console.WriteLine($"All statistics reset. Total operations monitored: {monitoringService.GetMonitoredOperationCount()}");
+
+        // Record performance metric with custom measurement
+        var metric = new PerformanceMetric
+        {
+            OperationName = "BatchProcessing",
+            Measurements = new List<long> { 250, 300, 280, 275, 290 }
+        };
+        monitoringService.RecordMetric(metric);
+
+        // Get updated statistics
+        var batchStats = monitoringService.GetStatistics("BatchProcessing");
+        Console.WriteLine($"\nBatchProcessing Statistics after custom recording:");
+        Console.WriteLine($"  Total measurements: {batchStats.TotalMeasurements}");
+        Console.WriteLine($"  Average time: {batchStats.AverageMs}ms");
+        Console.WriteLine($"  Min/Max: {batchStats.MinMs}ms / {batchStats.MaxMs}ms");
+    }
+}
+```
+
 ## BatchProcessingPipelineTests
 
 The `BatchProcessingPipelineTests` class provides comprehensive unit tests for the `BatchProcessingPipeline` class, validating batch image processing pipeline functionality. It tests error handling scenarios (null batches, invalid batches), success scenarios (all images succeed, all images fail, partial failures), progress reporting, retry logic, constructor validation, and output directory creation. Each test uses mock dependencies to isolate the pipeline behavior and verify correct behavior under various conditions.
