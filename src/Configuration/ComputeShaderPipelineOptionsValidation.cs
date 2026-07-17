@@ -27,7 +27,7 @@ public static class ComputeShaderPipelineOptionsValidation
 
         var problems = new List<string>();
 
-        if (value.MaxWorkgroupDimension < 1 || value.MaxWorkgroupDimension > 1024)
+        if (value.MaxWorkgroupDimension is < 1 or > 1024)
             problems.Add($"MaxWorkgroupDimension must be between 1 and 1024, but was {value.MaxWorkgroupDimension}.");
 
         if (value.MaxPipelineDepth < 1)
@@ -36,10 +36,10 @@ public static class ComputeShaderPipelineOptionsValidation
         if (value.DefaultLocalMemoryPerThreadBytes < 0)
             problems.Add($"DefaultLocalMemoryPerThreadBytes must be non-negative, but was {value.DefaultLocalMemoryPerThreadBytes}.");
 
-        if (value.OccupancyWarningThreshold < 0.0 || value.OccupancyWarningThreshold > 1.0)
+        if (value.OccupancyWarningThreshold is < 0.0 or > 1.0)
             problems.Add($"OccupancyWarningThreshold must be between 0.0 and 1.0, but was {value.OccupancyWarningThreshold.ToString(CultureInfo.InvariantCulture)}.");
 
-        return problems;
+        return problems.AsReadOnly();
     }
 
     /// <summary>
