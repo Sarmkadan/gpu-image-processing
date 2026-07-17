@@ -40,7 +40,7 @@ public static class BenchmarkSuiteConfigurationValidation
         if (value.OutputDirectory is not null && value.OutputDirectory.IndexOfAny(Path.GetInvalidPathChars()) >= 0)
             errors.Add($"{nameof(BenchmarkSuiteConfiguration.OutputDirectory)} contains invalid path characters.");
 
-        if (value.AccuracyLevel < BenchmarkAccuracyLevel.Quick || value.AccuracyLevel > BenchmarkAccuracyLevel.Thorough)
+        if (value.AccuracyLevel is not (BenchmarkAccuracyLevel.Quick or BenchmarkAccuracyLevel.Standard or BenchmarkAccuracyLevel.Thorough))
             errors.Add($"{nameof(BenchmarkSuiteConfiguration.AccuracyLevel)} must be within the valid range.");
 
         return errors.AsReadOnly();
@@ -56,7 +56,7 @@ public static class BenchmarkSuiteConfigurationValidation
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
     public static bool IsValid(this BenchmarkSuiteConfiguration value)
     {
-        return Validate(value).Count == 0;
+        return value.Validate().Count == 0;
     }
 
     /// <summary>
@@ -69,7 +69,7 @@ public static class BenchmarkSuiteConfigurationValidation
     {
         ArgumentNullException.ThrowIfNull(value);
 
-        var errors = Validate(value);
+        var errors = value.Validate();
         if (errors.Count > 0)
         {
             throw new ArgumentException($"Invalid configuration: {string.Join(", ", errors)}", nameof(value));
