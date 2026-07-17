@@ -43,12 +43,19 @@ namespace GpuImageProcessing.Formatters
         /// <summary>
         /// Validates that a method returns a non-null string.
         /// </summary>
+        /// <param name="method">The method to validate.</param>
+        /// <param name="methodName">The name of the method being validated.</param>
+        /// <param name="errors">The list to accumulate validation errors.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="method"/> or <paramref name="errors"/> is null.</exception>
         private static void ValidateMethod(Func<string> method, string methodName, List<string> errors)
         {
+            ArgumentNullException.ThrowIfNull(method);
+            ArgumentNullException.ThrowIfNull(errors);
+
             try
             {
                 string? result = method();
-                if (result == null)
+                if (result is null)
                 {
                     errors.Add($"{methodName} returned null instead of a valid string");
                 }
@@ -64,8 +71,10 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         /// <param name="value">The formatter instance to check.</param>
         /// <returns><see langword="true"/> if the instance is valid; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
         public static bool IsValid(this MarkdownResultFormatter value)
         {
+            ArgumentNullException.ThrowIfNull(value);
             return value.Validate().Count == 0;
         }
 
