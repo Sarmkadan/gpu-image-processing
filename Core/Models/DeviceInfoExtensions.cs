@@ -1,11 +1,11 @@
 #nullable enable
 // =============================================================================
-// Author: 
+// Author: Vladyslav Zaiets | https://sarmkadan.com
+// CTO & Software Architect
 // =============================================================================
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace GpuImageProcessing.Core.Models
 {
@@ -39,15 +39,15 @@ namespace GpuImageProcessing.Core.Models
         {
             ArgumentNullException.ThrowIfNull(deviceInfo);
 
-            return new Dictionary<string, object>
+            return new Dictionary<string, object>(StringComparer.Ordinal)
             {
-                { "DeviceName", deviceInfo.Name },
-                { "DeviceType", deviceInfo.DeviceType },
-                { "MemoryBytes", deviceInfo.GlobalMemoryBytes },
-                { "ComputeUnits", deviceInfo.ComputeUnits },
-                { "ClockFrequencyMHz", deviceInfo.ClockFrequencyMHz },
-                { "OpenCLVersion", deviceInfo.OpenCLVersion },
-                { "CapabilityScore", deviceInfo.GetCapabilityScore() }
+                ["DeviceName"] = deviceInfo.Name,
+                ["DeviceType"] = deviceInfo.DeviceType,
+                ["MemoryBytes"] = deviceInfo.GlobalMemoryBytes,
+                ["ComputeUnits"] = deviceInfo.ComputeUnits,
+                ["ClockFrequencyMHz"] = deviceInfo.ClockFrequencyMHz,
+                ["OpenCLVersion"] = deviceInfo.OpenCLVersion,
+                ["CapabilityScore"] = deviceInfo.GetCapabilityScore()
             };
         }
 
@@ -62,6 +62,45 @@ namespace GpuImageProcessing.Core.Models
             ArgumentNullException.ThrowIfNull(deviceInfo);
 
             return $"{deviceInfo.ClockFrequencyMHz:F2} MHz";
+        }
+
+        /// <summary>
+        /// Gets a formatted string representation of the device's memory capacity.
+        /// </summary>
+        /// <param name="deviceInfo">The <see cref="DeviceInfo"/> to format.</param>
+        /// <returns>A human-readable string representing the device's memory capacity.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="deviceInfo"/> is null.</exception>
+        public static string GetFormattedMemory(this DeviceInfo deviceInfo)
+        {
+            ArgumentNullException.ThrowIfNull(deviceInfo);
+
+            return deviceInfo.GetFormattedMemory();
+        }
+
+        /// <summary>
+        /// Gets a formatted string representation of the device's capabilities.
+        /// </summary>
+        /// <param name="deviceInfo">The <see cref="DeviceInfo"/> to format.</param>
+        /// <returns>A multi-line string describing the device's capabilities.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="deviceInfo"/> is null.</exception>
+        public static string GetCapabilitiesSummary(this DeviceInfo deviceInfo)
+        {
+            ArgumentNullException.ThrowIfNull(deviceInfo);
+
+            return deviceInfo.GetCapabilitiesSummary();
+        }
+
+        /// <summary>
+        /// Gets the device's capability score as a formatted string.
+        /// </summary>
+        /// <param name="deviceInfo">The <see cref="DeviceInfo"/> to evaluate.</param>
+        /// <returns>A string representation of the capability score (0-100).</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="deviceInfo"/> is null.</exception>
+        public static string GetFormattedCapabilityScore(this DeviceInfo deviceInfo)
+        {
+            ArgumentNullException.ThrowIfNull(deviceInfo);
+
+            return $"{deviceInfo.GetCapabilityScore()}/100";
         }
     }
 }
