@@ -1630,6 +1630,41 @@ var requiredParam = new FilterParameter
 Console.WriteLine($"Required parameter: {requiredParam.IsRequired}, Valid: {requiredParam.IsValid()}");
 ```
 
+## HealthCheckWorker
+
+The `HealthCheckWorker` is a background service responsible for monitoring system status and ensuring that GPU processing components remain operational. It periodically evaluates device availability, resource usage, and pipeline performance, publishing health status events to keep the system robust and reliable.
+
+### Usage Example
+
+```csharp
+using BackgroundWorkers;
+using Microsoft.Extensions.Logging;
+using GpuImageProcessing.Core.Services;
+using GpuImageProcessing.Events;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+// Initialize dependencies
+var logger = new LoggerFactory().CreateLogger<HealthCheckWorker>();
+var deviceService = new DeviceService(...);
+var eventPublisher = new EventPublisher(...);
+
+// Instantiate the worker
+using var worker = new HealthCheckWorker(logger, deviceService, eventPublisher);
+
+// Get the worker name
+string name = worker.GetName();
+Console.WriteLine($"Starting: {name}");
+
+// Lifecycle management
+await worker.StartAsync(default);
+
+// ... perform tasks ...
+
+await worker.StopAsync(default);
+```
+
 ## FilterChainBenchmarks
 
 The `FilterChainBenchmarks` class provides performance benchmarks for core `FilterChain` operations that are critical hot paths during GPU filter pipeline setup and execution. It measures realistic in-process operations including step management, validation, querying, and cloning that are called repeatedly during batch processing workflows.
