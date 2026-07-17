@@ -10,16 +10,16 @@ using System.Collections.Generic;
 namespace GpuImageProcessing.Core.Models
 {
     /// <summary>
-    /// Provides validation helpers for the Filter class
+    /// Provides validation helpers for the <see cref="Filter"/> class
     /// </summary>
     public static class FilterValidation
     {
         /// <summary>
-        /// Validates a Filter instance and returns a list of human-readable problems
+        /// Validates a <see cref="Filter"/> instance and returns a list of human-readable problems
         /// </summary>
-        /// <param name="value">The Filter instance to validate</param>
+        /// <param name="value">The <see cref="Filter"/> instance to validate</param>
         /// <returns>List of validation problems; empty if valid</returns>
-        /// <exception cref="ArgumentNullException">Thrown if value is null</exception>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null</exception>
         public static IReadOnlyList<string> Validate(this Filter value)
         {
             ArgumentNullException.ThrowIfNull(value);
@@ -49,13 +49,13 @@ namespace GpuImageProcessing.Core.Models
             }
 
             // Validate Description
-            if (value.Description != null && value.Description.Length > 1000)
+            if (value.Description?.Length > 1000)
             {
                 errors.Add("Filter.Description cannot exceed 1000 characters");
             }
 
             // Validate Parameters
-            if (value.Parameters == null)
+            if (value.Parameters is null)
             {
                 errors.Add("Filter.Parameters cannot be null");
             }
@@ -69,7 +69,7 @@ namespace GpuImageProcessing.Core.Models
                 for (int i = 0; i < value.Parameters.Count; i++)
                 {
                     var param = value.Parameters[i];
-                    if (param == null)
+                    if (param is null)
                     {
                         errors.Add($"Filter.Parameters[{i}] cannot be null");
                         continue;
@@ -110,19 +110,19 @@ namespace GpuImageProcessing.Core.Models
             }
 
             // Validate KernelCode
-            if (value.KernelCode != null && value.KernelCode.Length > 10000)
+            if (value.KernelCode?.Length > 10000)
             {
                 errors.Add("Filter.KernelCode cannot exceed 10000 characters");
             }
 
             // Validate ProcessingOrder
-            if (value.ProcessingOrder < 0 || value.ProcessingOrder > 1000)
+            if (value.ProcessingOrder is < 0 or > 1000)
             {
                 errors.Add("Filter.ProcessingOrder must be between 0 and 1000");
             }
 
             // Validate AppliedSettings
-            if (value.AppliedSettings == null)
+            if (value.AppliedSettings is null)
             {
                 errors.Add("Filter.AppliedSettings cannot be null");
             }
@@ -135,7 +135,7 @@ namespace GpuImageProcessing.Core.Models
 
                 foreach (var kvp in value.AppliedSettings)
                 {
-                    if (kvp.Key == null)
+                    if (kvp.Key is null)
                     {
                         errors.Add("Filter.AppliedSettings contains a null key");
                         continue;
@@ -146,7 +146,7 @@ namespace GpuImageProcessing.Core.Models
                         errors.Add($"Filter.AppliedSettings key '{kvp.Key}' cannot exceed 100 characters");
                     }
 
-                    if (kvp.Value == null)
+                    if (kvp.Value is null)
                     {
                         errors.Add($"Filter.AppliedSettings['{kvp.Key}'] cannot be null");
                     }
@@ -157,22 +157,19 @@ namespace GpuImageProcessing.Core.Models
         }
 
         /// <summary>
-        /// Determines whether the specified Filter instance is valid
+        /// Determines whether the specified <see cref="Filter"/> instance is valid
         /// </summary>
-        /// <param name="value">The Filter instance to check</param>
+        /// <param name="value">The <see cref="Filter"/> instance to check</param>
         /// <returns>True if valid; otherwise false</returns>
-        /// <exception cref="ArgumentNullException">Thrown if value is null</exception>
-        public static bool IsValid(this Filter value)
-        {
-            return value.Validate().Count == 0;
-        }
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null</exception>
+        public static bool IsValid(this Filter value) => value.Validate().Count == 0;
 
         /// <summary>
-        /// Ensures that the specified Filter instance is valid, throwing an exception if not
+        /// Ensures that the specified <see cref="Filter"/> instance is valid, throwing an exception if not
         /// </summary>
-        /// <param name="value">The Filter instance to validate</param>
-        /// <exception cref="ArgumentNullException">Thrown if value is null</exception>
-        /// <exception cref="ArgumentException">Thrown if value is not valid, containing all validation errors</exception>
+        /// <param name="value">The <see cref="Filter"/> instance to validate</param>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null</exception>
+        /// <exception cref="ArgumentException">Thrown if <paramref name="value"/> is not valid, containing all validation errors</exception>
         public static void EnsureValid(this Filter value)
         {
             ArgumentNullException.ThrowIfNull(value);
