@@ -5,6 +5,7 @@
 // CTO & Software Architect
 // =====================================================================
 
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -60,16 +61,10 @@ public static class ImageProcessingExtensionsJsonExtensions
     /// <param name="indented">Whether to format the JSON with indentation.</param>
     /// <returns>A JSON string representation of the configuration.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-    public static string ToJson(this ImageProcessingConfiguration value, bool indented = false)
-    {
-        ArgumentNullException.ThrowIfNull(value);
-
-        var options = indented
+    public static string ToJson(this ImageProcessingConfiguration value, bool indented = false) =>
+        JsonSerializer.Serialize(value, indented
             ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
-            : _jsonOptions;
-
-        return JsonSerializer.Serialize(value, options);
-    }
+            : _jsonOptions);
 
     /// <summary>
     /// Deserializes image processing configuration from JSON.
@@ -81,7 +76,6 @@ public static class ImageProcessingExtensionsJsonExtensions
     public static ImageProcessingConfiguration? FromJson(string json)
     {
         ArgumentException.ThrowIfNullOrEmpty(json);
-
         return JsonSerializer.Deserialize<ImageProcessingConfiguration>(json, _jsonOptions);
     }
 
@@ -91,15 +85,17 @@ public static class ImageProcessingExtensionsJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">Receives the deserialized configuration if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
-    public static bool TryFromJson(string json, out ImageProcessingConfiguration? value)
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty.</exception>
+    public static bool TryFromJson(string json, [NotNullWhen(true)] out ImageProcessingConfiguration? value)
     {
+        ArgumentNullException.ThrowIfNull(json);
         ArgumentException.ThrowIfNullOrEmpty(json);
 
         try
         {
             value = JsonSerializer.Deserialize<ImageProcessingConfiguration>(json, _jsonOptions);
-            return true;
+            return value is not null;
         }
         catch (JsonException)
         {
