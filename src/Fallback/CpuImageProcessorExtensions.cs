@@ -14,7 +14,7 @@ using GpuImageProcessing.Domain;
 namespace GpuImageProcessing.Fallback;
 
 /// <summary>
-/// Extension methods that provide convenient high-level operations on <see cref="CpuImageProcessor"/>.
+/// Extension methods that provide convenient high‑level operations on <see cref="CpuImageProcessor"/>.
 /// </summary>
 public static class CpuImageProcessorExtensions
 {
@@ -26,7 +26,10 @@ public static class CpuImageProcessorExtensions
 	/// <param name="configs">The filter configurations to apply in order.</param>
 	/// <param name="cancellationToken">Optional cancellation token.</param>
 	/// <returns>The processed image.</returns>
-	/// <exception cref="ArgumentNullException">Thrown if <paramref name="processor"/>, <paramref name="image"/>, or <paramref name="configs"/> is null.</exception>
+	/// <exception cref="ArgumentNullException">
+	/// Thrown if <paramref name="processor"/>, <paramref name="image"/>, <paramref name="configs"/> is null,
+	/// or if any element within <paramref name="configs"/> is null.
+	/// </exception>
 	/// <exception cref="ProcessingException">Propagated from <see cref="CpuImageProcessor.ApplyFilterAsync"/>.</exception>
 	public static async Task<Image> ApplyFiltersAsync(
 		this CpuImageProcessor processor,
@@ -41,6 +44,7 @@ public static class CpuImageProcessorExtensions
 		var current = image;
 		foreach (var config in configs)
 		{
+			ArgumentNullException.ThrowIfNull(config, nameof(config));
 			current = await processor.ApplyFilterAsync(current, config, cancellationToken).ConfigureAwait(false);
 		}
 
@@ -55,9 +59,14 @@ public static class CpuImageProcessorExtensions
 	/// <param name="targetWidth">The target width after resizing.</param>
 	/// <param name="targetHeight">The target height after resizing.</param>
 	/// <param name="config">The filter configuration to apply.</param>
+	/// <param name="cancellationToken">Optional cancellation token.</param>
 	/// <returns>The processed image.</returns>
-	/// <exception cref="ArgumentNullException">Thrown if <paramref name="processor"/>, <paramref name="image"/>, or <paramref name="config"/> is null.</exception>
-	/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="targetWidth"/> or <paramref name="targetHeight"/> is not positive.</exception>
+	/// <exception cref="ArgumentNullException">
+	/// Thrown if <paramref name="processor"/>, <paramref name="image"/>, or <paramref name="config"/> is null.
+	/// </exception>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// Thrown if <paramref name="targetWidth"/> or <paramref name="targetHeight"/> is not positive.
+	/// </exception>
 	/// <exception cref="ProcessingException">Propagated from <see cref="CpuImageProcessor.ApplyFilterAsync"/>.</exception>
 	public static async Task<Image> ResizeAndApplyFilterAsync(
 		this CpuImageProcessor processor,
@@ -86,20 +95,18 @@ public static class CpuImageProcessorExtensions
 	/// <param name="thumbHeight">The thumbnail height.</param>
 	/// <returns>The thumbnail image.</returns>
 	/// <exception cref="ArgumentNullException">Thrown if <paramref name="processor"/> or <paramref name="image"/> is null.</exception>
-	/// <exception cref="ArgumentOutOfRangeException">Thrown if <paramref name="thumbWidth"/> or <paramref name="thumbHeight"/> is not positive.</exception>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// Thrown if <paramref name="thumbWidth"/> or <paramref name="thumbHeight"/> is not positive.
+	/// </exception>
 	public static Image CreateThumbnail(
 		this CpuImageProcessor processor,
 		Image image,
 		int thumbWidth,
-		int thumbHeight)
-	{
-		ArgumentNullException.ThrowIfNull(processor);
-		ArgumentNullException.ThrowIfNull(image);
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(thumbWidth, nameof(thumbWidth));
-		ArgumentOutOfRangeException.ThrowIfNegativeOrZero(thumbHeight, nameof(thumbHeight));
-
-		return processor.Resize(image, thumbWidth, thumbHeight);
-	}
+		int thumbHeight) =>
+		processor.Resize(
+			image ?? throw new ArgumentNullException(nameof(image)),
+			thumbWidth > 0 ? thumbWidth : throw new ArgumentOutOfRangeException(nameof(thumbWidth)),
+			thumbHeight > 0 ? thumbHeight : throw new ArgumentOutOfRangeException(nameof(thumbHeight)));
 
 	/// <summary>
 	/// Applies grayscale conversion followed by a box blur to the image.
@@ -113,13 +120,9 @@ public static class CpuImageProcessorExtensions
 	public static Image ApplyGrayscaleAndBlur(
 		this CpuImageProcessor processor,
 		Image image,
-		int blurRadius = 1)
-	{
-		ArgumentNullException.ThrowIfNull(processor);
-		ArgumentNullException.ThrowIfNull(image);
-		ArgumentOutOfRangeException.ThrowIfNegative(blurRadius, nameof(blurRadius));
-
-		var gray = processor.ToGrayscale(image);
-		return processor.Blur(gray, blurRadius);
-	}
+		int blurRadius = 1) =>
+		processor.Blur(
+			processor.ToGrayscale(
+				image ?? throw new ArgumentNullException(nameof(image))),
+			blurRadius >= 0 ? blurRadius : throw new ArgumentOutOfRangeException(nameof(blurRadius)));
 }
