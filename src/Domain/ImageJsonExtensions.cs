@@ -13,13 +13,13 @@ public static class ImageJsonExtensions
     /// <summary>
     /// Configures JSON serialization options with camelCase naming policy.
     /// </summary>
-    private static readonly JsonSerializerOptions JsonOptions = new()
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
         WriteIndented = false,
         Converters =
         {
-            new JsonStringEnumConverter()
+            new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
         }
     };
 
@@ -33,7 +33,7 @@ public static class ImageJsonExtensions
     public static string ToJson(this Image value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
-        
+
         JsonOptions.WriteIndented = indented;
         return JsonSerializer.Serialize(value, JsonOptions);
     }
@@ -42,7 +42,7 @@ public static class ImageJsonExtensions
     /// Deserializes an <see cref="Image"/> instance from a JSON string.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>An <see cref="Image"/> instance.</returns>
+    /// <returns>An <see cref="Image"/> instance, or null if the JSON represents a null value.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
     /// <exception cref="JsonException">Thrown when JSON parsing fails.</exception>
@@ -50,9 +50,8 @@ public static class ImageJsonExtensions
     {
         ArgumentNullException.ThrowIfNull(json);
         ArgumentException.ThrowIfNullOrEmpty(json);
-        
-        return JsonSerializer.Deserialize<Image>(json, JsonOptions) 
-            ?? throw new JsonException("Failed to deserialize Image");
+
+        return JsonSerializer.Deserialize<Image?>(json, JsonOptions);
     }
 
     /// <summary>
@@ -67,8 +66,8 @@ public static class ImageJsonExtensions
         {
             ArgumentNullException.ThrowIfNull(json);
             ArgumentException.ThrowIfNullOrEmpty(json);
-            
-            value = JsonSerializer.Deserialize<Image>(json, JsonOptions);
+
+            value = JsonSerializer.Deserialize<Image?>(json, JsonOptions);
             return value is not null;
         }
         catch (JsonException)
