@@ -1930,9 +1930,108 @@ Console.WriteLine($"\nRound-trip successful: {roundTripResult != null}");
 
 ```
 
-## DataConversionUtilities
+## DataConversionUtilitiesValidation
 
-The `DataConversionUtilities` class provides essential data conversion utilities for transforming between different data formats commonly used in GPU image processing. It includes hexadecimal string conversion, byte array manipulation, floating-point data conversion, file size formatting, and tolerance-based comparison operations.
+The `DataConversionUtilitiesValidation` class provides comprehensive validation utilities for all data conversion operations in the `DataConversionUtilities` class. It validates method parameters, null safety, and value ranges before performing conversions, ensuring that data formats are valid and safe for processing. This validation layer helps prevent runtime errors and provides detailed error messages for debugging conversion scenarios.
+
+### Key Features
+
+- Validates all `DataConversionUtilities` conversion methods (BytesToHex, HexToBytes, FloatsToBytes, BytesToFloats, etc.)
+- Validates null safety for method delegates and input parameters
+- Validates value ranges (array lengths, hex string formats, file sizes, tolerances)
+- Returns detailed error messages through `Validate()` methods for debugging
+- Provides convenience methods like `IsValid()` and `EnsureValid()` for fluent validation patterns
+- Ensures proper relationships between input parameters and expected formats
+- Throws descriptive exceptions when validation fails
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Utilities;
+using System;
+using System.Linq;
+
+class Program
+{
+    static void Main()
+    {
+        // Validate BytesToHex conversion
+        var hexValidation = DataConversionUtilitiesValidation.BytesToHex.Validate(new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F });
+        Console.WriteLine($"BytesToHex validation: {(hexValidation.Count == 0 ? "Valid" : string.Join(", ", hexValidation))}");
+
+        // Validate HexToBytes conversion
+        var hexToBytesValidation = DataConversionUtilitiesValidation.HexToBytes.Validate("48656C6C6F");
+        Console.WriteLine($"HexToBytes validation: {(hexToBytesValidation.Count == 0 ? "Valid" : string.Join(", ", hexToBytesValidation))}");
+
+        // Validate FloatsToBytes conversion
+        var floatsToBytesValidation = DataConversionUtilitiesValidation.FloatsToBytes.Validate(new float[] { 1.5f, 2.7f, 3.14f });
+        Console.WriteLine($"FloatsToBytes validation: {(floatsToBytesValidation.Count == 0 ? "Valid" : string.Join(", ", floatsToBytesValidation))}");
+
+        // Validate BytesToFloats conversion
+        var bytesToFloatsValidation = DataConversionUtilitiesValidation.BytesToFloats.Validate(new byte[] { 0x3F, 0x80, 0x00, 0x00, 0x40, 0x29, 0x3E, 0xB8 });
+        Console.WriteLine($"BytesToFloats validation: {(bytesToFloatsValidation.Count == 0 ? "Valid" : string.Join(", ", bytesToFloatsValidation))}");
+
+        // Validate FormatFileSize conversion
+        var formatFileSizeValidation = DataConversionUtilitiesValidation.FormatFileSize.Validate(1572864); // 1.5MB
+        Console.WriteLine($"FormatFileSize validation: {(formatFileSizeValidation.Count == 0 ? "Valid" : string.Join(", ", formatFileSizeValidation))}");
+
+        // Validate ParseFileSize conversion
+        var parseFileSizeValidation = DataConversionUtilitiesValidation.ParseFileSize.Validate("2.5 GB");
+        Console.WriteLine($"ParseFileSize validation: {(parseFileSizeValidation.Count == 0 ? "Valid" : string.Join(", ", parseFileSizeValidation))}");
+
+        // Validate FormatTimeSpan conversion
+        var formatTimeSpanValidation = DataConversionUtilitiesValidation.FormatTimeSpan.Validate(TimeSpan.FromSeconds(93784));
+        Console.WriteLine($"FormatTimeSpan validation: {(formatTimeSpanValidation.Count == 0 ? "Valid" : string.Join(", ", formatTimeSpanValidation))}");
+
+        // Validate ParseDuration conversion
+        var parseDurationValidation = DataConversionUtilitiesValidation.ParseDuration.Validate("2h 30m 15s");
+        Console.WriteLine($"ParseDuration validation: {(parseDurationValidation.Count == 0 ? "Valid" : string.Join(", ", parseDurationValidation))}");
+
+        // Validate ToBinaryString conversion
+        var toBinaryStringValidation = DataConversionUtilitiesValidation.ToBinaryString.Validate(42, 8);
+        Console.WriteLine($"ToBinaryString validation: {(toBinaryStringValidation.Count == 0 ? "Valid" : string.Join(", ", toBinaryStringValidation))}");
+
+        // Validate IsWithinTolerance comparison
+        var toleranceValidation = DataConversionUtilitiesValidation.IsWithinTolerance.Validate(1.0001f, 1.0002f, 0.01f);
+        Console.WriteLine($"IsWithinTolerance validation: {(toleranceValidation.Count == 0 ? "Valid" : string.Join(", ", toleranceValidation))}");
+
+        // Validate Normalize conversion
+        var normalizeValidation = DataConversionUtilitiesValidation.Normalize.Validate(127.5f, 0, 255);
+        Console.WriteLine($"Normalize validation: {(normalizeValidation.Count == 0 ? "Valid" : string.Join(", ", normalizeValidation))}");
+
+        // Validate Denormalize conversion
+        var denormalizeValidation = DataConversionUtilitiesValidation.Denormalize.Validate(0.5f, 0, 255);
+        Console.WriteLine($"Denormalize validation: {(denormalizeValidation.Count == 0 ? "Valid" : string.Join(", ", denormalizeValidation))}");
+
+        // Use IsValid() convenience method
+        bool isDataConversionValid = DataConversionUtilitiesValidation.IsValid();
+        Console.WriteLine($"\nDataConversionUtilitiesValidation is valid: {isDataConversionValid}");
+
+        // Example with actual conversion operations
+        byte[] imageData = new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F };
+        
+        // Validate before conversion
+        var validationErrors = DataConversionUtilitiesValidation.BytesToHex.Validate(imageData);
+        if (validationErrors.Count == 0)
+        {
+            string hexString = DataConversionUtilities.BytesToHex(imageData);
+            Console.WriteLine($"\nSuccessfully validated and converted to hex: {hexString}");
+        }
+        else
+        {
+            Console.WriteLine("Validation failed:");
+            foreach (var error in validationErrors)
+            {
+                Console.WriteLine($" - {error}");
+            }
+        }
+    }
+}
+
+```
+
+## DataConversionUtilities
 
 ### Key Features
 
