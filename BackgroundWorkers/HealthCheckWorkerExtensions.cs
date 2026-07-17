@@ -29,9 +29,10 @@ namespace GpuImageProcessing.BackgroundWorkers
         /// Restarts the health check worker by stopping and then starting it.
         /// </summary>
         /// <param name="worker">The <see cref="HealthCheckWorker"/> instance.</param>
-        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe.</param>
+        /// <param name="cancellationToken">The <see cref="CancellationToken"/> to observe during restart.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="worker"/> is null.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the worker cannot be restarted.</exception>
         public static async Task RestartAsync(this HealthCheckWorker worker, CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(worker);
