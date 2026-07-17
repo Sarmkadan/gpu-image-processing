@@ -9,7 +9,7 @@ namespace GpuImageProcessing.Core.Constants
     /// </summary>
     public static class ImageFormatHelperJsonExtensions
     {
-        private static readonly JsonSerializerOptions _options = new()
+        private static readonly JsonSerializerOptions _baseOptions = new()
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
             WriteIndented = false
@@ -29,11 +29,17 @@ namespace GpuImageProcessing.Core.Constants
         {
             // Guard: ensure the enum value is defined.
             if (!Enum.IsDefined(typeof(ImageFormat), format))
+            {
                 throw new ArgumentException($"Undefined {nameof(ImageFormat)} value: {format}.", nameof(format));
+            }
 
-            // Adjust indentation option per call.
-            _options.WriteIndented = indented;
-            return JsonSerializer.Serialize(format, _options);
+            // Create a copy of the base options to avoid modifying shared state
+            var options = new JsonSerializerOptions(_baseOptions)
+            {
+                WriteIndented = indented
+            };
+
+            return JsonSerializer.Serialize(format, options);
         }
 
         /// <summary>
@@ -46,10 +52,13 @@ namespace GpuImageProcessing.Core.Constants
         public static ImageFormat? FromJson(string json)
         {
             ArgumentNullException.ThrowIfNull(json);
-            if (string.IsNullOrWhiteSpace(json))
-                return null;
 
-            return JsonSerializer.Deserialize<ImageFormat>(json, _options);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return null;
+            }
+
+            return JsonSerializer.Deserialize<ImageFormat>(json, _baseOptions);
         }
 
         /// <summary>
@@ -65,6 +74,7 @@ namespace GpuImageProcessing.Core.Constants
         public static bool TryFromJson(string json, out ImageFormat? value)
         {
             ArgumentNullException.ThrowIfNull(json);
+
             try
             {
                 value = FromJson(json);
