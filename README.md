@@ -400,6 +400,81 @@ class Program
 ```
 
 
+## BatchProcessingServiceTestsExtensionsJsonExtensions
+
+The `BatchProcessingServiceTestsExtensionsJsonExtensions` class provides System.Text.Json serialization utilities for the `BatchProcessingServiceTestsExtensions` configuration in batch processing test scenarios. It enables serialization and deserialization of test configurations with support for customizable batch sizes, filter counts, and verbose output settings, making it easier to configure and share test scenarios.
+
+### Key Features
+
+- JSON serialization of test configurations using camelCase property naming
+- Support for both compact and indented JSON output formats
+- Safe deserialization with null handling and error recovery
+- Configuration state management for batch processing test execution
+- Thread-safe serialization with optimized JsonSerializerOptions
+- Configurable default image count, filter count, and verbose output settings
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Tests.Services;
+using System;
+using System.Text.Json;
+
+class Program
+{
+
+static void Main()
+{
+
+// Create test configuration with default settings
+var config = new BatchProcessingServiceTestsExtensionsJsonExtensions.BatchProcessingServiceTestsExtensions
+{
+
+DefaultImageCount = 5,
+DefaultFilterCount = 3,
+EnableVerboseOutput = true
+
+};
+
+// Serialize to compact JSON
+string compactJson = config.ToJson();
+Console.WriteLine("Compact JSON configuration:");
+Console.WriteLine(compactJson);
+
+// Serialize to indented JSON for readability
+string indentedJson = config.ToJson(indented: true);
+Console.WriteLine("\nIndented JSON configuration:");
+Console.WriteLine(indentedJson);
+
+// Deserialize from JSON string
+string json = @"{ "defaultImageCount": 10, "defaultFilterCount": 5, "enableVerboseOutput": false }";
+var deserialized = BatchProcessingServiceTestsExtensionsJsonExtensions.FromJson(json);
+
+if (deserialized != null)
+{
+
+Console.WriteLine($"\nDeserialized configuration:");
+Console.WriteLine($"DefaultImageCount: {deserialized.DefaultImageCount}");
+Console.WriteLine($"DefaultFilterCount: {deserialized.DefaultFilterCount}");
+Console.WriteLine($"EnableVerboseOutput: {deserialized.EnableVerboseOutput}");
+}
+
+// Try to deserialize with error handling
+string invalidJson = @"{ invalid json }";
+bool success = BatchProcessingServiceTestsExtensionsJsonExtensions.TryFromJson(invalidJson, out var result);
+Console.WriteLine($"\nTryFromJson with invalid JSON: {(success ? "Success" : "Failed (expected)")}");
+
+// Serialize and deserialize round-trip to verify data integrity
+string roundTripJson = config.ToJson();
+var roundTripResult = BatchProcessingServiceTestsExtensionsJsonExtensions.FromJson(roundTripJson);
+Console.WriteLine($"\nRound-trip successful: {roundTripResult != null}");
+}
+
+}
+
+```
+
 ## DataConversionUtilities
 
 The `DataConversionUtilities` class provides essential data conversion utilities for transforming between different data formats commonly used in GPU image processing. It includes hexadecimal string conversion, byte array manipulation, floating-point data conversion, file size formatting, and tolerance-based comparison operations.
