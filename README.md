@@ -503,6 +503,91 @@ public class Person
 }
 ```
 
+## EnumerableExtensionsBenchmarksExtensionsJsonExtensions
+
+The `EnumerableExtensionsBenchmarksExtensionsJsonExtensions` class provides System.Text.Json serialization utilities for benchmark configuration and results in the EnumerableExtensionsBenchmarksExtensions benchmark suite. It enables easy serialization and deserialization of benchmark configurations with support for validation, batch size configuration, shuffle iterations, and parallel execution settings.
+
+### Key Features
+
+- JSON serialization of benchmark configurations using camelCase property naming
+- Support for both compact and indented JSON output formats
+- Safe deserialization with null handling and error recovery
+- Configuration validation through JSON parsing
+- Thread-safe serialization with optimized JsonSerializerOptions
+- Batch size configuration for performance testing
+- Shuffle iterations control for randomized benchmark scenarios
+- Validation toggle for result validation during benchmark execution
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Benchmarks;
+using System;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a benchmark configuration with custom settings
+        var config = new EnumerableExtensionsBenchmarksExtensionsJsonExtensions.BenchmarkConfig
+        {
+            BatchSize = 1024,
+            ShuffleIterations = 100,
+            EnableValidation = true
+        };
+
+        // Serialize to compact JSON
+        string compactJson = config.ToJson();
+        Console.WriteLine("Compact JSON configuration:");
+        Console.WriteLine(compactJson);
+
+        // Serialize to indented JSON for readability
+        string indentedJson = config.ToJson(indented: true);
+        Console.WriteLine("\nIndented JSON configuration:");
+        Console.WriteLine(indentedJson);
+
+        // Deserialize from JSON string
+        string json = @"{ "batchSize": 2048, "shuffleIterations": 50, "enableValidation": false }";
+        object? deserialized = EnumerableExtensionsBenchmarksExtensionsJsonExtensions.FromJson(json);
+
+        if (deserialized is EnumerableExtensionsBenchmarksExtensionsJsonExtensions.BenchmarkConfig benchmarkConfig)
+        {
+            Console.WriteLine($"\nDeserialized configuration:");
+            Console.WriteLine($"BatchSize: {benchmarkConfig.BatchSize}");
+            Console.WriteLine($"ShuffleIterations: {benchmarkConfig.ShuffleIterations}");
+            Console.WriteLine($"EnableValidation: {benchmarkConfig.EnableValidation}");
+        }
+
+        // Try to deserialize with error handling
+        string invalidJson = @"{ invalid json }";
+        bool success = EnumerableExtensionsBenchmarksExtensionsJsonExtensions.TryFromJson(invalidJson, out object? result);
+        Console.WriteLine($"\nTryFromJson with invalid JSON: {(success ? "Success" : "Failed (expected)")}");
+
+        // Serialize and deserialize round-trip to verify data integrity
+        string roundTripJson = config.ToJson();
+        object? roundTripResult = EnumerableExtensionsBenchmarksExtensionsJsonExtensions.FromJson(roundTripJson);
+
+        if (roundTripResult is EnumerableExtensionsBenchmarksExtensionsJsonExtensions.BenchmarkConfig roundTripConfig)
+        {
+            Console.WriteLine($"\nRound-trip successful: {roundTripConfig.BatchSize == config.BatchSize && roundTripConfig.ShuffleIterations == config.ShuffleIterations}");
+        }
+
+        // Create configuration with all properties set
+        var fullConfig = new EnumerableExtensionsBenchmarksExtensionsJsonExtensions.BenchmarkConfig
+        {
+            BatchSize = 4096,
+            ShuffleIterations = 200,
+            EnableValidation = true
+        };
+
+        Console.WriteLine($"\nFull configuration:");
+        Console.WriteLine(fullConfig.ToJson());
+    }
+}
+
+```
+
 
 ## Architecture
 
