@@ -13,7 +13,7 @@ namespace GpuImageProcessing.Middleware
         /// </summary>
         /// <param name="middleware">The middleware instance.</param>
         /// <returns>A tuple containing the middleware name and its priority.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when middleware is null.</exception>
+        /// <exception cref="ArgumentNullException"><paramref name="middleware"/> is <see langword="null"/>.</exception>
         public static (string Name, int Priority) GetMiddlewareMetadata(this LoggingMiddleware middleware)
         {
             ArgumentNullException.ThrowIfNull(middleware);
@@ -26,8 +26,8 @@ namespace GpuImageProcessing.Middleware
         /// </summary>
         /// <param name="middleware">The middleware instance.</param>
         /// <param name="otherPriority">The priority to compare against.</param>
-        /// <returns>True if the middleware has higher priority, false otherwise.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when middleware is null.</exception>
+        /// <returns><see langword="true"/> if the middleware has higher priority; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="middleware"/> is <see langword="null"/>.</exception>
         public static bool IsHigherPriorityThan(this LoggingMiddleware middleware, int otherPriority)
         {
             ArgumentNullException.ThrowIfNull(middleware);
@@ -39,12 +39,15 @@ namespace GpuImageProcessing.Middleware
         /// </summary>
         /// <param name="middleware">The middleware instance.</param>
         /// <param name="context">The middleware execution context.</param>
-        /// <returns>A task that represents the asynchronous operation, returning true if the operation succeeded, false otherwise.</returns>
-        /// <exception cref="ArgumentNullException">Thrown when middleware or context is null.</exception>
+        /// <returns>A task that represents the asynchronous operation, returning <see langword="true"/> if the operation succeeded; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="middleware"/> or <paramref name="context"/> is <see langword="null"/>.
+        /// </exception>
         public static async Task<bool> ExecuteAndCheckSuccessAsync(this LoggingMiddleware middleware, MiddlewareContext context)
         {
             ArgumentNullException.ThrowIfNull(middleware);
             ArgumentNullException.ThrowIfNull(context);
+
             var result = await middleware.ExecuteAsync(context);
             return result.IsSuccess;
         }
