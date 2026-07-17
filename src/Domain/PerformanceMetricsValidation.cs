@@ -10,7 +10,7 @@ using System.Globalization;
 namespace GpuImageProcessing.Domain;
 
 /// <summary>
-/// Provides validation helpers for <see cref="PerformanceMetrics"/> instances.
+/// Provides validation and verification helpers for <see cref="PerformanceMetrics"/> instances.
 /// </summary>
 public static class PerformanceMetricsValidation
 {
@@ -124,7 +124,7 @@ public static class PerformanceMetricsValidation
         }
 
         // Validate FailedOperationsCount
-        if (value.FailedOperationsCount < 0)
+        if (value.FailedOperationsCount is < 0)
         {
             errors.Add("FailedOperationsCount must be non-negative.");
         }
@@ -172,14 +172,14 @@ public static class PerformanceMetricsValidation
     /// </summary>
     /// <param name="value">The metrics instance to check.</param>
     /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
-    public static bool IsValid(this PerformanceMetrics? value) => Validate(value).Count == 0;
+    public static bool IsValid(this PerformanceMetrics? value) => value is not null && Validate(value).Count == 0;
 
     /// <summary>
-    /// Ensures that the specified <see cref="PerformanceMetrics"/> instance is valid.
+    /// Ensures that the specified <see cref="PerformanceMetrics"/> instance is valid, throwing an exception if invalid.
     /// </summary>
     /// <param name="value">The metrics instance to validate.</param>
-    /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown if <paramref name="value"/> is invalid, containing a list of validation errors.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="value"/> is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="value"/> is invalid; the exception message contains a list of validation errors.</exception>
     public static void EnsureValid(this PerformanceMetrics? value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -192,7 +192,7 @@ public static class PerformanceMetricsValidation
 
         throw new ArgumentException(
             $"PerformanceMetrics validation failed:{Environment.NewLine}- {
-                string.Join($"{Environment.NewLine}- ", errors)
+            string.Join($"{Environment.NewLine}- ", errors)
             }");
     }
 }
