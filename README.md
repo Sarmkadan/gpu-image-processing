@@ -729,6 +729,73 @@ class Program
 
 ```
 
+## EndToEndProcessingTestsExtensionsJsonExtensions
+
+The `EndToEndProcessingTestsExtensionsJsonExtensions` class provides System.Text.Json serialization utilities for the `EndToEndProcessingTestsExtensions` configuration in end-to-end testing scenarios. It enables serialization and deserialization of test execution configurations with support for enabling/disabling specific test operations, compact and indented JSON output formats, and safe error handling.
+
+### Key Features
+
+- JSON serialization of test configurations using camelCase property naming
+- Support for both compact and indented JSON output formats
+- Safe deserialization with null handling and error recovery
+- Configuration state management for end-to-end test execution
+- Thread-safe serialization with optimized JsonSerializerOptions
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Tests.Integration;
+using System;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        // Create test configuration with default settings
+        var config = new EndToEndProcessingTestsExtensionsJsonExtensions.EndToEndProcessingTestsExtensions
+        {
+            IsRunAllTestsEnabled = true,
+            IsGetTestMethodNamesEnabled = true,
+            IsAllTestsPassEnabled = true
+        };
+
+        // Serialize to compact JSON
+        string compactJson = config.ToJson();
+        Console.WriteLine("Compact JSON configuration:");
+        Console.WriteLine(compactJson);
+
+        // Serialize to indented JSON for readability
+        string indentedJson = config.ToJson(indented: true);
+        Console.WriteLine("\nIndented JSON configuration:");
+        Console.WriteLine(indentedJson);
+
+        // Deserialize from JSON string
+        string json = @"{ "isRunAllTestsEnabled": false, "isGetTestMethodNamesEnabled": true, "isAllTestsPassEnabled": true }";
+        var deserialized = EndToEndProcessingTestsExtensionsJsonExtensions.FromJson(json);
+
+        if (deserialized != null)
+        {
+            Console.WriteLine($"\nDeserialized configuration:");
+            Console.WriteLine($"IsRunAllTestsEnabled: {deserialized.IsRunAllTestsEnabled}");
+            Console.WriteLine($"IsGetTestMethodNamesEnabled: {deserialized.IsGetTestMethodNamesEnabled}");
+            Console.WriteLine($"IsAllTestsPassEnabled: {deserialized.IsAllTestsPassEnabled}");
+        }
+
+        // Try to deserialize with error handling
+        string invalidJson = @"{ invalid json }";
+        bool success = EndToEndProcessingTestsExtensionsJsonExtensions.TryFromJson(invalidJson, out var result);
+        Console.WriteLine($"\nTryFromJson with invalid JSON: {(success ? "Success" : "Failed (expected)")}");
+
+        // Serialize and deserialize round-trip to verify data integrity
+        string roundTripJson = config.ToJson();
+        var roundTripResult = EndToEndProcessingTestsExtensionsJsonExtensions.FromJson(roundTripJson);
+        Console.WriteLine($"\nRound-trip successful: {roundTripResult != null}");
+    }
+}
+
+```
+
 
 ## Architecture
 
