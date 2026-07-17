@@ -15,64 +15,66 @@ namespace GpuImageProcessing.Benchmarks;
 /// </summary>
 public static class ImageUtilitiesBenchmarksJsonExtensions
 {
-    /// <summary>
-    /// JSON serializer options with camelCase naming policy.
-    /// </summary>
-    private static readonly JsonSerializerOptions JsonSerializerOptions = new(JsonSerializerDefaults.Web)
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-        WriteIndented = false
-    };
+	/// <summary>
+	/// JSON serializer options with camelCase naming policy.
+	/// </summary>
+	private static readonly JsonSerializerOptions JsonSerializerOptions = new(JsonSerializerDefaults.Web)
+	{
+		PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+		WriteIndented = false
+	};
 
-    /// <summary>
-    /// Serializes a <see cref="ImageUtilitiesBenchmarks"/> to a JSON string.
-    /// </summary>
-    /// <param name="value">The benchmarks to serialize.</param>
-    /// <param name="indented">Whether to format the JSON with indentation.</param>
-    /// <returns>JSON string representation of the benchmarks.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-    public static string ToJson(this ImageUtilitiesBenchmarks value, bool indented = false)
-    {
-        ArgumentNullException.ThrowIfNull(value);
+	/// <summary>
+	/// Serializes a <see cref="ImageUtilitiesBenchmarks"/> to a JSON string.
+	/// </summary>
+	/// <param name="value">The benchmarks to serialize.</param>
+	/// <param name="indented">Whether to format the JSON with indentation.</param>
+	/// <returns>JSON string representation of the benchmarks.</returns>
+	/// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+	public static string ToJson(this ImageUtilitiesBenchmarks value, bool indented = false)
+	{
+		ArgumentNullException.ThrowIfNull(value);
 
-        JsonSerializerOptions options = new(JsonSerializerOptions)
-        {
-            WriteIndented = indented
-        };
-        return JsonSerializer.Serialize(value, options);
-    }
+		JsonSerializerOptions options = new(JsonSerializerOptions)
+		{
+			WriteIndented = indented
+		};
+		return JsonSerializer.Serialize(value, options);
+	}
 
-    /// <summary>
-    /// Deserializes a JSON string to a <see cref="ImageUtilitiesBenchmarks"/>.
-    /// </summary>
-    /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized benchmarks.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null or empty.</exception>
-    /// <exception cref="JsonException">Thrown when JSON parsing fails.</exception>
-    public static ImageUtilitiesBenchmarks? FromJson(string json)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(json);
-        return JsonSerializer.Deserialize<ImageUtilitiesBenchmarks>(json, JsonSerializerOptions);
-    }
+	/// <summary>
+	/// Deserializes a JSON string to a <see cref="ImageUtilitiesBenchmarks"/>.
+	/// </summary>
+	/// <param name="json">The JSON string to deserialize.</param>
+	/// <returns>The deserialized benchmarks.</returns>
+	/// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+	/// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty.</exception>
+	/// <exception cref="JsonException">Thrown when JSON parsing fails.</exception>
+	public static ImageUtilitiesBenchmarks? FromJson(string json)
+	{
+		ArgumentException.ThrowIfNullOrEmpty(json);
+		return JsonSerializer.Deserialize<ImageUtilitiesBenchmarks>(json, JsonSerializerOptions);
+	}
 
-    /// <summary>
-    /// Tries to deserialize a JSON string to a <see cref="ImageUtilitiesBenchmarks"/>.
-    /// </summary>
-    /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The deserialized benchmarks if successful; otherwise null.</param>
-    /// <returns>True if deserialization succeeded; otherwise false.</returns>
-    public static bool TryFromJson(string json, out ImageUtilitiesBenchmarks? value)
-    {
-        ArgumentException.ThrowIfNullOrEmpty(json);
-        try
-        {
-            value = JsonSerializer.Deserialize<ImageUtilitiesBenchmarks>(json, JsonSerializerOptions);
-            return true;
-        }
-        catch (JsonException)
-        {
-            value = null;
-            return false;
-        }
-    }
+	/// <summary>
+	/// Tries to deserialize a JSON string to a <see cref="ImageUtilitiesBenchmarks"/>.
+	/// </summary>
+	/// <param name="json">The JSON string to deserialize.</param>
+	/// <param name="value">The deserialized benchmarks if successful; otherwise null.</param>
+	/// <returns>True if deserialization succeeded; otherwise false.</returns>
+	/// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+	public static bool TryFromJson(string json, out ImageUtilitiesBenchmarks? value)
+	{
+		ArgumentException.ThrowIfNullOrEmpty(json);
+		try
+		{
+			value = JsonSerializer.Deserialize<ImageUtilitiesBenchmarks>(json, JsonSerializerOptions);
+			return true;
+		}
+		catch (JsonException)
+		{
+			value = null;
+			return false;
+		}
+	}
 }
