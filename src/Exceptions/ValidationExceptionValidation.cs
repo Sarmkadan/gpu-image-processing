@@ -46,13 +46,11 @@ public static class ValidationExceptionValidation
                 if (string.IsNullOrWhiteSpace(kvp.Key))
                 {
                     problems.Add("ValidationErrors contains an entry with null, empty, or whitespace key.");
-                    break; // Don't continue checking once we found a problem
                 }
 
                 if (string.IsNullOrWhiteSpace(kvp.Value))
                 {
                     problems.Add("ValidationErrors contains an entry with null, empty, or whitespace error message.");
-                    break;
                 }
             }
         }
@@ -76,7 +74,7 @@ public static class ValidationExceptionValidation
     /// </summary>
     /// <param name="value">The exception to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown if <paramref name="value"/> is not valid.</exception>
+    /// <exception cref="ArgumentException">Thrown if <paramref name="value"/> is not valid with details about validation failures.</exception>
     public static void EnsureValid(this ValidationException? value)
     {
         ArgumentNullException.ThrowIfNull(value);
