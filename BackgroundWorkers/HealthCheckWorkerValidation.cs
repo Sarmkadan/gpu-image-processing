@@ -35,9 +35,7 @@ public static class HealthCheckWorkerValidation
     /// <returns><see langword="true"/> if the instance is valid; otherwise, <see langword="false"/>.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/>.</exception>
     public static bool IsValid(this HealthCheckWorker value)
-    {
-        return value.Validate().Count == 0;
-    }
+        => value.Validate().Count == 0;
 
     /// <summary>
     /// Ensures that the specified <see cref="HealthCheckWorker"/> instance is valid, throwing an exception if it is not.
