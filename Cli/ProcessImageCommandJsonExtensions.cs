@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
 using System.Text.Json;
@@ -17,7 +17,7 @@ namespace GpuImageProcessing.Cli
         private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = false,
+            WriteIndented = false
         };
 
         /// <summary>
@@ -42,28 +42,29 @@ namespace GpuImageProcessing.Cli
         /// Deserializes a JSON string to a <see cref="ProcessImageCommand"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <returns>The deserialized process image command, or <see langword="null"/> if the JSON is empty.</returns>
-        /// <exception cref="ArgumentException"><paramref name="json"/> is <see langword="null"/>.</exception>
-        /// <exception cref="JsonException">The JSON is invalid or cannot be deserialized.</exception>
+        /// <returns>The deserialized process image command, or <see langword="null"/> if the JSON is invalid.</returns>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
         public static ProcessImageCommand? FromJson(string json)
         {
             ArgumentException.ThrowIfNullOrEmpty(json);
 
-            if (string.IsNullOrWhiteSpace(json))
+            try
+            {
+                return JsonSerializer.Deserialize<ProcessImageCommand>(json, _jsonOptions);
+            }
+            catch (JsonException)
             {
                 return null;
             }
-
-            return JsonSerializer.Deserialize<ProcessImageCommand>(json, _jsonOptions);
         }
 
         /// <summary>
         /// Attempts to deserialize a JSON string to a <see cref="ProcessImageCommand"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <param name="value">Receives the deserialized process image command if successful.</param>
+        /// <param name="value">Receives the deserialized process image command if deserialization succeeds; otherwise, <see langword="null"/>.</param>
         /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
-        /// <exception cref="ArgumentException"><paramref name="json"/> is <see langword="null"/>.</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
         public static bool TryFromJson(string json, out ProcessImageCommand? value)
         {
             ArgumentException.ThrowIfNullOrEmpty(json);
