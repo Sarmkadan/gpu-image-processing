@@ -703,4 +703,99 @@ class Program
 }
 ```
 
+## DeviceUtilities
+
+The `DeviceUtilities` class provides utilities for GPU device discovery, capability detection, and resource management. It helps identify optimal GPU devices for image processing workloads by scoring devices based on memory, compute units, clock frequency, and current utilization. The class also analyzes memory pressure and recommends appropriate batch sizes to prevent out-of-memory errors.
+
+### Key Features
+
+- Device scoring based on memory, compute units, and clock frequency
+- Peak performance calculation in GFLOPS
+- Memory pressure analysis and recommendations
+- Compute capability validation
+- Bandwidth utilization estimation
+- Bottleneck identification
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Utilities;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        // Score a GPU device for suitability
+        float score = DeviceUtilities.ScoreGpuDevice(
+            globalMemoryBytes: 16L * 1024 * 1024 * 1024, // 16GB
+            computeUnits: 3840,
+            maxClockFrequency: 2500,
+            utilizationPercent: 45.5f
+        );
+        Console.WriteLine($"Device score: {score:F1}/100");
+
+        // Calculate theoretical peak performance
+        float peakPerformance = DeviceUtilities.CalculatePeakPerformance(
+            computeUnits: 3840,
+            clockFrequencyMhz: 2500,
+            computePerCore: 64
+        );
+        Console.WriteLine($"Peak performance: {peakPerformance:F1} GFLOPS");
+
+        // Analyze memory pressure
+        var memoryAnalysis = DeviceUtilities.AnalyzeMemoryPressure(
+            totalMemoryBytes: 16L * 1024 * 1024 * 1024,
+            usedMemoryBytes: 12L * 1024 * 1024 * 1024,
+            minFreeMemoryBytes: 100 * 1024 * 1024
+        );
+        
+        Console.WriteLine($"Memory usage: {memoryAnalysis.UsagePercent:F1}%");
+        Console.WriteLine($"Pressure level: {memoryAnalysis.PressureLevel}");
+        Console.WriteLine($"Recommended batch size: {memoryAnalysis.RecommendedBatchSize}");
+        
+        // Check compute capability
+        bool supportsCC8_6 = DeviceUtilities.SupportsComputeCapability("8.6", "8.6");
+        Console.WriteLine($"Supports CC 8.6: {supportsCC8_6}");
+        
+        // Validate memory sufficiency
+        bool hasEnoughMemory = DeviceUtilities.ValidateMemorySufficiency(
+            availableMemoryBytes: 16L * 1024 * 1024 * 1024,
+            requiredMemoryBytes: 4L * 1024 * 1024 * 1024,
+            safetyMargin: 0.1f
+        );
+        Console.WriteLine($"Memory sufficient: {hasEnoughMemory}");
+        
+        // Generate device capability summary
+        string summary = DeviceUtilities.GenerateCapabilitySummary(
+            deviceName: "NVIDIA RTX 3090",
+            globalMemoryBytes: 24L * 1024 * 1024 * 1024,
+            computeUnits: 10496,
+            maxClockFrequency: 1700,
+            computeCapability: "8.6"
+        );
+        Console.WriteLine(summary);
+        
+        // Calculate recommended batch size
+        int recommendedBatchSize = DeviceUtilities.CalculateRecommendedBatchSize(
+            availableMemoryBytes: 24L * 1024 * 1024 * 1024
+        );
+        Console.WriteLine($"Recommended batch size: {recommendedBatchSize}");
+        
+        // Identify bottlenecks
+        var bottlenecks = DeviceUtilities.IdentifyBottlenecks(
+            computeUtilization: 85.2f,
+            memoryBandwidthUtilization: 68.7f,
+            memoryUtilization: 82.3f
+        );
+        
+        Console.WriteLine("Bottlenecks:");
+        foreach (var bottleneck in bottlenecks)
+        {
+            Console.WriteLine($"- {bottleneck}");
+        }
+    }
+}
+```
+
 ## ProcessingPipeline
