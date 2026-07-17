@@ -18,12 +18,7 @@ namespace GpuImageProcessing.Tests.Domain
         {
             ArgumentNullException.ThrowIfNull(value);
 
-            var errors = new List<string>();
-
-            // FilterChainBuilderTests is a test class with no actual properties to validate
-            // The validation simply ensures the test class instance is properly initialized
-
-            return errors.AsReadOnly();
+            return Array.Empty<string>();
         }
 
         /// <summary>
@@ -31,8 +26,12 @@ namespace GpuImageProcessing.Tests.Domain
         /// </summary>
         /// <param name="value">The instance to check.</param>
         /// <returns><see langword="true"/> if the instance is valid; otherwise, <see langword="false"/>.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
         public static bool IsValid(this FilterChainBuilderTests? value)
-            => Validate(value).Count == 0;
+        {
+            ArgumentNullException.ThrowIfNull(value);
+            return Validate(value).Count == 0;
+        }
 
         /// <summary>
         /// Ensures that the specified <see cref="FilterChainBuilderTests"/> instance is valid.
