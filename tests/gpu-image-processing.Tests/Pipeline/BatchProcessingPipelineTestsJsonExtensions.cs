@@ -24,7 +24,7 @@ public static class BatchProcessingPipelineTestsJsonExtensions
     /// <param name="value">The test instance to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation.</param>
     /// <returns>A JSON string representation of the test instance.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
     public static string ToJson(this BatchProcessingPipelineTests value, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -41,9 +41,12 @@ public static class BatchProcessingPipelineTestsJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>The deserialized test instance, or null if the JSON is empty.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static BatchProcessingPipelineTests? FromJson(string json)
     {
+        ArgumentNullException.ThrowIfNull(json);
+
         if (string.IsNullOrWhiteSpace(json))
             return null;
 
@@ -54,11 +57,14 @@ public static class BatchProcessingPipelineTestsJsonExtensions
     /// Attempts to deserialize a JSON string to a <see cref="BatchProcessingPipelineTests"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">Receives the deserialized test instance, or null if deserialization fails.</param>
-    /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <param name="value">Receives the deserialized test instance if successful; otherwise, <see langword="null"/>.</param>
+    /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
     public static bool TryFromJson(string json, out BatchProcessingPipelineTests? value)
     {
         value = null;
+
+        ArgumentNullException.ThrowIfNull(json);
 
         if (string.IsNullOrWhiteSpace(json))
             return false;
