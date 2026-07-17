@@ -837,6 +837,93 @@ string profileSummary = balancedProfile.GetProfileSummary();
 Console.WriteLine(profileSummary);
 ```
 
+## DependencyInjectionSetup
+
+The `DependencyInjectionSetup` class provides centralized configuration for the application's dependency injection container. It registers all services, repositories, and configuration components required for GPU-accelerated image processing, including device management, compute shader pipelines, filter/transform services, and image processing components. The setup supports both synchronous service registration and asynchronous initialization, with environment-specific configuration for development and production scenarios.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Configuration;
+using GpuImageProcessing.Core.Models;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static async Task Main()
+    {
+        // Create application settings (or load from configuration)
+        var settings = new ApplicationSettings();
+        settings.ConfigureForDevelopment();
+        
+        // Configure logging
+        settings.Logging.LogToConsole = true;
+        settings.Logging.LogLevel = "Information";
+        
+        // Configure dependency injection
+        var services = new ServiceCollection();
+        services.AddApplicationLogging(settings.Logging);
+        services.AddGpuImageProcessing(settings);
+        
+        // Build service provider
+        var serviceProvider = services.BuildServiceProvider();
+        
+        // Initialize services that require async setup
+        await DependencyInjectionSetup.InitializeServicesAsync(serviceProvider);
+        
+        // Resolve required services
+        var imageProcessingService = serviceProvider.GetRequiredService<ImageProcessingService>();
+        var deviceService = serviceProvider.GetRequiredService<DeviceService>();
+        var batchService = serviceProvider.GetRequiredService<BatchProcessingService>();
+        var logger = serviceProvider.GetRequiredService<ILogger<Program>>();
+        
+        logger.LogInformation("Services initialized successfully");
+        
+        // Use the services for image processing
+        var imageId = await imageProcessingService.RegisterImageAsync(
+            "/path/to/input.jpg", 
+            "sample-image"
+        );
+        
+        logger.LogInformation("Image registered with ID: {ImageId}", imageId);
+        
+        // Create a processing profile
+        var profile = await imageProcessingService.CreateProfileAsync(
+            "HighQuality",
+            "Optimized for high-quality GPU processing"
+        );
+        
+        // Process the image
+        var result = await imageProcessingService.ProcessImageAsync(
+            imageId,
+            new List<Guid>(), // filterIds
+            new List<Guid>(), // transformIds
+            profile.Id
+        );
+        
+        if (result.IsSuccessful)
+        {
+            logger.LogInformation("Image processed successfully: {OutputPath}", result.OutputPath);
+        }
+        
+        // Alternatively, use the convenience method for fully initialized provider
+        var fullyInitializedProvider = await DependencyInjectionSetup.CreateAndInitializeServiceProviderAsync(settings);
+        var initializedImageService = fullyInitializedProvider.GetRequiredService<ImageProcessingService>();
+        
+        // Configure for production environment
+        settings.ConfigureForProduction();
+        settings.Processing.MaxParallelOperations = 4;
+        
+        // Re-register with production settings
+        var productionServices = new ServiceCollection();
+        productionServices.AddGpuImageProcessing(settings);
+    }
+}
+```
+
 ## CommandDispatcher
 
 The `CommandDispatcher` class routes CLI commands to appropriate handlers, managing command registration, discovery, and execution. It supports dynamic command registration at runtime, provides introspection capabilities to list available commands, and handles command instantiation with dependency injection through an `IServiceProvider`. The dispatcher validates command types and provides error handling for command execution failures.
