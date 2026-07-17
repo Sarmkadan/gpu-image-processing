@@ -2360,4 +2360,95 @@ class Program
 ```
 
 
+
+
+## SimdCapabilitiesExtensionsJsonExtensions
+
+The `SimdCapabilitiesExtensionsJsonExtensions` class provides System.Text.Json serialization utilities for `SimdCapabilitiesExtensions` configurations. It enables easy serialization and deserialization of SIMD capability detection settings with support for JSON formatting options and error handling.
+
+### Key Features
+
+- JSON serialization of SIMD capability configurations using camelCase property naming
+- Support for both compact and indented JSON output formats
+- Safe deserialization with null handling and error recovery
+- Configuration validation through JSON parsing
+- Thread-safe serialization with optimized JsonSerializerOptions
+- Boolean flags for vector width support, optimal SIMD level detection, SIMD availability, and friendly string formatting
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Domain;
+using System;
+using System.Text.Json;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a SIMD capabilities configuration with custom settings
+        var simdConfig = new SimdCapabilitiesExtensionsJsonExtensions.SimdCapabilitiesExtensions
+        {
+            IsVectorWidthSupportEnabled = true,
+            IsOptimalSimdLevelEnabled = true,
+            IsSimdAvailabilityEnabled = true,
+            IsFriendlyStringEnabled = false
+        };
+
+        // Serialize to compact JSON
+        string compactJson = simdConfig.ToJson();
+        Console.WriteLine("Compact JSON configuration:");
+        Console.WriteLine(compactJson);
+
+        // Serialize to indented JSON for readability
+        string indentedJson = simdConfig.ToJson(indented: true);
+        Console.WriteLine("\nIndented JSON configuration:");
+        Console.WriteLine(indentedJson);
+
+        // Deserialize from JSON string
+        string json = @"{ ""isVectorWidthSupportEnabled"": false, ""isOptimalSimdLevelEnabled"": true, ""isSimdAvailabilityEnabled"": true, ""isFriendlyStringEnabled"": true }";
+        var deserialized = SimdCapabilitiesExtensionsJsonExtensions.FromJson(json);
+
+        if (deserialized is not null)
+        {
+            Console.WriteLine($"\nDeserialized configuration:");
+            Console.WriteLine($"IsVectorWidthSupportEnabled: {deserialized.IsVectorWidthSupportEnabled}");
+            Console.WriteLine($"IsOptimalSimdLevelEnabled: {deserialized.IsOptimalSimdLevelEnabled}");
+            Console.WriteLine($"IsSimdAvailabilityEnabled: {deserialized.IsSimdAvailabilityEnabled}");
+            Console.WriteLine($"IsFriendlyStringEnabled: {deserialized.IsFriendlyStringEnabled}");
+        }
+
+        // Try to deserialize with error handling
+        string invalidJson = @"{ invalid json }";
+        bool success = SimdCapabilitiesExtensionsJsonExtensions.TryFromJson(invalidJson, out var result);
+        Console.WriteLine($"\nTryFromJson with invalid JSON: {(success ? ""Success"" : ""Failed (expected)"")}");
+
+        // Serialize and deserialize round-trip to verify data integrity
+        string roundTripJson = simdConfig.ToJson();
+        var roundTripResult = SimdCapabilitiesExtensionsJsonExtensions.FromJson(roundTripJson);
+
+        if (roundTripResult is not null)
+        {
+            bool isValid = roundTripResult.IsVectorWidthSupportEnabled == simdConfig.IsVectorWidthSupportEnabled &&
+                         roundTripResult.IsOptimalSimdLevelEnabled == simdConfig.IsOptimalSimdLevelEnabled &&
+                         roundTripResult.IsSimdAvailabilityEnabled == simdConfig.IsSimdAvailabilityEnabled &&
+                         roundTripResult.IsFriendlyStringEnabled == simdConfig.IsFriendlyStringEnabled;
+            Console.WriteLine($"\nRound-trip successful: {isValid}");
+        }
+
+        // Create configuration with all properties set to false
+        var disabledConfig = new SimdCapabilitiesExtensionsJsonExtensions.SimdCapabilitiesExtensions
+        {
+            IsVectorWidthSupportEnabled = false,
+            IsOptimalSimdLevelEnabled = false,
+            IsSimdAvailabilityEnabled = false,
+            IsFriendlyStringEnabled = false
+        };
+
+        Console.WriteLine($"\nDisabled configuration:");
+        Console.WriteLine(disabledConfig.ToJson());
+    }
+}
+
 ## ProcessingPipeline
