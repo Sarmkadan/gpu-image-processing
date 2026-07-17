@@ -26,8 +26,22 @@ namespace GpuImageProcessing.BackgroundWorkers
 
             var errors = new List<string>();
 
-            // CacheMaintenanceWorker has no public properties to validate beyond null check
-            // All constructor parameter validation is performed in the constructor itself
+            // Validate constructor parameters that might have been modified after construction
+            if (value is { } worker)
+            {
+                // Validate cleanup interval is positive
+                if (worker.GetCleanupInterval() <= TimeSpan.Zero)
+                {
+                    errors.Add("Cleanup interval must be greater than zero.");
+                }
+
+                // Validate memory warning threshold is within valid range
+                var threshold = worker.GetMemoryWarningThreshold();
+                if (threshold < 0 || threshold > 100)
+                {
+                    errors.Add("Memory warning threshold must be between 0 and 100.");
+                }
+            }
 
             return errors.AsReadOnly();
         }
@@ -39,7 +53,7 @@ namespace GpuImageProcessing.BackgroundWorkers
         /// <returns><see langword="true"/> if valid; otherwise, <see langword="false"/>.</returns>
         public static bool IsValid(this CacheMaintenanceWorker value)
         {
-            return value.Validate().Count == 0;
+            return value?.Validate().Count == 0;
         }
 
         /// <summary>
@@ -59,6 +73,34 @@ namespace GpuImageProcessing.BackgroundWorkers
                     $"CacheMaintenanceWorker is not valid:{Environment.NewLine} - {string.Join($"{Environment.NewLine} - ", errors)}",
                     nameof(value));
             }
+        }
+
+        /// <summary>
+        /// Gets the cleanup interval from the worker instance.
+        /// </summary>
+        /// <param name="worker">The worker instance.</param>
+        /// <returns>The cleanup interval.</returns>
+        private static TimeSpan GetCleanupInterval(this CacheMaintenanceWorker worker)
+        {
+            // Use reflection to access the private field since we can't modify the class
+            var field = typeof(CacheMaintenanceWorker).GetField(
+                "_cleanupInterval",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            return (TimeSpan)field?.GetValue(worker)!;
+        }
+
+        /// <summary>
+        /// Gets the memory warning threshold from the worker instance.
+        /// </summary>
+        /// <param name="worker">The worker instance.</param>
+        /// <returns>The memory warning threshold.</returns>
+        private static float GetMemoryWarningThreshold(this CacheMaintenanceWorker worker)
+        {
+            // Use reflection to access the private field since we can't modify the class
+            var field = typeof(CacheMaintenanceWorker).GetField(
+                "_memoryWarningThreshold",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            return (float)field?.GetValue(worker)!;
         }
     }
 }
