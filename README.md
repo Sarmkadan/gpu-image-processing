@@ -2017,14 +2017,16 @@ class Program
         Console.WriteLine($"MIME type: {formatter.GetMimeType()}");
     }
 }
-## PerformanceMonitoringServiceExtensionsValidation
+## ImageProcessingExtensionsValidation
 
-The `PerformanceMonitoringServiceExtensionsValidation` class provides validation extension methods for performance monitoring data structures in the GPU image processing library. It validates critical properties of `PerformanceMetricsWithTrends` and `PerformanceAlert` instances, returning detailed error messages when validation fails and providing convenience methods for fluent validation patterns.
+The `ImageProcessingExtensionsValidation` class provides extension methods for validating image processing types in the GPU image processing library. It validates critical properties of `ImageFormat`, `FilterType`, `Image`, and `string` (file extension) instances, returning detailed error messages when validation fails and providing convenience methods for fluent validation patterns.
 
 ### Key Features
 
-- Validates `PerformanceMetricsWithTrends` instances with comprehensive property checks including null checks, timestamp validation, and finite value constraints
-- Validates `PerformanceAlert` instances with message validation, timestamp checks, and finite value validation
+- Validates `ImageFormat` values to ensure they are not `Unknown`
+- Validates `FilterType` values to ensure they are not `None`
+- Validates `Image` instances with comprehensive property checks (dimensions, channels, file size, paths, format, timestamps)
+- Validates file extension strings to ensure they are properly formatted
 - Provides `IsValid()` convenience methods for quick validation checks
 - Provides `EnsureValid()` methods that throw exceptions when validation fails
 - Returns detailed error messages through `Validate()` methods for debugging and error handling
@@ -2032,126 +2034,116 @@ The `PerformanceMonitoringServiceExtensionsValidation` class provides validation
 ### Usage Examples
 
 ```csharp
-
-using GpuImageProcessing.Services;
+using GpuImageProcessing.Utilities;
 using GpuImageProcessing.Domain;
 using System;
-using System.Collections.Generic;
+using System.IO;
 
 class Program
 {
     static void Main()
     {
-        // Create valid performance metrics with trends
-        var validMetrics = new PerformanceMetricsWithTrends
-        {
-            Current = new PerformanceMetrics
-            {
-                CpuUsagePercent = 45.2,
-                GpuUsagePercent = 78.5,
-                MemoryUsageBytes = 4L * 1024 * 1024 * 1024, // 4GB
-                ThroughputOperationsPerSecond = 1250000,
-                AverageExecutionTimeMs = 8.5f
-            },
-            Timestamp = DateTime.UtcNow,
-            CpuChangePercent = 2.5,
-            GpuChangePercent = -1.2,
-            MemoryChangePercent = 3.8,
-            ThroughputChangePercent = 5.1,
-            ExecutionTimeChangePercent = -4.3
-        };
-
-        // Validate the metrics
-        var validationErrors = validMetrics.Validate();
-        Console.WriteLine($"Valid metrics has {validationErrors.Count} errors"); // Output: 0
-
-        // Check if valid using convenience method
-        bool isValid = validMetrics.IsValid();
-        Console.WriteLine($"Is valid: {isValid}"); // Output: Is valid: True
-
-        // Create an invalid metrics instance (missing required fields)
-        var invalidMetrics = new PerformanceMetricsWithTrends
-        {
-            Current = null, // Invalid - null
-            Timestamp = default(DateTime), // Invalid - default
-            CpuChangePercent = double.PositiveInfinity, // Invalid - not finite
-            GpuChangePercent = double.NaN, // Invalid - not finite
-            MemoryChangePercent = double.NegativeInfinity, // Invalid - not finite
-            ThroughputChangePercent = 5.1,
-            ExecutionTimeChangePercent = -4.3
-        };
-
-        // Validate and get detailed errors
-        var errors = invalidMetrics.Validate();
-        Console.WriteLine("Validation errors:");
-        foreach (var error in errors)
-        {
-            Console.WriteLine($"- {error}");
-        }
-        /* Output:
-        - Current metrics cannot be null.
-        - Timestamp cannot be default.
-        - CpuChangePercent must be finite.
-        - GpuChangePercent must be finite.
-        - MemoryChangePercent must be finite.
-        */
-
-        // Use EnsureValid() to throw exception on invalid metrics
-        try
-        {
-            invalidMetrics.EnsureValid();
-        }
-        catch (ArgumentException ex)
-        {
-            Console.WriteLine($"Validation failed: {ex.Message}");
-        }
-
-        // Create valid performance alert
-        var validAlert = new PerformanceAlert
-        {
-            Message = "High GPU memory usage detected",
-            Timestamp = DateTime.UtcNow,
-            CurrentValue = 95.8,
-            Threshold = 90.0,
-            Severity = AlertSeverity.Warning
-        };
-
-        // Validate the alert
-        var alertErrors = validAlert.Validate();
-        Console.WriteLine($"Valid alert has {alertErrors.Count} errors"); // Output: 0
-
-        // Check if alert is valid
-        bool alertIsValid = validAlert.IsValid();
-        Console.WriteLine($"Alert is valid: {alertIsValid}"); // Output: Alert is valid: True
-
-        // Create an invalid alert
-        var invalidAlert = new PerformanceAlert
-        {
-            Message = "   ", // Invalid - whitespace only
-            Timestamp = default(DateTime), // Invalid - default
-            CurrentValue = double.NaN, // Invalid - not finite
-            Threshold = double.NaN, // Invalid - not finite
-            Severity = AlertSeverity.Critical
-        };
-
-        // Validate alert and get errors
-        var alertValidationErrors = invalidAlert.Validate();
-        Console.WriteLine($"Invalid alert has {alertValidationErrors.Count} errors");
+        // Validate ImageFormat
+        var format = ImageFormat.Jpeg;
+        var formatErrors = format.Validate();
+        Console.WriteLine($"ImageFormat validation has {formatErrors.Count} errors");
         
-        // Use EnsureValid() on invalid alert
+        // Check if format is valid using convenience method
+        bool isFormatValid = format.IsValid();
+        Console.WriteLine($"ImageFormat is valid: {isFormatValid}");
+        
+        // Use EnsureValid() to throw exception on invalid format
         try
         {
-            invalidAlert.EnsureValid();
+            ImageFormat.Unknown.EnsureValid();
         }
         catch (ArgumentException ex)
         {
-            Console.WriteLine($"Alert validation failed: {ex.Message}");
+            Console.WriteLine($"Format validation failed: {ex.Message}");
+        }
+
+        // Validate FilterType
+        var filterType = FilterType.GaussianBlur;
+        var filterErrors = filterType.Validate();
+        Console.WriteLine($"\nFilterType validation has {filterErrors.Count} errors");
+        
+        // Check if filter type is valid
+        bool isFilterValid = filterType.IsValid();
+        Console.WriteLine($"FilterType is valid: {isFilterValid}");
+        
+        // Use EnsureValid() on filter type
+        try
+        {
+            FilterType.None.EnsureValid();
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"FilterType validation failed: {ex.Message}");
+        }
+
+        // Validate Image instance
+        var image = new Image
+        {
+            Width = 1920,
+            Height = 1080,
+            Channels = 3,
+            FileSizeBytes = 1024 * 1024,
+            FilePath = "/data/images/photo.jpg",
+            Format = ImageFormat.Jpeg,
+            CreatedAt = DateTime.UtcNow.AddDays(-1),
+            ModifiedAt = DateTime.UtcNow
+        };
+        
+        var imageErrors = image.Validate();
+        Console.WriteLine($"\nImage validation has {imageErrors.Count} errors");
+        
+        // Check if image is valid
+        bool isImageValid = image.IsValid();
+        Console.WriteLine($"Image is valid: {isImageValid}");
+        
+        // Use EnsureValid() on image
+        try
+        {
+            var invalidImage = new Image
+            {
+                Width = -100, // Invalid
+                Height = 0,   // Invalid
+                Channels = 0, // Invalid
+                FileSizeBytes = -1, // Invalid
+                FilePath = "",
+                Format = ImageFormat.Unknown,
+                CreatedAt = default,
+                ModifiedAt = default
+            };
+            invalidImage.EnsureValid();
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Image validation failed: {ex.Message}");
+        }
+
+        // Validate file extension
+        string extension = ".jpg";
+        var extensionErrors = extension.Validate();
+        Console.WriteLine($"\nFile extension validation has {extensionErrors.Count} errors");
+        
+        // Check if extension is valid
+        bool isExtensionValid = extension.IsValid();
+        Console.WriteLine($"File extension is valid: {isExtensionValid}");
+        
+        // Use EnsureValid() on file extension
+        try
+        {
+            string invalidExtension = "jpg"; // Missing leading dot
+            invalidExtension.EnsureValid();
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Extension validation failed: {ex.Message}");
         }
     }
 }
-
 ```
-
 ## ComputeShaderPipelineOptionsExtensions
 
 The `ComputeShaderPipelineOptionsExtensions` class provides extension methods for the `ComputeShaderPipelineOptions` type that simplify common configuration scenarios. It includes methods for cloning options, applying development/testing settings, applying production settings, getting clamped local memory values, and converting options to a dictionary for serialization or logging purposes.
