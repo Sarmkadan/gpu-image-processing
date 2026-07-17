@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace GpuImageProcessing.Domain;
 
@@ -64,11 +63,7 @@ public static class ComputeShaderPassValidation
         }
         else
         {
-            var workgroupErrors = Validate(value.WorkgroupConfiguration);
-            if (workgroupErrors.Count > 0)
-            {
-                errors.AddRange(workgroupErrors);
-            }
+            errors.AddRange(Validate(value.WorkgroupConfiguration));
         }
 
         // Validate Parameters
@@ -192,7 +187,7 @@ public static class ComputeShaderPassValidation
     /// </summary>
     /// <param name="value">The compute shader pass to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown when the pass is invalid, containing a list of problems.</exception>
+    /// <exception cref="ArgumentException">Thrown when the pass is invalid, containing a list of validation problems.</exception>
     public static void EnsureValid(this ComputeShaderPass value)
     {
         ArgumentNullException.ThrowIfNull(value);
@@ -213,7 +208,7 @@ public static class ComputeShaderPassValidation
     /// </summary>
     /// <param name="configuration">The workgroup configuration to validate.</param>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="configuration"/> is null.</exception>
-    /// <exception cref="ArgumentException">Thrown when the configuration is invalid, containing a list of problems.</exception>
+    /// <exception cref="ArgumentException">Thrown when the configuration is invalid, containing a list of validation problems.</exception>
     public static void EnsureValid(this WorkgroupConfiguration configuration)
     {
         ArgumentNullException.ThrowIfNull(configuration);
