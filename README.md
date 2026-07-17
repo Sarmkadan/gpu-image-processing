@@ -2050,6 +2050,83 @@ class Program
 
 ```
 
+## FilterConfigurationExtensions
+
+The `FilterConfigurationExtensions` class provides extension methods for `FilterConfiguration` that simplify common operations like parameter management, configuration copying, and filter-specific helpers. It offers type-safe parameter access, configuration cloning, convolution kernel analysis, and normalized value retrieval for building flexible image processing pipelines.
+
+### Key Features
+
+- Type-safe parameter access with default value fallback
+- Parameter setting with automatic type inference
+- Configuration cloning with new unique identifiers
+- Convolution kernel size analysis for custom convolution filters
+- Filter type detection (convolution vs other filters)
+- Normalized parameter value retrieval (0-1 range)
+- Null safety and argument validation
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Domain;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a filter configuration for a Gaussian blur
+        var filterConfig = new FilterConfiguration
+        {
+            Name = "Gaussian Blur",
+            FilterType = FilterType.GaussianBlur,
+            Parameters = new Dictionary<string, object> { { "sigma", 2.5f } }
+        };
+
+        // Get a parameter with type safety and fallback
+        float sigma = filterConfig.GetParameter("sigma", 1.0f);
+        Console.WriteLine($"Gaussian sigma: {sigma:F2}"); // Output: Gaussian sigma: 2.50
+
+        // Set a parameter with automatic type inference
+        filterConfig.SetParameter("intensity", 0.8f);
+        filterConfig.SetParameter("iterations", 3);
+        Console.WriteLine($"Parameters set: {filterConfig.Parameters.Count}"); // Output: Parameters set: 3
+
+        // Clone the configuration with a new ID
+        var clonedConfig = filterConfig.WithNewId();
+        Console.WriteLine($"Original ID: {filterConfig.Id}");
+        Console.WriteLine($"Cloned ID: {clonedConfig.Id}");
+        Console.WriteLine($"IDs are different: {filterConfig.Id != clonedConfig.Id}"); // Output: true
+
+        // Check if it's a convolution filter
+        bool isConvolution = filterConfig.IsConvolutionFilter();
+        Console.WriteLine($"Is convolution filter: {isConvolution}"); // Output: Is convolution filter: True
+
+        // Create a custom convolution filter
+        var customConvolution = new FilterConfiguration
+        {
+            Name = "Edge Detection",
+            FilterType = FilterType.CustomConvolution,
+            ConvolutionKernel = new float[] { -1, -1, -1, -1, 8, -1, -1, -1, -1 }
+        };
+
+        // Get the convolution kernel size
+        int? kernelSize = customConvolution.GetConvolutionKernelSize();
+        Console.WriteLine($"Convolution kernel size: {kernelSize}"); // Output: Convolution kernel size: 3
+
+        // Get a normalized parameter value (0-1 range)
+        float normalized = filterConfig.GetNormalizedParameter("sigma", 0.5f);
+        Console.WriteLine($"Normalized sigma: {normalized:F4}"); // Output: Normalized sigma: 0.8000
+
+        // Use with default value when parameter doesn't exist
+        float missingParam = filterConfig.GetNormalizedParameter("nonexistent", 0.0f);
+        Console.WriteLine($"Missing parameter default: {missingParam}"); // Output: Missing parameter default: 0.00
+    }
+}
+
+```
+
 ## DeviceUtilities
 
 The `DeviceUtilities` class provides utilities for GPU device discovery, capability detection, and resource management. It helps identify optimal GPU devices for image processing workloads by scoring devices based on memory, compute units, clock frequency, and current utilization. The class also analyzes memory pressure and recommends appropriate batch sizes to prevent out-of-memory errors.
