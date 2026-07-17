@@ -33,32 +33,22 @@ namespace GpuImageProcessing.Utilities
         {
             ArgumentNullException.ThrowIfNull(value);
 
-            var options = indented
-                ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
-                : _jsonSerializerOptions;
-
-            return JsonSerializer.Serialize(value, options);
+            return JsonSerializer.Serialize(value, indented ? GetIndentedOptions() : _jsonSerializerOptions);
         }
 
         /// <summary>
         /// Deserializes a JSON string to a ConfigurationValidationResult instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <returns>A deserialized ConfigurationValidationResult instance, or null if the JSON is invalid.</returns>
+        /// <returns>A deserialized ConfigurationValidationResult instance, or null if the JSON is invalid.
+        /// The return value will be null if the JSON is invalid or cannot be deserialized.</returns>
         /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
         /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
         public static ConfigurationValidationResult? FromJson(string json)
         {
             ArgumentException.ThrowIfNullOrEmpty(json);
 
-            try
-            {
-                return JsonSerializer.Deserialize<ConfigurationValidationResult>(json, _jsonSerializerOptions);
-            }
-            catch (JsonException)
-            {
-                return null;
-            }
+            return JsonSerializer.Deserialize<ConfigurationValidationResult>(json, _jsonSerializerOptions);
         }
 
         /// <summary>
@@ -80,12 +70,18 @@ namespace GpuImageProcessing.Utilities
             try
             {
                 value = JsonSerializer.Deserialize<ConfigurationValidationResult>(json, _jsonSerializerOptions);
-                return value != null;
+                return true;
             }
             catch (JsonException)
             {
                 return false;
             }
         }
+
+        /// <summary>
+        /// Gets JSON serializer options with indentation enabled for pretty-printing.
+        /// </summary>
+        private static JsonSerializerOptions GetIndentedOptions() =>
+            new(_jsonSerializerOptions) { WriteIndented = true };
     }
 }
