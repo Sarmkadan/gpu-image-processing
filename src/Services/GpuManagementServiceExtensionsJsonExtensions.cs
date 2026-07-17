@@ -43,6 +43,15 @@ public static class GpuManagementServiceExtensionsJsonExtensions
     }
 
     /// <summary>
+    /// Serializes the <see cref="GpuManagementService"/> instance to a JSON string with indentation.
+    /// </summary>
+    /// <param name="value">The GPU management service instance to serialize.</param>
+    /// <returns>A formatted JSON string representation of the GPU management service instance.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <see langword="null"/>.</exception>
+    public static string ToJsonIndented(this GpuManagementService value)
+        => ToJson(value, indented: true);
+
+    /// <summary>
     /// Deserializes a JSON string to a <see cref="GpuManagementService"/> instance.
     /// </summary>
     /// <param name="json">JSON string to deserialize.</param>
@@ -50,19 +59,9 @@ public static class GpuManagementServiceExtensionsJsonExtensions
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static GpuManagementService? FromJson(string json)
     {
-        if (string.IsNullOrEmpty(json))
-        {
-            return null;
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize<GpuManagementService>(json, _jsonOptions);
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
+        return string.IsNullOrEmpty(json)
+            ? null
+            : JsonSerializer.Deserialize<GpuManagementService>(json, _jsonOptions);
     }
 
     /// <summary>
@@ -71,24 +70,13 @@ public static class GpuManagementServiceExtensionsJsonExtensions
     /// <param name="json">JSON string to deserialize.</param>
     /// <param name="value">Output parameter containing the deserialized instance if successful.</param>
     /// <returns><see langword="true"/> if deserialization succeeded; otherwise, <see langword="false"/>.</returns>
-    /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null or empty.</exception>
     public static bool TryFromJson(string json, out GpuManagementService? value)
     {
-        value = null;
+        value = string.IsNullOrEmpty(json)
+            ? null
+            : JsonSerializer.Deserialize<GpuManagementService>(json, _jsonOptions);
 
-        if (string.IsNullOrEmpty(json))
-        {
-            return false;
-        }
-
-        try
-        {
-            value = JsonSerializer.Deserialize<GpuManagementService>(json, _jsonOptions);
-            return true;
-        }
-        catch (JsonException)
-        {
-            return false;
-        }
+        return value is not null;
     }
 }
