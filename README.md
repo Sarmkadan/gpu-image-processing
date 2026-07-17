@@ -1847,8 +1847,49 @@ if (result.IsSuccessful)
 }
 else
 {
+    Console.WriteLine($"Processing failed: {result.ErrorMessage}");
+}
+```
 
+## Transform
 
+The `Transform` class represents a single image processing operation, allowing users to configure, parameterize, and chain operations within the GPU processing pipeline. It manages operation state, metadata, and dynamic parameters for flexible pipeline construction.
+
+### Usage Example
+
+```csharp
+using GpuImageProcessing.Core.Models;
+using System;
+using System.Collections.Generic;
+
+// Initialize a new transform operation
+var transform = new Transform
+{
+    Name = "Grayscale",
+    Type = TransformType.ColorManipulation,
+    Description = "Converts image to grayscale",
+    IsActive = true
+};
+
+// Set and manage parameters
+transform.SetParameter("intensity", 0.5f);
+if (transform.HasParameter("intensity"))
+{
+    float intensity = transform.GetParameter("intensity");
+    Console.WriteLine($"Parameter intensity: {intensity}");
+}
+
+// Retrieve parameter names
+List<string> parameterNames = transform.GetParameterNames();
+Console.WriteLine($"Parameters: {string.Join(", ", parameterNames)}");
+
+// Get full description and manage state
+Console.WriteLine(transform.GetFullDescription());
+var clonedTransform = transform.Clone();
+
+// Clear parameters if needed
+transform.ClearParameters();
+```
 
 ## RemoteImageService
 
