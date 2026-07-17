@@ -1,20 +1,19 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace GpuImageProcessing.Core.Repository
 {
     /// <summary>
-    /// Validation helpers for <see cref="ResultRepository"/>.
+    /// Provides validation helpers for <see cref="ResultRepository"/> instances.
     /// </summary>
     public static class ResultRepositoryValidation
     {
         /// <summary>
-        /// Validates the state of the repository and returns a read‑only list of human‑readable problems.
+        /// Validates the state of the repository and returns a read-only list of human-readable problems.
         /// </summary>
         /// <param name="value">The repository instance to validate.</param>
-        /// <returns>A read‑only list of validation error messages. The list is empty when the repository is valid.</returns>
+        /// <returns>A read-only list of validation error messages. The list is empty when the repository is valid.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
         public static IReadOnlyList<string> Validate(this ResultRepository value)
         {
@@ -37,51 +36,71 @@ namespace GpuImageProcessing.Core.Repository
             if (stats is null)
             {
                 problems.Add("Statistics object is null.");
-                return problems;
+                return problems.AsReadOnly();
             }
 
             // Validate numeric fields – negative values are never expected.
             if (stats.TotalResults < 0)
+            {
                 problems.Add("TotalResults is negative.");
+            }
 
-            if (stats.SuccessfulResults < 0)
+            if (stats.SuccessfulResults <0)
+            {
                 problems.Add("SuccessfulResults is negative.");
+            }
 
-            if (stats.FailedResults < 0)
+            if (stats.FailedResults <0)
+            {
                 problems.Add("FailedResults is negative.");
+            }
 
-            if (stats.SuccessRate < 0 || stats.SuccessRate > 100)
-                problems.Add("SuccessRate is out of the 0‑100 range.");
+            if (stats.SuccessRate <0 || stats.SuccessRate >100)
+            {
+                problems.Add("SuccessRate is out of the 0-100 range.");
+            }
 
-            if (stats.AverageProcessingTimeMs < 0)
+            if (stats.AverageProcessingTimeMs <0)
+            {
                 problems.Add("AverageProcessingTimeMs is negative.");
+            }
 
-            if (stats.FastestProcessingMs < 0)
+            if (stats.FastestProcessingMs <0)
+            {
                 problems.Add("FastestProcessingMs is negative.");
+            }
 
-            if (stats.SlowestProcessingMs < 0)
+            if (stats.SlowestProcessingMs <0)
+            {
                 problems.Add("SlowestProcessingMs is negative.");
+            }
 
-            if (stats.TotalOutputBytes < 0)
+            if (stats.TotalOutputBytes <0)
+            {
                 problems.Add("TotalOutputBytes is negative.");
+            }
 
-            if (stats.AverageOutputFileSize < 0)
+            if (stats.AverageOutputFileSize <0)
+            {
                 problems.Add("AverageOutputFileSize is negative.");
+            }
 
-            return problems;
+            return problems.AsReadOnly();
         }
 
         /// <summary>
         /// Determines whether the repository instance passes all validation checks.
         /// </summary>
         /// <param name="value">The repository to test.</param>
-        /// <returns><c>true</c> if no validation problems are found; otherwise, <c>false</c>.</returns>
+        /// <returns><see langword="true"/> if no validation problems are found; otherwise, <see langword="false"/>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
-        public static bool IsValid(this ResultRepository value) =>
-            value.Validate().Count == 0;
+        public static bool IsValid(this ResultRepository? value)
+        {
+            return value is not null && value.Validate().Count ==0;
+        }
 
         /// <summary>
-        /// Ensures that the repository is valid, throwing an <see cref="ArgumentException"/> if any problems are found.
+        /// Ensures that the repository is valid, throwing an <see cref="ArgumentException"/> if any problems are detected.
         /// </summary>
         /// <param name="value">The repository to validate.</param>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
@@ -91,10 +110,12 @@ namespace GpuImageProcessing.Core.Repository
             ArgumentNullException.ThrowIfNull(value);
 
             var problems = value.Validate();
-            if (problems.Count > 0)
+            if (problems.Count >0)
+            {
                 throw new ArgumentException(
                     $"ResultRepository validation failed: {string.Join("; ", problems)}",
                     nameof(value));
+            }
         }
     }
 }
