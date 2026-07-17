@@ -4,7 +4,6 @@
 // CTO & Software Architect
 // =====================================================================
 
-using System.Globalization;
 using GpuImageProcessing.Core;
 using GpuImageProcessing.Domain;
 
@@ -32,7 +31,7 @@ public static class FilterConfigurationRepositoryValidation
         {
             var allFilters = value.GetStorage();
 
-            if (allFilters == null)
+            if (allFilters is null)
             {
                 problems.Add("Repository storage is null.");
                 return problems.AsReadOnly();
@@ -41,7 +40,7 @@ public static class FilterConfigurationRepositoryValidation
             // Validate each filter configuration
             foreach (var filter in allFilters)
             {
-                if (filter == null)
+                if (filter is null)
                 {
                     problems.Add("Repository contains a null filter configuration.");
                     continue;
@@ -112,13 +111,13 @@ public static class FilterConfigurationRepositoryValidation
         }
 
         // Validate description
-        if (filter.Description != null && filter.Description.Length > 1024)
+        if (filter.Description is not null && filter.Description.Length > 1024)
         {
             problems.Add($"Filter '{filter.Name}' has a description longer than 1024 characters (length: {filter.Description.Length}).");
         }
 
         // Validate parameters
-        if (filter.Parameters == null)
+        if (filter.Parameters is null)
         {
             problems.Add($"Filter '{filter.Name}' has null Parameters dictionary.");
         }
@@ -128,7 +127,7 @@ public static class FilterConfigurationRepositoryValidation
         }
 
         // Validate parameter types
-        if (filter.ParameterTypes == null)
+        if (filter.ParameterTypes is null)
         {
             problems.Add($"Filter '{filter.Name}' has null ParameterTypes dictionary.");
         }
@@ -136,7 +135,7 @@ public static class FilterConfigurationRepositoryValidation
         {
             problems.Add($"Filter '{filter.Name}' has more than 100 parameter types (count: {filter.ParameterTypes.Count}).");
         }
-        else if (filter.Parameters != null)
+        else if (filter.Parameters is not null)
         {
             // Check that all parameters have corresponding types
             foreach (var paramKey in filter.Parameters.Keys)
@@ -152,7 +151,7 @@ public static class FilterConfigurationRepositoryValidation
         // No specific validation needed beyond null check
 
         // Validate Priority
-        if (filter.Priority < 0 || filter.Priority > 1000)
+        if (filter.Priority is < 0 or > 1000)
         {
             problems.Add($"Filter '{filter.Name}' has a priority outside the valid range [0-1000] (value: {filter.Priority}).");
         }
@@ -177,19 +176,19 @@ public static class FilterConfigurationRepositoryValidation
         }
 
         // Validate MaxThreadsPerBlock
-        if (filter.MaxThreadsPerBlock < 32 || filter.MaxThreadsPerBlock > 1024)
+        if (filter.MaxThreadsPerBlock is < 32 or > 1024)
         {
             problems.Add($"Filter '{filter.Name}' has MaxThreadsPerBlock outside the valid range [32-1024] (value: {filter.MaxThreadsPerBlock}).");
         }
 
         // Validate KernelCode
-        if (filter.KernelCode != null && filter.KernelCode.Length > 10240)
+        if (filter.KernelCode is not null && filter.KernelCode.Length > 10240)
         {
             problems.Add($"Filter '{filter.Name}' has a KernelCode longer than 10240 characters (length: {filter.KernelCode.Length}).");
         }
 
         // Validate ConvolutionKernel if present
-        if (filter.ConvolutionKernel != null)
+        if (filter.ConvolutionKernel is not null)
         {
             if (filter.ConvolutionKernel.Length == 0)
             {
@@ -207,7 +206,7 @@ public static class FilterConfigurationRepositoryValidation
                 {
                     problems.Add($"Filter '{filter.Name}' has a ConvolutionKernel that is not a perfect square (length: {len}).");
                 }
-                else if (side < 3 || side > 15)
+                else if (side is < 3 or > 15)
                 {
                     problems.Add($"Filter '{filter.Name}' has a ConvolutionKernel with invalid side length {side} (must be 3-15 and odd).");
                 }
