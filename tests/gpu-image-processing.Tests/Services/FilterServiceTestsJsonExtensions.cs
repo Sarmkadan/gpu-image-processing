@@ -3,6 +3,9 @@ using System.Text.Json.Serialization;
 
 namespace GpuImageProcessing.Tests.Services
 {
+    /// <summary>
+    /// Provides JSON serialization and deserialization extension methods for <see cref="FilterServiceTests"/>.
+    /// </summary>
     public static class FilterServiceTestsJsonExtensions
     {
         private static readonly JsonSerializerOptions _jsonOptions = new(JsonSerializerDefaults.Web)
@@ -55,8 +58,11 @@ namespace GpuImageProcessing.Tests.Services
         /// <param name="json">The JSON string to deserialize.</param>
         /// <param name="value">Receives the deserialized instance if successful.</param>
         /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
         public static bool TryFromJson(string json, out FilterServiceTests? value)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
             value = null;
 
             if (string.IsNullOrEmpty(json))
