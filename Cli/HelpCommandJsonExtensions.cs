@@ -14,6 +14,10 @@ namespace GpuImageProcessing.Cli
     /// </summary>
     public static class HelpCommandJsonExtensions
     {
+        /// <summary>
+        /// Default JSON serializer options for <see cref="HelpCommand"/> serialization.
+        /// Uses camelCase property naming, no indentation, and ignores null values.
+        /// </summary>
         private static readonly JsonSerializerOptions _jsonSerializerOptions = new(JsonSerializerDefaults.Web)
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -34,9 +38,7 @@ namespace GpuImageProcessing.Cli
 
             var options = indented
                 ? new JsonSerializerOptions(_jsonSerializerOptions)
-                {
-                    WriteIndented = true
-                }
+                { WriteIndented = true }
                 : _jsonSerializerOptions;
 
             return JsonSerializer.Serialize(value, options);
@@ -46,7 +48,7 @@ namespace GpuImageProcessing.Cli
         /// Deserializes a JSON string to a <see cref="HelpCommand"/> instance.
         /// </summary>
         /// <param name="json">The JSON string to deserialize.</param>
-        /// <returns>The deserialized help command, or null if the JSON is invalid.</returns>
+        /// <returns>The deserialized help command if successful; otherwise, null.</returns>
         /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty.</exception>
         public static HelpCommand? FromJson(string json)
         {
