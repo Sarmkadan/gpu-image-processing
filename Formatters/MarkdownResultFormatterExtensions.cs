@@ -18,6 +18,7 @@ namespace GpuImageProcessing.Formatters
         /// <param name="results">The results to format.</param>
         /// <returns>A markdown table representation of the results.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="formatter"/> or <paramref name="results"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="results"/> contains a null item.</exception>
         public static string FormatResultsAsTable(this MarkdownResultFormatter formatter, IReadOnlyList<object> results)
         {
             ArgumentNullException.ThrowIfNull(formatter);
@@ -26,6 +27,11 @@ namespace GpuImageProcessing.Formatters
             if (results.Count == 0)
             {
                 return "No results to display.";
+            }
+
+            if (results[0] is null)
+            {
+                throw new ArgumentException("The first result item cannot be null.", nameof(results));
             }
 
             // Get property names from first item
@@ -58,10 +64,12 @@ namespace GpuImageProcessing.Formatters
             // Data rows
             foreach (var result in results)
             {
+                ArgumentNullException.ThrowIfNull(result, nameof(results));
+
                 sb.Append("| ");
                 foreach (var prop in properties)
                 {
-                    var value = result.GetType().GetProperty(prop)?.GetValue(result)?.ToString() ?? "";
+                    var value = result.GetType().GetProperty(prop)?.GetValue(result)?.ToString() ?? string.Empty;
                     sb.Append(value).Append(" | ");
                 }
                 sb.Length -= 3;
@@ -126,6 +134,8 @@ namespace GpuImageProcessing.Formatters
 
             foreach (var filePath in filePaths)
             {
+                ArgumentException.ThrowIfNullOrEmpty(filePath);
+
                 var fileName = Path.GetFileName(filePath);
                 var extension = Path.GetExtension(filePath).ToLowerInvariant();
                 var fileInfo = new FileInfo(filePath);
@@ -159,6 +169,7 @@ namespace GpuImageProcessing.Formatters
         /// <param name="unit">The unit of measurement.</param>
         /// <returns>A formatted string with value and unit.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="formatter"/> is null.</exception>
+        /// <exception cref="ArgumentException"><paramref name="unit"/> is null or empty.</exception>
         public static string FormatWithUnit(this MarkdownResultFormatter formatter, double value, string unit)
         {
             ArgumentNullException.ThrowIfNull(formatter);
