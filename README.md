@@ -2,6 +2,47 @@
 
 GPU-accelerated image processing in C# using OpenCL (Silk.NET) - filters, transforms, batch operations, with a byte-exact CPU fallback that keeps everything usable on machines without a GPU.
 
+## PerformanceUtilities
+
+The `PerformanceUtilities` class provides a comprehensive set of utilities for performance monitoring, profiling, and metrics collection in GPU-accelerated image processing applications. It includes timer utilities for measuring operation duration, memory tracking functions to monitor memory usage, and statistical analysis methods for performance data.
+
+### Key Features
+
+- **Performance Timing**: Measure execution duration of operations using `StartTimer()` which returns a `PerformanceTimer` object that can be stopped and formatted
+- **Memory Monitoring**: Track current, peak, and available memory usage with human-readable formatting
+- **Statistical Analysis**: Calculate throughput, latency percentiles, averages, medians, and standard deviations from performance measurements
+- **CPU Monitoring**: Get current CPU usage percentage
+- **Garbage Collection**: Force garbage collection when needed
+
+### Usage Examples
+
+```csharp
+// Basic timing example
+using var timer = PerformanceUtilities.StartTimer("Image Processing");
+
+// Perform GPU operations here...
+ProcessImageWithGpu();
+
+string duration = timer.Stop();
+Console.WriteLine($"Operation completed in {duration}");
+
+// Memory monitoring
+long currentMemory = PerformanceUtilities.GetCurrentMemoryUsage();
+long peakMemory = PerformanceUtilities.GetPeakMemoryUsage();
+Console.WriteLine($"Memory usage: Current={PerformanceUtilities.FormatMemory(currentMemory)}, Peak={PerformanceUtilities.FormatMemory(peakMemory)}");
+
+// Statistical analysis
+var latencies = new List<long> { 15, 18, 22, 19, 20, 25 };
+double averageLatency = PerformanceUtilities.GetAverageLatency(latencies);
+double medianLatency = PerformanceUtilities.GetMedianLatency(latencies);
+double throughput = PerformanceUtilities.CalculateThroughput(1000, 150); // 1000 operations in 150ms
+Console.WriteLine($"Average latency: {averageLatency}ms, Median: {medianLatency}ms, Throughput: {throughput:F2} ops/sec");
+
+// CPU monitoring
+float cpuUsage = PerformanceUtilities.GetCpuUsage();
+Console.WriteLine($"CPU Usage: {cpuUsage:F1}%");
+```
+
 ## BatchProcessingUtilities
 
 `BatchProcessingUtilities` provides utilities for managing and optimizing batch processing operations on GPU devices. It includes methods for partitioning work items, calculating optimal batch sizes, scheduling with priority, estimating processing times, tracking progress, and handling retries for failed items. The class is designed to maximize GPU utilization while minimizing memory overhead and provides comprehensive progress tracking for long-running batch operations.
