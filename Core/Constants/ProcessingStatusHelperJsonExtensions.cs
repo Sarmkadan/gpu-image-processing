@@ -11,7 +11,7 @@ using System.Text.Json.Serialization;
 namespace GpuImageProcessing.Core.Constants
 {
     /// <summary>
-    /// Provides JSON serialization extensions for <see cref="ProcessingStatusHelper"/>
+    /// Provides JSON serialization extensions for <see cref="ProcessingStatus"/> values.
     /// </summary>
     public static class ProcessingStatusHelperJsonExtensions
     {
@@ -31,27 +31,18 @@ namespace GpuImageProcessing.Core.Constants
         /// <returns>A JSON string representing the processing status</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null</exception>
         public static string ToJson(this ProcessingStatus value, bool indented = false)
-        {
-            ArgumentNullException.ThrowIfNull(value);
-
-            var options = indented
-                ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true }
-                : _jsonSerializerOptions;
-
-            return JsonSerializer.Serialize(value, options);
-        }
+            => JsonSerializer.Serialize(value, indented ? new JsonSerializerOptions(_jsonSerializerOptions) { WriteIndented = true } : _jsonSerializerOptions);
 
         /// <summary>
         /// Parses a JSON string to a <see cref="ProcessingStatus"/> value
         /// </summary>
         /// <param name="json">The JSON string to deserialize</param>
         /// <returns>The deserialized <see cref="ProcessingStatus"/> value</returns>
-        /// <exception cref="ArgumentException">Thrown when json is null or empty</exception>
+        /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is null or empty</exception>
         /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized</exception>
         public static ProcessingStatus FromJson(string json)
         {
             ArgumentException.ThrowIfNullOrEmpty(json);
-
             return JsonSerializer.Deserialize<ProcessingStatus>(json, _jsonSerializerOptions);
         }
 
@@ -61,8 +52,11 @@ namespace GpuImageProcessing.Core.Constants
         /// <param name="json">The JSON string to deserialize</param>
         /// <param name="value">Receives the deserialized value if successful</param>
         /// <returns>True if parsing succeeded; otherwise, false</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null</exception>
         public static bool TryFromJson(string json, out ProcessingStatus? value)
         {
+            ArgumentNullException.ThrowIfNull(json);
+
             value = default;
 
             if (string.IsNullOrEmpty(json))
@@ -73,7 +67,7 @@ namespace GpuImageProcessing.Core.Constants
             try
             {
                 value = JsonSerializer.Deserialize<ProcessingStatus>(json, _jsonSerializerOptions);
-                return true;
+                return value is not null;
             }
             catch (JsonException)
             {
