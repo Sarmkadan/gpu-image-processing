@@ -1,4 +1,5 @@
 #nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -42,7 +43,7 @@ namespace GpuImageProcessing.Api
 
             return validator.AddRule(
                 fieldName,
-                v => Guid.TryParse(v?.ToString(), out _),
+                v => v is string s && Guid.TryParse(s, out _),
                 $"{fieldName} must be a valid GUID");
         }
 
