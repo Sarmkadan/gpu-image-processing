@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using GpuImageProcessing.Core.Models;
+using GpuImageProcessing.Core.Constants;
 
 namespace GpuImageProcessing.Formatters
 {
@@ -63,20 +64,131 @@ namespace GpuImageProcessing.Formatters
                 errors.Add($"GetMimeType() threw an exception: {ex.Message}");
             }
 
-            // Validate FormatResult() - cannot test without a ProcessingResult instance
-            // This method is validated at runtime when called with actual data
+            // Validate FormatResult() with null input
+            try
+            {
+                value.FormatResult(null!);
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"FormatResult(null) threw an exception: {ex.Message}");
+            }
 
-            // Validate FormatResults() - cannot test without a List<ProcessingResult> instance
-            // This method is validated at runtime when called with actual data
+            // Validate FormatResults() with null and empty input
+            try
+            {
+                value.FormatResults(null!);
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"FormatResults(null) threw an exception: {ex.Message}");
+            }
 
-            // Validate FormatJob() - cannot test without a ProcessingJob instance
-            // This method is validated at runtime when called with actual data
+            try
+            {
+                var emptyResults = new List<ProcessingResult>();
+                var result = value.FormatResults(emptyResults);
+                if (string.IsNullOrWhiteSpace(result))
+                {
+                    errors.Add("FormatResults(empty) returned null or whitespace.");
+                }
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"FormatResults(empty) threw an exception: {ex.Message}");
+            }
 
-            // Validate FormatDevice() - cannot test without a DeviceInfo instance
-            // This method is validated at runtime when called with actual data
+            // Validate FormatJob() with null and valid input
+            try
+            {
+                value.FormatJob(null!);
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"FormatJob(null) threw an exception: {ex.Message}");
+            }
 
-            // Validate FormatError() - cannot test without parameters
-            // This method is validated at runtime when called with actual data
+            try
+            {
+                var validJob = new ProcessingJob
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Test Job",
+                    Status = ProcessingStatus.Pending,
+                    TotalImages = 10,
+                    ProcessedImages = 0,
+                    FailedImages = 0,
+                    CreatedAt = DateTime.UtcNow,
+                    StartedAt = null,
+                    CompletedAt = null
+                };
+                var jobResult = value.FormatJob(validJob);
+                if (string.IsNullOrWhiteSpace(jobResult))
+                {
+                    errors.Add("FormatJob(valid) returned null or whitespace.");
+                }
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"FormatJob(valid) threw an exception: {ex.Message}");
+            }
+
+            // Validate FormatDevice() with null and valid input
+            try
+            {
+                value.FormatDevice(null!);
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"FormatDevice(null) threw an exception: {ex.Message}");
+            }
+
+            try
+            {
+                var validDevice = new DeviceInfo
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Test Device",
+                    Type = "GPU",
+                    Vendor = "NVIDIA",
+                    IsAvailable = true,
+                    MemoryBytes = 8L * 1024 * 1024 * 1024,
+                    ComputeUnits = 5120,
+                    DriverVersion = "535.86.0"
+                };
+                var deviceResult = value.FormatDevice(validDevice);
+                if (string.IsNullOrWhiteSpace(deviceResult))
+                {
+                    errors.Add("FormatDevice(valid) returned null or whitespace.");
+                }
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"FormatDevice(valid) threw an exception: {ex.Message}");
+            }
+
+            // Validate FormatError() with null and valid input
+            try
+            {
+                value.FormatError(null!);
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"FormatError(null) threw an exception: {ex.Message}");
+            }
+
+            try
+            {
+                var errorResult = value.FormatError("Test error message", "TEST_ERROR");
+                if (string.IsNullOrWhiteSpace(errorResult))
+                {
+                    errors.Add("FormatError(valid) returned null or whitespace.");
+                }
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"FormatError(valid) threw an exception: {ex.Message}");
+            }
 
             return errors.AsReadOnly();
         }
@@ -86,10 +198,7 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         /// <param name="value">The formatter instance to check.</param>
         /// <returns><see langword="true"/> if the instance is valid; otherwise, <see langword="false"/>.</returns>
-        public static bool IsValid(this TextResultFormatter value)
-        {
-            return value?.Validate().Count == 0;
-        }
+        public static bool IsValid(this TextResultFormatter value) => value?.Validate().Count == 0;
 
         /// <summary>
         /// Ensures that the specified <see cref="TextResultFormatter"/> instance is valid.
@@ -105,9 +214,10 @@ namespace GpuImageProcessing.Formatters
             if (errors.Count > 0)
             {
                 throw new ArgumentException(
-                    $"TextResultFormatter is not valid. Validation errors:\n  - {
-                    string.Join("\n  - ", errors)
-                }");
+                    $"TextResultFormatter is not valid. Validation errors:\n - {
+                    string.Join("\n - ", errors)
+                    }",
+                    nameof(value));
             }
         }
     }
