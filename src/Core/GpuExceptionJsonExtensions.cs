@@ -55,14 +55,16 @@ public static class GpuExceptionJsonExtensions
     /// Attempts to parse a JSON string to create a <see cref="GpuException"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">Receives the deserialized exception if successful.</param>
+    /// <param name="value">Receives the deserialized exception if successful; otherwise, null.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+    /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out GpuException? value)
     {
-        value = null;
+        ArgumentNullException.ThrowIfNull(json);
 
         if (string.IsNullOrEmpty(json))
         {
+            value = null;
             return true;
         }
 
@@ -73,6 +75,7 @@ public static class GpuExceptionJsonExtensions
         }
         catch (JsonException)
         {
+            value = null;
             return false;
         }
     }
