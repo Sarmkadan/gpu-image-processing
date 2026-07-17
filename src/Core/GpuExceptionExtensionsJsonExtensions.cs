@@ -23,9 +23,21 @@ public static class GpuExceptionExtensionsJsonExtensions
     /// </summary>
     public sealed class GpuExceptionExtensionsConfig
     {
+        /// <summary>
+        /// Gets the type identifier for the configuration.
+        /// </summary>
         public string Type { get; } = "GpuExceptionExtensions";
+        /// <summary>
+        /// Gets or sets whether timeout detection is enabled.
+        /// </summary>
         public bool IsTimeoutDetectionEnabled { get; init; } = true;
+        /// <summary>
+        /// Gets or sets whether memory detection is enabled.
+        /// </summary>
         public bool IsMemoryDetectionEnabled { get; init; } = true;
+        /// <summary>
+        /// Gets or sets whether compute pipeline detection is enabled.
+        /// </summary>
         public bool IsComputePipelineDetectionEnabled { get; init; } = true;
     }
 
@@ -36,6 +48,7 @@ public static class GpuExceptionExtensionsJsonExtensions
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
     /// <returns>A JSON string representing the configuration.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="config"/> is null.</exception>
+ /// <exception cref="JsonException">Thrown if serialization fails.</exception>
     public static string ToJson(GpuExceptionExtensionsConfig config, bool indented = false)
     {
         ArgumentNullException.ThrowIfNull(config);
@@ -75,7 +88,7 @@ public static class GpuExceptionExtensionsJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="config">Receives the deserialized configuration if successful.</param>
-    /// <returns>True if deserialization succeeded; otherwise, false.</returns>
+ /// <returns>True if deserialization succeeded; otherwise, false. When the JSON is null or empty, returns true with config set to null.</returns>
     public static bool TryFromJson(string json, out GpuExceptionExtensionsConfig? config)
     {
         config = null;
