@@ -429,6 +429,118 @@ class Program
 
 ```
 
+## TransformServiceExtensions
+
+The `TransformServiceExtensions` class provides extension methods for the `TransformService` that simplify common transform management operations. It includes utilities for bulk operations, parameter management, filtering, and execution order control, making it easier to build flexible image processing pipelines with transforms.
+
+
+
+### Key Features
+
+- Bulk create multiple transforms of the same type
+- Bulk activate/deactivate transforms by their IDs
+- Parameter copying between transforms
+- Get default parameter values for transform types
+- Filter transforms by active status, type, or name pattern
+- Manage execution order with sequential reordering
+- Retrieve transforms sorted by execution order
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Core.Services;
+using GpuImageProcessing.Core.Constants;
+using GpuImageProcessing.Core.Models;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
+
+class Program
+{
+static async Task Main()
+{
+    // Initialize the transform service (typically via dependency injection)
+    var transformService = new TransformService(...);
+
+    // Bulk create transforms of the same type
+    var resizeTransforms = await transformService.CreateTransformsAsync(
+        TransformType.Resize, 
+        count: 5, 
+        namePrefix: "Resize",
+        description: "Batch resize transforms"
+    );
+    Console.WriteLine($"Created {resizeTransforms.Count} resize transforms");
+
+    // Get default parameter value for a transform type
+    var defaultScale = await transformService.GetDefaultParameterValueAsync(
+        TransformType.Resize, 
+        "Scale"
+    );
+    Console.WriteLine($"Default scale parameter: {defaultScale}");
+
+    // Bulk activate transforms by their IDs
+    var activeCount = await transformService.BulkActivateTransformsAsync(
+        resizeTransforms.Select(t => t.Id)
+    );
+    Console.WriteLine($"Activated {activeCount} transforms");
+
+    // Bulk deactivate transforms by their IDs
+    var deactivateCount = await transformService.BulkDeactivateTransformsAsync(
+        resizeTransforms.Select(t => t.Id)
+    );
+    Console.WriteLine($"Deactivated {deactivateCount} transforms");
+
+    // Get parameter names for a transform type
+    var parameterNames = await transformService.GetParameterNamesAsync(TransformType.Rotate);
+    Console.WriteLine($"Rotate transform has {parameterNames.Count} parameters:");
+    foreach (var param in parameterNames) Console.WriteLine($" - {param}");
+
+    // Copy parameters from one transform to another
+    var rotateTransform = await transformService.CreateTransformAsync(
+        TransformType.Rotate, 
+        "Rotate 90",
+        "Rotate image by 90 degrees"
+    );
+    
+    bool copySuccess = await transformService.CopyParametersAsync(
+        sourceTransformId: resizeTransforms[0].Id,
+        targetTransformId: rotateTransform.Id,
+        parameterNames: new[] { "Scale", "ExecutionOrder" }
+    );
+    Console.WriteLine($"Parameter copy successful: {copySuccess}");
+
+    // Get transforms sorted by execution order
+    var orderedTransforms = await transformService.GetTransformsByExecutionOrderAsync();
+    Console.WriteLine($"Transforms in execution order:");
+    foreach (var transform in orderedTransforms) 
+    {
+        Console.WriteLine($" - {transform.Name} (Order: {transform.ExecutionOrder})");
+    }
+
+    // Find transforms by name pattern
+    var namedTransforms = await transformService.FindTransformsByNameAsync("Resize");
+    Console.WriteLine($"Found {namedTransforms.Count} transforms with 'Resize' in name");
+
+    // Get transforms filtered by active status and type
+    var activeResizes = await transformService.GetTransformsFilteredAsync(
+        isActive: true,
+        type: TransformType.Resize
+    );
+    Console.WriteLine($"Active resize transforms: {activeResizes.Count}");
+
+    // Get the next available execution order number
+    var nextOrder = await transformService.GetNextExecutionOrderAsync();
+    Console.WriteLine($"Next execution order: {nextOrder}");
+
+    // Reorder transforms to maintain sequential execution order without gaps
+    bool reorderSuccess = await transformService.ReorderTransformsSequentiallyAsync();
+    Console.WriteLine($"Sequential reordering successful: {reorderSuccess}");
+}
+}
+
+```
+
 ## HelpCommandExtensions
 
 
