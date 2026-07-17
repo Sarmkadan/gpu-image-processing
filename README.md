@@ -266,6 +266,145 @@ Console.WriteLine($"Denormalized: {denormalized:F2}"); // Output: Denormalized: 
 }
 ```
 
+## EnumerableExtensions
+
+The `EnumerableExtensions` class provides a comprehensive set of extension methods for working with `IEnumerable<T>` sequences. These utilities extend LINQ with additional functional programming helpers for filtering, grouping, batching, searching, and aggregation operations that are commonly needed in GPU image processing pipelines.
+
+### Key Features
+
+- Batch processing with fixed-size groups
+- Null filtering and safe conversions
+- Distinct operations by key selectors
+- Min/max operations with custom key comparison
+- Index-based operations (IndexOf, FindIndex)
+- Dictionary conversion with duplicate key handling
+- Consecutive grouping and batching
+- Sequence manipulation (Repeat, TakeWhile, ForEach, Concat, Shuffle, Pad)
+- Equality checking (AllEqual)
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Program
+{
+    static void Main()
+    {
+        // Batch processing example
+        var numbers = Enumerable.Range(1, 20);
+        var batches = numbers.Batch(5);
+        
+        Console.WriteLine("Batches:");
+        foreach (var batch in batches)
+        {
+            Console.WriteLine(string.Join(", ", batch));
+        }
+        
+        // WhereNotNull example
+        var nullableStrings = new List<string?> { "hello", null, "world", null, "test" };
+        var nonNullStrings = nullableStrings.WhereNotNull();
+        Console.WriteLine($"Non-null count: {nonNullStrings.Count()}"); // Output: 3
+        
+        // DistinctBy example
+        var people = new List<Person> 
+        {
+            new Person("Alice", 30),
+            new Person("Bob", 25),
+            new Person("Charlie", 30),
+            new Person("David", 25)
+        };
+        
+        var uniqueAges = people.DistinctBy(p => p.Age);
+        Console.WriteLine($"Unique ages: {string.Join(", ", uniqueAges.Select(p => p.Age))}"); // Output: 30, 25
+        
+        // MaxBy/MinBy examples
+        var maxPerson = people.MaxBy(p => p.Age);
+        var minPerson = people.MinBy(p => p.Age);
+        Console.WriteLine($"Oldest: {maxPerson.Name}, Youngest: {minPerson.Name}");
+        
+        // IndexOf example
+        var colors = new List<string> { "red", "green", "blue", "yellow" };
+        var greenIndex = colors.IndexOf("green");
+        Console.WriteLine($"Green index: {greenIndex}"); // Output: 1
+        
+        // FindIndex example
+        var firstEvenIndex = numbers.FindIndex(n => n % 2 == 0);
+        Console.WriteLine($"First even index: {firstEvenIndex}"); // Output: 1
+        
+        // SafeToDictionary example
+        var keyValuePairs = new List<KeyValuePair<string, int>>
+        {
+            new KeyValuePair<string, int>("one", 1),
+            new KeyValuePair<string, int>("two", 2),
+            new KeyValuePair<string, int>("one", 10)
+        };
+        
+        var dictionary = keyValuePairs.SafeToDictionary(kv => kv.Key, kv => kv.Value);
+        Console.WriteLine($"Dictionary count: {dictionary.Count}"); // Output: 2 (first occurrence kept)
+        
+        // GroupConsecutive example
+        var data = new List<int> { 1, 1, 2, 2, 2, 3, 1, 1 };
+        var groups = data.GroupConsecutive(x => x);
+        Console.WriteLine("Consecutive groups:");
+        foreach (var group in groups)
+        {
+            Console.WriteLine(string.Join(", ", group));
+        }
+        
+        // Repeat example
+        var sequence = new List<int> { 1, 2, 3 };
+        var repeated = sequence.Repeat().Take(8); // First 8 items from infinite sequence
+        Console.WriteLine("Repeated sequence: " + string.Join(", ", repeated));
+        
+        // TakeWhile example
+        var numbers2 = Enumerable.Range(1, 10);
+        var taken = numbers2.TakeWhile(n => n < 5);
+        Console.WriteLine("Taken while < 5: " + string.Join(", ", taken));
+        
+        // ForEach example
+        var list = new List<int> { 1, 2, 3, 4, 5 };
+        var processed = list.ForEach(x => Console.Write($"Processing {x}... "));
+        Console.WriteLine("\nProcessed count: " + processed.Count());
+        
+        // Concat example
+        var list1 = new List<int> { 1, 2, 3 };
+        var list2 = new List<int> { 4, 5 };
+        var concatenated = list1.Concat(list2);
+        Console.WriteLine("Concatenated: " + string.Join(", ", concatenated));
+        
+        // AllEqual example
+        var allSame = new List<int> { 5, 5, 5 };
+        var allDifferent = new List<int> { 1, 2, 3 };
+        Console.WriteLine($"All equal: {allSame.AllEqual()}, All different: {allDifferent.AllEqual()}");
+        
+        // Shuffle example
+        var shuffled = list.Shuffle();
+        Console.WriteLine("Shuffled: " + string.Join(", ", shuffled));
+        
+        // Pad example
+        var shortList = new List<int> { 1, 2, 3 };
+        var padded = shortList.Pad(7, 0);
+        Console.WriteLine("Padded: " + string.Join(", ", padded));
+    }
+}
+
+public class Person
+{
+    public string Name { get; }
+    public int Age { get; }
+    
+    public Person(string name, int age)
+    {
+        Name = name;
+        Age = age;
+    }
+}
+```
+
 ## Architecture
 
 The GPU Image Processing library follows a modular architecture with clear separation of concerns:
