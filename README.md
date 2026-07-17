@@ -2232,18 +2232,22 @@ Console.WriteLine($"Most common bucket: {distribution.Buckets.OrderByDescending(
 
 ```
 
-## BatchProcessingUtilitiesValidation
+
+## TimeoutUtilitiesValidation
+
+
+The `TimeoutUtilitiesValidation` class provides validation utilities for timeout-related parameters used with the `TimeoutUtilities` class. It validates timeout durations, minimum/maximum bounds, poll intervals, retry parameters, and operation names, returning detailed error messages through `Validate()` methods. This validation layer ensures that timeout configurations are valid and safe for use with timeout operations.
 
 ### Key Features
 
-- Validates `BatchItem<T>` instances including sequence numbers, priorities, scheduling, retry counts, and error handling
-- Validates `BatchProgress` instances including processed/total counts, error counts, percentage completion, timing metrics, and estimated completion times
-- Validates `ThrottleRecommendation` instances including throttle levels, reasons collection, and consistency checks
-- Returns detailed error messages through `Validate()` methods for debugging and validation scenarios
+- Validates timeout durations with comprehensive range checking (0-24 hours, minimum 1ms)
+- Validates timeout bounds (minimum and maximum constraints)
+- Validates poll intervals ensuring they're smaller than timeout for effective polling
+- Validates retry parameters including max retries (1-100) and initial delays
+- Validates operation names (1-100 characters, not null/whitespace)
+- Returns detailed error messages through `Validate()` methods for debugging
 - Provides convenience methods like `IsValid()` and `EnsureValid()` for fluent validation patterns
-- Ensures proper relationships between processed/total counts, error counts, and timing values
-- Validates scheduling constraints (e.g., scheduled times within 24 hours, processed times not in the future)
-- Throws descriptive exceptions when validation fails
+- Throws descriptive exceptions when validation fails with comprehensive error details
 
 ### Usage Examples
 
@@ -2251,35 +2255,127 @@ Console.WriteLine($"Most common bucket: {distribution.Buckets.OrderByDescending(
 
 using GpuImageProcessing.Utilities;
 using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 
 class Program
 {
+    static async Task Main()
+    {
+        // Validate a simple timeout
+        TimeSpan timeout = TimeSpan.FromSeconds(30);
+        var timeoutErrors = TimeoutUtilitiesValidation.Validate(timeout);
+        
+        if (timeoutErrors.Count > 0)
+        {
+            Console.WriteLine("Timeout validation errors:");
+            foreach (var error in timeoutErrors)
+            {
+                Console.WriteLine($"- {error}");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Timeout is valid!");
+        }
+        
+        // Check if valid using convenience method
+        bool isValid = TimeoutUtilitiesValidation.IsValid(timeout);
+        Console.WriteLine($"Is timeout valid: {isValid}");
+        
+        // Validate timeout with bounds (minimum 1s, maximum 5s)
+        var boundedErrors = TimeoutUtilitiesValidation.Validate(
+            requestedTimeout: TimeSpan.FromSeconds(10),
+            minimum: TimeSpan.FromSeconds(1),
+            maximum: TimeSpan.FromSeconds(5)
+        );
+        
+        if (boundedErrors.Count > 0)
+        {
+            Console.WriteLine("Bounded timeout validation failed:");
+            foreach (var error in boundedErrors)
+            {
+                Console.WriteLine($"- {error}");
+            }
+        }
+        
+        // Validate timeout with poll interval (poll interval must be < timeout)
+        var pollErrors = TimeoutUtilitiesValidation.Validate(
+            timeout: TimeSpan.FromSeconds(30),
+            pollInterval: TimeSpan.FromSeconds(2)
+        );
+        
+        Console.WriteLine($"Poll validation: {(pollErrors.Count == 0 ? "Valid" : string.Join(", ", pollErrors))}");
+        
+        // Validate retry parameters
+        var retryErrors = TimeoutUtilitiesValidation.Validate(
+            timeout: TimeSpan.FromSeconds(60),
+            maxRetries: 5,
+            initialDelay: TimeSpan.FromSeconds(1)
+        );
+        
+        Console.WriteLine($"Retry validation: {(retryErrors.Count == 0 ? "Valid" : string.Join(", ", retryErrors))}");
+        
+        // Validate timeout with operation name
+        var opErrors = TimeoutUtilitiesValidation.Validate(
+            timeout: TimeSpan.FromSeconds(45),
+            operationName: "ImageProcessing"
+        );
+        
+        Console.WriteLine($"Operation validation: {(opErrors.Count == 0 ? "Valid" : string.Join(", ", opErrors))}");
+        
+        // Use EnsureValid() to throw exception on invalid timeout
+        try
+        {
+            TimeoutUtilitiesValidation.EnsureValid(TimeSpan.FromSeconds(-1));
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"EnsureValid caught error: {ex.Message}");
+        }
+        
+        // Use EnsureValid() with bounded timeout
+        try
+        {
+            TimeoutUtilitiesValidation.EnsureValid(
+                requestedTimeout: TimeSpan.FromSeconds(5),
+                minimum: TimeSpan.FromSeconds(10), // This will fail
+                maximum: TimeSpan.FromSeconds(20)
+            );
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Bounded EnsureValid caught error: {ex.Message}");
+        }
+        
+        // Practical example: Validate timeout before using TimeoutUtilities
+        TimeSpan processingTimeout = TimeSpan.FromMinutes(2);
+        if (TimeoutUtilitiesValidation.IsValid(processingTimeout))
+        {
+            Console.WriteLine("Processing timeout is valid, proceeding with operation...");
+            
+            // Simulate using the timeout with TimeoutUtilities
+            try
+            {
+                await TimeoutUtilities.ExecuteWithTimeoutAsync(
+                    action: () => Console.WriteLine("Processing image..."),
+                    timeout: processingTimeout,
+                    operationName: "ImageProcessing"
+                );
+                Console.WriteLine("Operation completed successfully!");
+            }
+            catch (TimeoutException)
+            {
+                Console.WriteLine("Operation timed out!");
+            }
+        }
+    }
+}
 
-static void Main()
-{
+```
 
-// Create a valid BatchItem for image processing
-var batchItem = new BatchItem<string>
-{
-SequenceNumber = 1,
-Priority = 5,
-Item = "/data/images/photo.jpg",
-ScheduledAt = DateTime.UtcNow,
-RetryCount = 0,
-LastError = null
-};
+## BatchProcessingUtilitiesValidation
 
-// Validate the batch item
-var itemErrors = batchItem.Validate();
-Console.WriteLine($"BatchItem validation: {(itemErrors.Count == 0 ? "Valid" : string.Join(", ", itemErrors))}");
-
-// Check if valid using convenience method
-bool isItemValid = batchItem.IsValid();
-Console.WriteLine($"Is BatchItem valid: {isItemValid}");
-
-// Create a valid BatchProgress instance
-var batchProgress = new BatchProgress
+### Key Features
 {
 ProcessedCount = 45,
 TotalCount = 100,
