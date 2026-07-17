@@ -31,9 +31,7 @@ public static class EndToEndProcessingTestsJsonExtensions
 
         var options = indented
             ? new JsonSerializerOptions(_jsonSerializerOptions)
-            {
-                WriteIndented = true
-            }
+            { WriteIndented = true }
             : _jsonSerializerOptions;
 
         return JsonSerializer.Serialize(value, options);
@@ -69,15 +67,20 @@ public static class EndToEndProcessingTestsJsonExtensions
     {
         ArgumentNullException.ThrowIfNull(json);
 
-        value = null;
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            value = null;
+            return false;
+        }
 
         try
         {
             value = JsonSerializer.Deserialize<EndToEndProcessingTests>(json, _jsonSerializerOptions);
-            return true;
+            return value is not null;
         }
         catch (JsonException)
         {
+            value = null;
             return false;
         }
     }
