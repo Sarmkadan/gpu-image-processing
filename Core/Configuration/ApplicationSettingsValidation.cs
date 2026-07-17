@@ -6,7 +6,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 
 namespace GpuImageProcessing.Core.Configuration
 {
@@ -51,10 +50,7 @@ namespace GpuImageProcessing.Core.Configuration
         /// <param name="value">The settings to validate.</param>
         /// <returns><c>true</c> if the settings are valid; otherwise, <c>false</c>.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-        public static bool IsValid(this ApplicationSettings value)
-        {
-            return Validate(value).Count == 0;
-        }
+        public static bool IsValid(this ApplicationSettings value) => Validate(value).Count == 0;
 
         /// <summary>
         /// Ensures that the specified application settings are valid.
