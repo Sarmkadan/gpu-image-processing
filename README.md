@@ -1414,6 +1414,137 @@ class Program
 
 The `PathUtilities` class provides a comprehensive set of utilities for path manipulation, normalization, and directory management. It handles cross-platform path operations, safe file operations, and directory traversal with robust error handling to ensure reliable file system operations across different operating systems.
 
+## ComputeShaderPassValidation
+
+The `ComputeShaderPassValidation` class provides validation utilities for `ComputeShaderPass` instances to ensure all required properties are properly initialized before GPU execution. It validates critical properties such as kernel names, workgroup configurations, input/output images, and parameter dictionaries, returning detailed error messages when validation fails.
+
+### Key Features
+
+- Validates `ComputeShaderPass` instances with comprehensive property checks
+- Returns detailed error messages for invalid configurations
+- Includes validation for `WorkgroupConfiguration` with size and memory constraints
+- Provides convenience methods like `IsValid()` and `EnsureValid()` for fluent validation
+- Validates timestamps, priorities, and parameter dictionaries
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Domain;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a valid compute shader pass
+        var validPass = new ComputeShaderPass
+        {
+            Id = Guid.NewGuid(),
+            KernelName = "BlurKernel",
+            KernelSource = "// shader code...",
+            PassType = ShaderPassType.ImageProcessing,
+            Priority = 1,
+            WorkgroupConfiguration = new WorkgroupConfiguration
+            {
+                WorkgroupSizeX = 8,
+                WorkgroupSizeY = 8,
+                WorkgroupSizeZ = 1,
+                GlobalWorkSizeX = 1920,
+                GlobalWorkSizeY = 1080,
+                GlobalWorkSizeZ = 1,
+                LocalMemoryRequiredBytes = 1024,
+                EstimatedOccupancy = 0.85f,
+                OptimizationScore = 95,
+                ComputedAt = DateTime.UtcNow
+            },
+            Parameters = new Dictionary<string, object> { { "sigma", 2.5f } },
+            InputImages = new List<ImageReference> { new ImageReference("input-001") },
+            OutputImage = new ImageReference("output-001"),
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Validate the pass
+        var validationErrors = ComputeShaderPassValidation.Validate(validPass);
+        Console.WriteLine($"Valid pass has {validationErrors.Count} errors"); // Output: 0
+
+        // Check if valid using convenience method
+        bool isValid = ComputeShaderPassValidation.IsValid(validPass);
+        Console.WriteLine("Is valid: {isValid}"); // Output: Is valid: True
+
+        // Create an invalid pass (missing required fields)
+        var invalidPass = new ComputeShaderPass
+        {
+            Id = Guid.Empty, // Invalid - empty Guid
+            KernelName = "", // Invalid - empty string
+            // Missing: KernelSource, WorkgroupConfiguration, Parameters, InputImages, OutputImage
+            Priority = -1, // Invalid - negative priority
+            CreatedAt = DateTime.UtcNow.AddDays(1) // Invalid - future date
+        };
+
+        // Validate and get detailed errors
+        var errors = ComputeShaderPassValidation.Validate(invalidPass);
+        Console.WriteLine("Validation errors:");
+        foreach (var error in errors)
+        {
+            Console.WriteLine($"- {error}");
+        }
+        /* Output:
+        - Id must not be empty.
+        - KernelName must not be null or whitespace.
+        - KernelSource must not be null.
+        - Priority must not be negative.
+        - WorkgroupConfiguration must be set for execution.
+        - Parameters dictionary should not be empty for most use cases.
+        - InputImages must contain at least one image.
+        - OutputImage must be set before execution.
+        - CreatedAt appears to be in the future.
+        */
+
+        // Use EnsureValid() to throw exception on invalid pass
+        try
+        {
+            ComputeShaderPassValidation.EnsureValid(invalidPass);
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Validation failed: {ex.Message}");
+        }
+
+        // Validate WorkgroupConfiguration separately
+        var workgroupConfig = new WorkgroupConfiguration
+        {
+            WorkgroupSizeX = 0, // Invalid - must be positive
+            WorkgroupSizeY = 8,
+            WorkgroupSizeZ = 1,
+            GlobalWorkSizeX = 1920,
+            GlobalWorkSizeY = 1080,
+            GlobalWorkSizeZ = 1,
+            LocalMemoryRequiredBytes = -100, // Invalid - negative memory
+            EstimatedOccupancy = 1.5f, // Invalid - > 1.0
+            OptimizationScore = 150, // Invalid - > 100
+            ComputedAt = DateTime.UtcNow.AddDays(-1)
+        };
+
+        var configErrors = ComputeShaderPassValidation.Validate(workgroupConfig);
+        Console.WriteLine($"Workgroup configuration has {configErrors.Count} errors");
+        /* Output: Workgroup configuration has 5 errors */
+
+        // Use EnsureValid() on workgroup configuration
+        try
+        {
+            ComputeShaderPassValidation.EnsureValid(workgroupConfig);
+        }
+        catch (ArgumentException ex)
+        {
+            Console.WriteLine($"Workgroup validation failed: {ex.Message}");
+        }
+    }
+}
+
+```
+
 ## ValidationUtilities
 
 The `ValidationUtilities` class provides comprehensive validation utilities for image processing parameters and configurations. It includes validation methods for filter parameters, image dimensions, rotation angles, scaling factors, batch jobs, processing profiles, device IDs, and string parameters, ensuring all inputs meet expected criteria before processing.
