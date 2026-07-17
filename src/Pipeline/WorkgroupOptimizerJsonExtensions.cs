@@ -14,6 +14,11 @@ namespace GpuImageProcessing.Pipeline;
 /// <summary>
 /// Provides JSON serialization and deserialization extensions for <see cref="WorkgroupOptimizer"/>.
 /// </summary>
+/// <remarks>
+/// This static class offers extension methods for serializing <see cref="WorkgroupOptimizer"/> instances
+/// to JSON strings and deserializing them back, using camelCase property naming and
+/// <see cref="JsonSerializerDefaults.Web"/> defaults.
+/// </remarks>
 public static class WorkgroupOptimizerJsonExtensions
 {
     private static readonly JsonSerializerOptions _options = new(JsonSerializerDefaults.Web)
@@ -44,9 +49,12 @@ public static class WorkgroupOptimizerJsonExtensions
     /// <summary>
     /// Deserializes a JSON string into a <see cref="WorkgroupOptimizer"/> instance.
     /// </summary>
-    /// <param name="json">The JSON string to deserialize.</param>
-    /// <returns>The deserialized <see cref="WorkgroupOptimizer"/> instance, or <see langword="null"/> if the JSON is empty or whitespace.</returns>
-    /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
+    /// <param name="json">The JSON string to deserialize. Must be valid JSON representing a <see cref="WorkgroupOptimizer"/>.</param>
+    /// <returns>
+    /// The deserialized <see cref="WorkgroupOptimizer"/> instance if the JSON is non-empty and valid;
+    /// otherwise, <see langword="null"/>.
+    /// </returns>
+    /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized into a <see cref="WorkgroupOptimizer"/> instance.</exception>
     public static WorkgroupOptimizer? FromJson(string json)
     {
         if (string.IsNullOrWhiteSpace(json))
@@ -61,8 +69,11 @@ public static class WorkgroupOptimizerJsonExtensions
     /// Attempts to deserialize a JSON string into a <see cref="WorkgroupOptimizer"/> instance.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">Receives the deserialized instance if successful; otherwise, <see langword="null"/>.</param>
+    /// <param name="value">
+    /// Receives the deserialized instance if deserialization succeeds; otherwise, <see langword="null"/>.
+    /// </param>
     /// <returns><see langword="true"/> if deserialization succeeds; otherwise, <see langword="false"/>.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is <see langword="null"/>.</exception>
     public static bool TryFromJson(string json, out WorkgroupOptimizer? value)
     {
         value = null;
