@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System;
 using System.Collections.Generic;
@@ -16,13 +16,15 @@ namespace GpuImageProcessing.Services
     /// Async task queue for managing background task execution with priority and concurrency control.
     /// Supports task scheduling, cancellation, and progress tracking.
     /// </summary>
-    public class AsyncTaskQueue
+    public class AsyncTaskQueue : IDisposable
     {
         private readonly PriorityQueue<QueuedTask> _taskQueue;
         private readonly HashSet<QueuedTask> _activeTasks;
         private readonly int _maxConcurrentTasks;
         private readonly object _lockObject = new();
         private bool _isRunning;
+        private CancellationTokenSource _cts;
+        private bool _disposed;
 
         public event EventHandler<TaskEventArgs> TaskStarted;
         public event EventHandler<TaskEventArgs> TaskCompleted;
@@ -67,10 +69,11 @@ namespace GpuImageProcessing.Services
                 throw new InvalidOperationException("Task queue is already running");
 
             _isRunning = true;
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             try
             {
-                while (!cancellationToken.IsCancellationRequested)
+                while (!_cts.IsCancellationRequested)
                 {
                     QueuedTask task = null;
 
@@ -85,11 +88,11 @@ namespace GpuImageProcessing.Services
 
                     if (task != null)
                     {
-                        _ = ProcessTaskAsync(task, cancellationToken);
+                        _ = ProcessTaskAsync(task, _cts.Token);
                     }
                     else
                     {
-                        await Task.Delay(100, cancellationToken);
+                        await Task.Delay(100, _cts.Token);
                     }
                 }
             }
@@ -217,6 +220,29 @@ namespace GpuImageProcessing.Services
             TaskFailed?.Invoke(this, new TaskEventArgs { Task = task });
         }
 
+        /// <summary>
+        /// Disposes the task queue, stopping all processing
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (_disposed)
+                return;
+
+            if (disposing)
+            {
+                _cts?.Cancel();
+                _cts?.Dispose();
+            }
+
+            _disposed = true;
+        }
+
         public class QueuedTask : IComparable<QueuedTask>
         {
             public Guid Id { get; set; }
@@ -296,11 +322,5 @@ namespace GpuImageProcessing.Services
         Completed,
         Failed,
         Cancelled
-    }
-
-    public class QueuedTask
-    {
-        public Guid Id { get; set; }
-        public TaskState State { get; set; }
     }
 }
