@@ -6247,4 +6247,46 @@ class Program
 
 ```
 
+## ImageProcessingExceptionExtensions
+
+The `ImageProcessingExceptionExtensions` class provides extension methods for the `ImageProcessingException` class, facilitating easy error code retrieval, status checking, and detailed message generation. These utilities simplify exception handling and debugging by allowing quick verification of error types, such as whether an exception is file-related or indicates an invalid image format.
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Core.Exceptions;
+using System;
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main()
+    {
+        // Simulate a collection of exceptions
+        var exceptions = new List<ImageProcessingException>
+        {
+            new InvalidImageException("Invalid format") { ErrorCode = "ERR_001" },
+            new ImageFileException("File not found") { ErrorCode = "ERR_002" }
+        };
+
+        // Get a list of error codes
+        var errorCodes = exceptions.GetErrorCodes();
+        Console.WriteLine($"Error codes: {string.Join(", ", errorCodes)}");
+
+        // Check for specific error code
+        bool hasError = exceptions[0].HasErrorCode("ERR_001");
+        Console.WriteLine($"Exception 0 has ERR_001: {hasError}");
+
+        // Get detailed message
+        string message = exceptions[0].GetDetailedMessage();
+        Console.WriteLine($"Detailed message: {message}");
+
+        // Check exception types
+        Console.WriteLine($"Is file related: {exceptions[1].IsFileRelated()}");
+        Console.WriteLine($"Is invalid image: {exceptions[0].IsInvalidImage()}");
+    }
+}
+```
+
 ## ProcessingPipeline
