@@ -12,8 +12,8 @@ using GpuImageProcessing.Domain;
 namespace GpuImageProcessing.Imaging;
 
 /// <summary>
-/// Minimal reader/writer for the binary Netpbm formats: P6 (24-bit RGB PPM)
-/// and P5 (8-bit grayscale PGM).
+/// Minimal reader/writer for the Netpbm formats: P6 (binary RGB PPM),
+/// P5 (binary grayscale PGM), and P3 (ASCII RGB PPM).
 ///
 /// These formats are dependency-free, byte-exact and trivial to round-trip,
 /// which makes them ideal as a portable on-disk representation for the batch
@@ -24,7 +24,19 @@ namespace GpuImageProcessing.Imaging;
 public static class PortablePixmap
 {
     /// <summary>File extensions recognised as portable pixmaps.</summary>
-    public static readonly string[] Extensions = [".ppm", ".pgm"];
+    public static readonly string[] Extensions =[".ppm", ".pgm"];
+
+    /// <summary>
+    /// PPM/PGM format variants supported by this class.
+    /// </summary>
+    public enum PpmFormat
+    {
+        /// <summary>Binary P6 format (24-bit RGB PPM).</summary>
+        P6,
+
+        /// <summary>ASCII P3 format (768-column plain text PPM).</summary>
+        P3
+    }
 
     /// <summary>
     /// Returns <see langword="true"/> when <paramref name="path"/> has a
@@ -42,7 +54,7 @@ public static class PortablePixmap
     }
 
     /// <summary>
-    /// Loads a P5/P6 image file into a fully-populated <see cref="Image"/>
+    /// Loads a P3/P5/P6 image file into a fully-populated <see cref="Image"/>
     /// (dimensions, channels, bits-per-pixel and raw pixel data).
     /// </summary>
     public static Image Load(string path)
@@ -57,7 +69,7 @@ public static class PortablePixmap
     }
 
     /// <summary>
-    /// Decodes a P5/P6 stream into an <see cref="Image"/>. Kept separate from
+    /// Decodes a P3/P5/P6 stream into an <see cref="Image"/>. Kept separate from
     /// <see cref="Load"/> so callers can decode from any stream (memory, tests).
     /// </summary>
     public static Image Decode(Stream stream)
@@ -69,7 +81,8 @@ public static class PortablePixmap
         {
             "P6" => 3,
             "P5" => 1,
-            _ => throw new NotSupportedException($"Unsupported pixmap magic '{magic}' (only P5/P6 are handled).")
+            "P3" => 3,
+            _ => throw new NotSupportedException($"Unsupported pixmap magic '{magic}' (only P3/P5/P6 are handled).")
         };
 
         int width = int.Parse(ReadToken(stream), CultureInfo.InvariantCulture);
@@ -102,9 +115,12 @@ public static class PortablePixmap
 
     /// <summary>
     /// Writes <paramref name="image"/> to <paramref name="path"/> as a binary
-    /// P6 (3+ channels) or P5 (single channel) pixmap.
+    /// P6 (3+ channels) or P5 (single channel) pixmap, or as ASCII P3 (RGB only).
     /// </summary>
-    public static void Save(Image image, string path)
+    /// <param name="image">Image to save.</param>
+    /// <param name="path">Output file path.</param>
+    /// <param name="format">Output format (P6 binary by default).</param>
+    public static void Save(Image image, string path, PpmFormat format = PpmFormat.P6)
     {
         ArgumentNullException.ThrowIfNull(image);
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
@@ -116,31 +132,51 @@ public static class PortablePixmap
             Directory.CreateDirectory(dir);
 
         int bpp = Math.Max(1, image.BitsPerPixel / 8);
+
+        // Validate format compatibility
+        if (format == PpmFormat.P3 && bpp < 3)
+            throw new InvalidOperationException("P3 format only supports RGB images (3+ channels).");
+
         // The batch pipeline may run grayscale filters that keep the original
         // channel count; we honour whatever the buffer actually carries.
-        string magic = bpp >= 3 ? "P6" : "P5";
-        int outChannels = bpp >= 3 ? 3 : 1;
+        string magic = format switch
+        {
+            PpmFormat.P3 => "P3",
+            PpmFormat.P6 => bpp >= 3 ? "P6" : "P5",
+            _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
+        };
+        int outChannels = format == PpmFormat.P3 ? 3 : (bpp >= 3 ? 3 : 1);
 
         using var stream = File.Create(path);
-        var header = Encoding.ASCII.GetBytes(
-            $"{magic}\n{image.Width} {image.Height}\n255\n");
-        stream.Write(header, 0, header.Length);
 
-        if (bpp == outChannels)
+        if (format == PpmFormat.P3)
         {
-            stream.Write(image.PixelData, 0, image.Width * image.Height * outChannels);
-            return;
+            // ASCII P3 format
+            WriteAsciiP3(image, stream);
         }
+        else
+        {
+            // Binary P6/P5 format
+            var header = Encoding.ASCII.GetBytes(
+                $"{magic}\n{image.Width} {image.Height}\n255\n");
+            stream.Write(header, 0, header.Length);
 
-        // Repack when the in-memory stride differs from the on-disk channel count.
-        var buffer = new byte[image.Width * image.Height * outChannels];
-        int pixelCount = image.Width * image.Height;
-        for (int p = 0; p < pixelCount; p++)
-        {
-            for (int c = 0; c < outChannels; c++)
-                buffer[p * outChannels + c] = image.PixelData[p * bpp + c];
+            if (bpp == outChannels)
+            {
+                stream.Write(image.PixelData, 0, image.Width * image.Height * outChannels);
+                return;
+            }
+
+            // Repack when the in-memory stride differs from the on-disk channel count.
+            var buffer = new byte[image.Width * image.Height * outChannels];
+            int pixelCount = image.Width * image.Height;
+            for (int p = 0; p < pixelCount; p++)
+            {
+                for (int c = 0; c < outChannels; c++)
+                    buffer[p * outChannels + c] = image.PixelData[p * bpp + c];
+            }
+            stream.Write(buffer, 0, buffer.Length);
         }
-        stream.Write(buffer, 0, buffer.Length);
     }
 
     /// <summary>
@@ -162,6 +198,47 @@ public static class PortablePixmap
         Span<byte> digest = stackalloc byte[32];
         SHA256.HashData(pixels, digest);
         return Convert.ToHexStringLower(digest);
+    }
+
+    /// <summary>
+    /// Writes an image in ASCII P3 format (plain text PPM).
+    /// </summary>
+    private static void WriteAsciiP3(Image image, Stream stream)
+    {
+        // ASCII P3 format: each pixel component is written as a decimal number
+        // with values from 0 to maxval (255), separated by whitespace.
+        // Lines should be no longer than 768 characters for readability.
+
+        var header = Encoding.ASCII.GetBytes(
+            $"P3\n{image.Width} {image.Height}\n255\n");
+        stream.Write(header, 0, header.Length);
+
+        int pixelCount = image.Width * image.Height;
+        int componentsPerPixel = 3; // RGB
+
+        for (int p = 0; p < pixelCount; p++)
+        {
+            for (int c = 0; c < componentsPerPixel; c++)
+            {
+                // Get the byte value (0-255)
+                byte value = image.PixelData[p * componentsPerPixel + c];
+
+                // Write as ASCII decimal number
+                string valueStr = value.ToString(CultureInfo.InvariantCulture);
+                var bytes = Encoding.ASCII.GetBytes(valueStr);
+                stream.Write(bytes, 0, bytes.Length);
+
+                // Add whitespace separator (space or newline for line wrapping)
+                // Try to keep lines under 768 characters by adding newlines
+                if ((p * componentsPerPixel + c + 1) % 16 == 0)
+                    stream.WriteByte((byte)'\n');
+                else
+                    stream.WriteByte((byte)' ');
+            }
+        }
+
+        // Ensure file ends with newline
+        stream.WriteByte((byte)'\n');
     }
 
     private static string ReadToken(Stream stream)
