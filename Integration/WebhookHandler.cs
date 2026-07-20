@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -18,7 +19,7 @@ namespace GpuImageProcessing.Integration
     /// Handles webhook delivery for processing events.
     /// Allows external systems to subscribe to image processing events.
     /// </summary>
-    public class WebhookHandler
+    public class WebhookHandler : IDisposable
     {
         private readonly ILogger<WebhookHandler> _logger;
         private readonly HttpClient _httpClient;
@@ -129,6 +130,91 @@ namespace GpuImageProcessing.Integration
             {
                 return new List<WebhookSubscription>(_subscriptions);
             }
+        }
+
+        /// <summary>
+        /// Public method that sends a webhook payload with a fixed retry policy.
+        /// Retries up to 3 times with exponential backoff starting at 250 ms,
+        /// doubling each attempt. Retries are performed only for transient failures
+        /// (HttpRequestException or HTTP 5xx responses).
+        /// </summary>
+        /// <param name="subscription">The webhook subscription to use.</param>
+        /// <param name="payload">The JSON payload to send.</param>
+        public async Task SendWithRetryAsync(WebhookSubscription subscription, string payload)
+        {
+            const int maxAttempts = 3;
+            const int baseDelayMs = 250;
+
+            int attempt = 0;
+            Exception? lastException = null;
+
+            while (attempt < maxAttempts)
+            {
+                try
+                {
+                    using var request = new HttpRequestMessage(HttpMethod.Post, subscription.WebhookUrl)
+                    {
+                        Content = new StringContent(payload, System.Text.Encoding.UTF8, "application/json")
+                    };
+                    request.Headers.Add("X-Webhook-Id", subscription.Id);
+                    request.Headers.Add("X-Delivery-Attempt", (attempt + 1).ToString());
+
+                    using var response = await _httpClient.SendAsync(request);
+
+                    // Success
+                    if (response.IsSuccessStatusCode)
+                    {
+                        _logger.LogDebug(
+                            "Webhook delivered successfully (SendWithRetry) - Id: {WebhookId}, Attempt: {Attempt}",
+                            subscription.Id,
+                            attempt + 1);
+                        return;
+                    }
+
+                    // Determine if the failure is transient (5xx)
+                    if ((int)response.StatusCode >= 500 && (int)response.StatusCode < 600)
+                    {
+                        lastException = new HttpRequestException(
+                            $"Transient failure: {response.StatusCode} - {response.ReasonPhrase}");
+                    }
+                    else
+                    {
+                        // Non‑transient failure – log and exit
+                        _logger.LogWarning(
+                            "Non‑transient webhook delivery failure - Id: {WebhookId}, Status: {StatusCode}",
+                            subscription.Id,
+                            response.StatusCode);
+                        return;
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    // Transient network error
+                    lastException = ex;
+                }
+                catch (Exception ex)
+                {
+                    // Unexpected error – treat as non‑transient
+                    _logger.LogError(ex, "Unexpected error during webhook delivery - Id: {WebhookId}", subscription.Id);
+                    return;
+                }
+
+                attempt++;
+
+                if (attempt < maxAttempts)
+                {
+                    int delay = baseDelayMs * (int)Math.Pow(2, attempt - 1);
+                    await Task.Delay(delay);
+                }
+            }
+
+            // All retries exhausted
+            _logger.LogWarning(
+                lastException,
+                "Webhook delivery failed after {MaxRetries} attempts (SendWithRetry) - Id: {WebhookId}, Url: {Url}",
+                maxAttempts,
+                subscription.Id,
+                subscription.WebhookUrl);
         }
 
         /// <summary>
