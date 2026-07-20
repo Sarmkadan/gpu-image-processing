@@ -7,6 +7,7 @@
 using System.Diagnostics;
 using GpuImageProcessing.Core;
 using GpuImageProcessing.Domain;
+using GpuImageProcessing.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace GpuImageProcessing.Fallback;
@@ -142,6 +143,71 @@ public sealed class CpuImageProcessor : IImageProcessor
         image.ModifiedAt = DateTime.UtcNow;
         return image;
     }
+
+/// <inheritdoc />
+public Image Crop(Image image, int x, int y, int width, int height)
+{
+    ArgumentNullException.ThrowIfNull(image);
+
+    if (x < 0) throw new ValidationException("Crop x coordinate cannot be negative", nameof(x));
+    if (y < 0) throw new ValidationException("Crop y coordinate cannot be negative", nameof(y));
+    if (width <= 0) throw new ValidationException("Crop width must be positive", nameof(width));
+    if (height <= 0) throw new ValidationException("Crop height must be positive", nameof(height));
+
+    if (x >= image.Width) throw new ValidationException("Crop x coordinate is beyond image width", nameof(x), new Dictionary<string, string> {
+        {"ImageWidth", image.Width.ToString()},
+        {"CropX", x.ToString()}
+    });
+    if (y >= image.Height) throw new ValidationException("Crop y coordinate is beyond image height", nameof(y), new Dictionary<string, string> {
+        {"ImageHeight", image.Height.ToString()},
+        {"CropY", y.ToString()}
+    });
+
+    int maxWidth = image.Width - x;
+    int maxHeight = image.Height - y;
+
+    if (width > maxWidth) throw new ValidationException("Crop width exceeds available width from x coordinate", nameof(width), new Dictionary<string, string> {
+        {"ImageWidth", image.Width.ToString()},
+        {"CropX", x.ToString()},
+        {"RequestedWidth", width.ToString()},
+        {"AvailableWidth", maxWidth.ToString()}
+    });
+
+    if (height > maxHeight) throw new ValidationException("Crop height exceeds available height from y coordinate", nameof(height), new Dictionary<string, string> {
+        {"ImageHeight", image.Height.ToString()},
+        {"CropY", y.ToString()},
+        {"RequestedHeight", height.ToString()},
+        {"AvailableHeight", maxHeight.ToString()}
+    });
+
+    int bpp = Math.Max(1, image.BitsPerPixel / 8);
+    var src = image.PixelData ?? new byte[image.Width * image.Height * bpp];
+
+    var dst = new byte[width * height * bpp];
+
+    for (int srcY = y, dstY = 0; dstY < height; srcY++, dstY++)
+    {
+        int srcRowStart = srcY * image.Width * bpp;
+        int dstRowStart = dstY * width * bpp;
+
+        for (int srcX = x * bpp, dstX = 0; dstX < width * bpp; srcX += bpp, dstX += bpp)
+        {
+            int srcIdx = srcRowStart + srcX;
+            int dstIdx = dstRowStart + dstX;
+
+            for (int c = 0; c < bpp; c++)
+            {
+                dst[dstIdx + c] = src[srcIdx + c];
+            }
+        }
+    }
+
+    image.PixelData = dst;
+    image.Width = width;
+    image.Height = height;
+    image.ModifiedAt = DateTime.UtcNow;
+    return image;
+}
 
     // ── Dispatch ──────────────────────────────────────────────────────────────
 
