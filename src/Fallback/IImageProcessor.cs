@@ -45,4 +45,11 @@ public interface IImageProcessor
     /// <paramref name="image"/> in-place.
     /// </summary>
     Image Blur(Image image, int radius = 1);
+
+/// <summary>
+/// Crops <paramref name="image"/> to the specified rectangle defined by
+/// <paramref name="x"/>, <paramref name="y"/>, <paramref name="width"/>, and <paramref name="height"/>.
+/// Throws <see cref="ValidationException"/> if coordinates are out of bounds.
+/// </summary>
+Image Crop(Image image, int x, int y, int width, int height);
 }
