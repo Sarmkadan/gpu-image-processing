@@ -91,6 +91,7 @@ public sealed class CpuImageProcessor : IImageProcessor
         float xRatio = (float)image.Width  / targetWidth;
         float yRatio = (float)image.Height / targetHeight;
 
+        Span<byte> dstSpan = dst.AsSpan();
         for (int y = 0; y < targetHeight; y++)
         for (int x = 0; x < targetWidth;  x++)
         {
@@ -111,7 +112,7 @@ public sealed class CpuImageProcessor : IImageProcessor
                         + src[(y0 * image.Width + x1) * bpp + c] * dx       * (1 - dy)
                         + src[(y1 * image.Width + x0) * bpp + c] * (1 - dx) * dy
                         + src[(y1 * image.Width + x1) * bpp + c] * dx       * dy;
-                dst[dstIdx + c] = (byte)Math.Clamp((int)v, 0, 255);
+                dstSpan[dstIdx + c] = (byte)Math.Clamp((int)v, 0, 255);
             }
         }
 
@@ -184,6 +185,7 @@ public Image Crop(Image image, int x, int y, int width, int height)
     var src = image.PixelData ?? new byte[image.Width * image.Height * bpp];
 
     var dst = new byte[width * height * bpp];
+        Span<byte> dstSpan = dst.AsSpan();
 
     for (int srcY = y, dstY = 0; dstY < height; srcY++, dstY++)
     {
@@ -197,7 +199,7 @@ public Image Crop(Image image, int x, int y, int width, int height)
 
             for (int c = 0; c < bpp; c++)
             {
-                dst[dstIdx + c] = src[srcIdx + c];
+                dstSpan[dstIdx + c] = src[srcIdx + c];
             }
         }
     }
@@ -269,6 +271,7 @@ internal static class CpuFilters
     public static byte[] BoxBlur(ReadOnlySpan<byte> src, int w, int h, int bpp, int radius = 1)
     {
         var dst      = new byte[src.Length];
+        Span<byte> dstSpan = dst.AsSpan();
         int channels = Math.Min(bpp, 3);
         for (int y = 0; y < h; y++)
         for (int x = 0; x < w; x++)
@@ -287,9 +290,9 @@ internal static class CpuFilters
                         n++;
                     }
                 }
-                dst[px + c] = (byte)(sum / n);
+                dstSpan[px + c] = (byte)(sum / n);
             }
-            if (bpp > 3) dst[px + 3] = src[px + 3];
+            if (bpp > 3) dstSpan[px + 3] = src[px + 3];
         }
         return dst;
     }
@@ -299,6 +302,7 @@ internal static class CpuFilters
     public static byte[] Convolve(ReadOnlySpan<byte> src, int w, int h, int bpp, ReadOnlySpan<int> k)
     {
         var dst      = new byte[src.Length];
+        Span<byte> dstSpan = dst.AsSpan();
         int channels = Math.Min(bpp, 3);
         for (int y = 0; y < h; y++)
         for (int x = 0; x < w; x++)
@@ -310,9 +314,9 @@ internal static class CpuFilters
                 for (int ky = -1; ky <= 1; ky++)
                 for (int kx = -1; kx <= 1; kx++)
                     acc += Sample(src, w, h, bpp, c, x + kx, y + ky) * k[(ky + 1) * 3 + (kx + 1)];
-                dst[px + c] = (byte)Math.Clamp(acc, 0, 255);
+                dstSpan[px + c] = (byte)Math.Clamp(acc, 0, 255);
             }
-            if (bpp > 3) dst[px + 3] = src[px + 3];
+            if (bpp > 3) dstSpan[px + 3] = src[px + 3];
         }
         return dst;
     }
@@ -320,6 +324,7 @@ internal static class CpuFilters
     public static byte[] Sobel(ReadOnlySpan<byte> src, int w, int h, int bpp)
     {
         var dst      = new byte[src.Length];
+        Span<byte> dstSpan = dst.AsSpan();
         int channels = Math.Min(bpp, 3);
         for (int y = 0; y < h; y++)
         for (int x = 0; x < w; x++)
@@ -341,9 +346,9 @@ internal static class CpuFilters
                        + 2 * Sample(src, w, h, bpp, c, x, y + 1)
                        +  Sample(src, w, h, bpp, c, x + 1, y + 1);
 
-                dst[px + c] = (byte)Math.Clamp((int)Math.Sqrt(gx * gx + gy * gy), 0, 255);
+                dstSpan[px + c] = (byte)Math.Clamp((int)Math.Sqrt(gx * gx + gy * gy), 0, 255);
             }
-            if (bpp > 3) dst[px + 3] = src[px + 3];
+            if (bpp > 3) dstSpan[px + 3] = src[px + 3];
         }
         return dst;
     }
