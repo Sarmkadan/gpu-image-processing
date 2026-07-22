@@ -4,6 +4,7 @@
 // CTO & Software Architect
 // =============================================================================
 
+using System.Buffers;
 using System.Diagnostics;
 using GpuImageProcessing.Core;
 using GpuImageProcessing.Domain;
