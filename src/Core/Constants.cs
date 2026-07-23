@@ -52,6 +52,9 @@ public static class AppConstants
         public const int PerformanceSampleInterval = 100;
         public const int MetricsRetentionPeriodMinutes = 60;
         public const double SlowOperationThresholdMs = 1000.0;
+        public const int MaxComputeDispatchRetries = 3;
+        public const int InitialRetryDelayMs = 100;
+        public const int MaxRetryDelayMs = 5000;
     }
 
     public static class FileSystem

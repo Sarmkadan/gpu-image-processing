@@ -202,12 +202,15 @@ public static class ComputeShaderPipelineExtensions
         services.AddSingleton<IWorkgroupOptimizer, WorkgroupOptimizer>();
 
         services.AddSingleton<IComputeShaderPipeline>(provider =>
-            new ComputeShaderPipeline(
-                provider.GetRequiredService<IWorkgroupOptimizer>(),
+            new ResilientComputeShaderPipeline(
+                new ComputeShaderPipeline(
+                    provider.GetRequiredService<IWorkgroupOptimizer>(),
+                    provider.GetRequiredService<GpuManagementService>(),
+                    provider.GetRequiredService<PerformanceMonitoringService>(),
+                    provider.GetRequiredService<ComputeShaderPipelineOptions>(),
+                    provider.GetRequiredService<ILogger<ComputeShaderPipeline>>()),
                 provider.GetRequiredService<GpuManagementService>(),
-                provider.GetRequiredService<PerformanceMonitoringService>(),
-                provider.GetRequiredService<ComputeShaderPipelineOptions>(),
-                provider.GetRequiredService<ILogger<ComputeShaderPipeline>>()));
+                provider.GetRequiredService<ILogger<ResilientComputeShaderPipeline>>()));
 
         return services;
     }
