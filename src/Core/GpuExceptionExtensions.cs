@@ -36,6 +36,41 @@ namespace GpuImageProcessing.Core
             => exception is not null && exception.ErrorCode is int code && code >= 0x00000020 && code <= 0x0000003F;
 
         /// <summary>
+        /// Determines whether the exception represents a device-lost error (TDR, driver reset, etc.).
+        /// </summary>
+        /// <param name="exception">The GPU exception to check.</param>
+        /// <returns>True if the error indicates device loss; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="exception"/> is null.</exception>
+        public static bool IsDeviceLostError(this GpuException exception)
+            => exception is not null && exception.ErrorCode is int code && (
+                code == -1 || // Generic device lost
+                code == 0x80000001 || // Timeout/driver reset
+                code == 0x80000002 || // Device lost
+                code == 0x80000003 || // Out of memory under pressure
+                code == 0x80000004); // Context lost
+
+        /// <summary>
+        /// Determines whether the exception represents an out-of-memory error under pressure.
+        /// </summary>
+        /// <param name="exception">The GPU exception to check.</param>
+        /// <returns>True if the error indicates memory pressure; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="exception"/> is null.</exception>
+        public static bool IsMemoryPressureError(this GpuException exception)
+            => exception is not null && exception.ErrorCode is int code && (
+                code == 0x00000002 || // CL_OUT_OF_HOST_MEMORY
+                code == 0x00000003 || // CL_OUT_OF_DEVICE_MEMORY
+                code == 0x80000003); // Out of memory under pressure
+
+        /// <summary>
+        /// Determines whether the exception represents a transient error that can be recovered from.
+        /// </summary>
+        /// <param name="exception">The GPU exception to check.</param>
+        /// <returns>True if the error is transient; otherwise, false.</returns>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="exception"/> is null.</exception>
+        public static bool IsTransientError(this GpuException exception)
+            => exception is not null && (exception.IsDeviceLostError() || exception.IsMemoryPressureError());
+
+        /// <summary>
         /// Formats the exception details as a multi-line string for logging purposes.
         /// </summary>
         /// <param name="exception">The GPU exception to format.</param>
