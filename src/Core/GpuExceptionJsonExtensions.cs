@@ -1,5 +1,3 @@
-#nullable enable
-
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -60,7 +58,11 @@ public static class GpuExceptionJsonExtensions
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="json"/> is null.</exception>
     public static bool TryFromJson(string json, out GpuException? value)
     {
-        ArgumentNullException.ThrowIfNull(json);
+        if (json == null)
+        {
+            value = null;
+            return false;
+        }
 
         if (string.IsNullOrEmpty(json))
         {
