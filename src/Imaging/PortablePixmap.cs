@@ -1,4 +1,5 @@
 #nullable enable
+
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -20,11 +21,13 @@ namespace GpuImageProcessing.Imaging;
 /// CLI and for golden-image regression fixtures. The pixel buffers produced
 /// here are laid out row-major with <c>bpp</c> bytes per pixel, exactly what
 /// <see cref="GpuImageProcessing.Fallback.CpuImageProcessor"/> expects.
+///
+/// This class now delegates to <see cref="PortablePixmapCodec"/> for actual implementation.
 /// </summary>
 public static class PortablePixmap
 {
     /// <summary>File extensions recognised as portable pixmaps.</summary>
-    public static readonly string[] Extensions =[".ppm", ".pgm"];
+    public static readonly string[] Extensions = [".ppm", ".pgm"];
 
     /// <summary>
     /// PPM/PGM format variants supported by this class.
@@ -44,6 +47,7 @@ public static class PortablePixmap
     /// </summary>
     public static bool IsSupported(string path)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
         var ext = System.IO.Path.GetExtension(path);
         foreach (var candidate in Extensions)
         {
@@ -74,43 +78,7 @@ public static class PortablePixmap
     /// </summary>
     public static Image Decode(Stream stream)
     {
-        ArgumentNullException.ThrowIfNull(stream);
-
-        string magic = ReadToken(stream);
-        int channels = magic switch
-        {
-            "P6" => 3,
-            "P5" => 1,
-            "P3" => 3,
-            _ => throw new NotSupportedException($"Unsupported pixmap magic '{magic}' (only P3/P5/P6 are handled).")
-        };
-
-        int width = int.Parse(ReadToken(stream), CultureInfo.InvariantCulture);
-        int height = int.Parse(ReadToken(stream), CultureInfo.InvariantCulture);
-        int maxVal = int.Parse(ReadToken(stream), CultureInfo.InvariantCulture);
-        if (maxVal is <= 0 or > 255)
-            throw new NotSupportedException($"Only 8-bit channels are supported (max value {maxVal}).");
-
-        int length = checked(width * height * channels);
-        var pixels = new byte[length];
-        int read = 0;
-        while (read < length)
-        {
-            int n = stream.Read(pixels, read, length - read);
-            if (n <= 0)
-                throw new EndOfStreamException($"Truncated pixmap: expected {length} bytes, got {read}.");
-            read += n;
-        }
-
-        return new Image
-        {
-            Width = width,
-            Height = height,
-            Channels = channels,
-            BitsPerPixel = channels * 8,
-            PixelData = pixels,
-            FileSizeBytes = length
-        };
+        return PortablePixmapCodec.Instance.Read(stream);
     }
 
     /// <summary>
@@ -131,52 +99,20 @@ public static class PortablePixmap
         if (!string.IsNullOrEmpty(dir))
             Directory.CreateDirectory(dir);
 
-        int bpp = Math.Max(1, image.BitsPerPixel / 8);
-
-        // Validate format compatibility
-        if (format == PpmFormat.P3 && bpp < 3)
-            throw new InvalidOperationException("P3 format only supports RGB images (3+ channels).");
-
-        // The batch pipeline may run grayscale filters that keep the original
-        // channel count; we honour whatever the buffer actually carries.
-        string magic = format switch
+        // Convert to codec format
+        var codec = PortablePixmapCodec.Instance;
+        var codecImage = new Image
         {
-            PpmFormat.P3 => "P3",
-            PpmFormat.P6 => bpp >= 3 ? "P6" : "P5",
-            _ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
+            Width = image.Width,
+            Height = image.Height,
+            Channels = image.Channels,
+            BitsPerPixel = image.BitsPerPixel,
+            PixelData = image.PixelData,
+            FileSizeBytes = image.FileSizeBytes
         };
-        int outChannels = format == PpmFormat.P3 ? 3 : (bpp >= 3 ? 3 : 1);
 
         using var stream = File.Create(path);
-
-        if (format == PpmFormat.P3)
-        {
-            // ASCII P3 format
-            WriteAsciiP3(image, stream);
-        }
-        else
-        {
-            // Binary P6/P5 format
-            var header = Encoding.ASCII.GetBytes(
-                $"{magic}\n{image.Width} {image.Height}\n255\n");
-            stream.Write(header, 0, header.Length);
-
-            if (bpp == outChannels)
-            {
-                stream.Write(image.PixelData, 0, image.Width * image.Height * outChannels);
-                return;
-            }
-
-            // Repack when the in-memory stride differs from the on-disk channel count.
-            var buffer = new byte[image.Width * image.Height * outChannels];
-            int pixelCount = image.Width * image.Height;
-            for (int p = 0; p < pixelCount; p++)
-            {
-                for (int c = 0; c < outChannels; c++)
-                    buffer[p * outChannels + c] = image.PixelData[p * bpp + c];
-            }
-            stream.Write(buffer, 0, buffer.Length);
-        }
+        codec.Write(codecImage, stream);
     }
 
     /// <summary>
@@ -202,6 +138,7 @@ public static class PortablePixmap
 
     /// <summary>
     /// Writes an image in ASCII P3 format (plain text PPM).
+    /// This is kept for backward compatibility but PortablePixmapCodec handles the actual writing.
     /// </summary>
     private static void WriteAsciiP3(Image image, Stream stream)
     {
@@ -239,36 +176,5 @@ public static class PortablePixmap
 
         // Ensure file ends with newline
         stream.WriteByte((byte)'\n');
-    }
-
-    private static string ReadToken(Stream stream)
-    {
-        var sb = new StringBuilder(8);
-        int c;
-
-        // Skip leading whitespace and '#'-comment lines.
-        while (true)
-        {
-            c = stream.ReadByte();
-            if (c < 0)
-                throw new EndOfStreamException("Unexpected end of pixmap header.");
-            if (c == '#')
-            {
-                while (c is not ('\n' or -1))
-                    c = stream.ReadByte();
-                continue;
-            }
-            if (!char.IsWhiteSpace((char)c))
-                break;
-        }
-
-        do
-        {
-            sb.Append((char)c);
-            c = stream.ReadByte();
-        }
-        while (c >= 0 && !char.IsWhiteSpace((char)c));
-
-        return sb.ToString();
     }
 }
