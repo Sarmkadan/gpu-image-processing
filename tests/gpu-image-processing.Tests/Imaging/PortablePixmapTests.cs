@@ -6,6 +6,7 @@ using System.Linq;
 using Xunit;
 using GpuImageProcessing.Imaging;
 using GpuImageProcessing.Domain;
+using GpuImageProcessing.Exceptions;
 
 namespace GpuImageProcessing.Tests.Imaging
 {
@@ -102,6 +103,134 @@ namespace GpuImageProcessing.Tests.Imaging
 
             // Act & Assert
             Assert.Throws<NotSupportedException>(() => PortablePixmap.Decode(stream));
+        }
+
+        [Fact]
+        public void Load_PathWithParentDirectory_ThrowsValidationException()
+        {
+            // Arrange
+            var maliciousPath = "../etc/passwd.ppm";
+
+            // Act & Assert
+            var ex = Assert.Throws<ValidationException>(() => PortablePixmap.Load(maliciousPath));
+            Assert.Equal(1003, ex.ErrorCode);
+            Assert.Contains("..", ex.Message);
+        }
+
+        [Fact]
+        public void Load_PathWithCurrentDirectory_ThrowsValidationException()
+        {
+            // Arrange
+            var maliciousPath = "./subdir/../test.ppm";
+
+            // Act & Assert
+            var ex = Assert.Throws<ValidationException>(() => PortablePixmap.Load(maliciousPath));
+            Assert.Equal(1003, ex.ErrorCode);
+        }
+
+        [Fact]
+        public void Load_AbsolutePathOutsideWorkingDirectory_ThrowsValidationException()
+        {
+            // Arrange
+            var maliciousPath = "/etc/passwd.ppm";
+
+            // Act & Assert
+            var ex = Assert.Throws<ValidationException>(() => PortablePixmap.Load(maliciousPath));
+            Assert.Equal(1002, ex.ErrorCode);
+        }
+
+        [Fact]
+        public void Save_PathWithParentDirectory_ThrowsValidationException()
+        {
+            // Arrange
+            var image = new Image
+            {
+                Width = 1,
+                Height = 1,
+                Channels = 3,
+                BitsPerPixel = 24,
+                PixelData = new byte[] { 255, 0, 0 }
+            };
+            var maliciousPath = "../output/test.ppm";
+
+            // Act & Assert
+            var ex = Assert.Throws<ValidationException>(() => PortablePixmap.Save(image, maliciousPath));
+            Assert.Equal(1003, ex.ErrorCode);
+            Assert.Contains("..", ex.Message);
+        }
+
+        [Fact]
+        public void Save_PathWithCurrentDirectory_ThrowsValidationException()
+        {
+            // Arrange
+            var image = new Image
+            {
+                Width = 1,
+                Height = 1,
+                Channels = 3,
+                BitsPerPixel = 24,
+                PixelData = new byte[] { 255, 0, 0 }
+            };
+            var maliciousPath = "./subdir/../test.ppm";
+
+            // Act & Assert
+            var ex = Assert.Throws<ValidationException>(() => PortablePixmap.Save(image, maliciousPath));
+            Assert.Equal(1003, ex.ErrorCode);
+        }
+
+        [Fact]
+        public void Load_NullPath_ThrowsArgumentException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentException>(() => PortablePixmap.Load(null));
+        }
+
+        [Fact]
+        public void Load_EmptyPath_ThrowsArgumentException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentException>(() => PortablePixmap.Load(""));
+        }
+
+        [Fact]
+        public void Save_NullImage_ThrowsArgumentNullException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => PortablePixmap.Save(null, "./test.ppm"));
+        }
+
+        [Fact]
+        public void Save_NullPath_ThrowsArgumentException()
+        {
+            // Arrange
+            var image = new Image
+            {
+                Width = 1,
+                Height = 1,
+                Channels = 3,
+                BitsPerPixel = 24,
+                PixelData = new byte[] { 255, 0, 0 }
+            };
+
+            // Act & Assert
+            Assert.Throws<ArgumentException>(() => PortablePixmap.Save(image, null));
+        }
+
+        [Fact]
+        public void Save_EmptyPath_ThrowsArgumentException()
+        {
+            // Arrange
+            var image = new Image
+            {
+                Width = 1,
+                Height = 1,
+                Channels = 3,
+                BitsPerPixel = 24,
+                PixelData = new byte[] { 255, 0, 0 }
+            };
+
+            // Act & Assert
+            Assert.Throws<ArgumentException>(() => PortablePixmap.Save(image, ""));
         }
     }
 }
