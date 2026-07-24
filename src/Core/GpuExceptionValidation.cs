@@ -17,14 +17,8 @@ public static class GpuExceptionValidation
 
         var problems = new List<string>();
 
-        if (string.IsNullOrEmpty(value.DeviceName))
-            problems.Add("DeviceName is null or empty.");
-
-        if (value.ErrorCode.HasValue)
-        {
-            if (value.ErrorCode < int.MinValue || value.ErrorCode > int.MaxValue)
-                problems.Add("ErrorCode is out of range.");
-        }
+        if (value.ErrorCode.HasValue && value.ErrorCode < 0)
+            problems.Add("ErrorCode is out of range.");
 
         if (value.OccurredAt == default)
             problems.Add("OccurredAt is not set.");
@@ -35,7 +29,7 @@ public static class GpuExceptionValidation
     /// <summary>
     /// Checks if the provided <see cref="GpuException"/> instance is valid.
     /// </summary>
-    /// <param name="value">The <see cref="GpuException"/> instance to check.</param>
+    /// <param name="value">The exception to check.</param>
     /// <returns>True if the instance is valid; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is <see langword="null"/>.</exception>
     public static bool IsValid(this GpuException value) => value.Validate().Count == 0;

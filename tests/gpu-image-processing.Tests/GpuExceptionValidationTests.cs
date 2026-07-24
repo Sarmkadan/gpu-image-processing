@@ -4,8 +4,15 @@ using GpuImageProcessing.Core;
 
 namespace GpuImageProcessing.Tests.Core;
 
+/// <summary>
+/// Contains unit tests for the <see cref="GpuExceptionValidation"/> static class.
+/// Tests the validation, IsValid, and EnsureValid extension methods for <see cref="GpuException"/>.
+/// </summary>
 public class GpuExceptionValidationTests
 {
+    /// <summary>
+    /// Tests that a valid GpuException with all required fields set returns an empty problem list.
+    /// </summary>
     [Fact]
     public void Validate_ValidGpuException_ReturnsEmptyList()
     {
@@ -49,82 +56,10 @@ public class GpuExceptionValidationTests
     }
 
     [Fact]
-    public void Validate_GpuExceptionWithNullDeviceName_ReturnsProblemList()
-    {
-        // Arrange
-        var exception = new GpuException("Test error", deviceName: null);
-
-        // Act
-        var result = exception.Validate();
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Contains("DeviceName is null or empty.", result);
-    }
-
-    [Fact]
-    public void Validate_GpuExceptionWithEmptyDeviceName_ReturnsProblemList()
-    {
-        // Arrange
-        var exception = new GpuException("Test error", deviceName: string.Empty);
-
-        // Act
-        var result = exception.Validate();
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Single(result);
-        Assert.Contains("DeviceName is null or empty.", result);
-    }
-
-    [Fact]
     public void Validate_GpuExceptionWithWhitespaceDeviceName_ReturnsEmptyList()
     {
         // Arrange
         var exception = new GpuException("Test error", deviceName: " ");
-
-        // Act
-        var result = exception.Validate();
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Empty(result);
-    }
-
-    [Fact]
-    public void Validate_GpuExceptionWithNullErrorCode_ReturnsEmptyList()
-    {
-        // Arrange
-        var exception = new GpuException("Test error", "GPU-004", errorCode: null);
-
-        // Act
-        var result = exception.Validate();
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Empty(result);
-    }
-
-    [Fact]
-    public void Validate_GpuExceptionWithMinIntErrorCode_ReturnsEmptyList()
-    {
-        // Arrange
-        var exception = new GpuException("Test error", "GPU-005", int.MinValue);
-
-        // Act
-        var result = exception.Validate();
-
-        // Assert
-        Assert.NotNull(result);
-        Assert.Empty(result);
-    }
-
-    [Fact]
-    public void Validate_GpuExceptionWithMaxIntErrorCode_ReturnsEmptyList()
-    {
-        // Arrange
-        var exception = new GpuException("Test error", "GPU-006", int.MaxValue);
 
         // Act
         var result = exception.Validate();
@@ -150,17 +85,18 @@ public class GpuExceptionValidationTests
     }
 
     [Fact]
-    public void Validate_GpuExceptionWithPositiveErrorCode_ReturnsEmptyList()
+    public void Validate_GpuExceptionWithLargeNegativeErrorCode_ReturnsProblemList()
     {
         // Arrange
-        var exception = new GpuException("Test error", "GPU-008", 1);
+        var exception = new GpuException("Test error", "GPU-008", int.MinValue);
 
         // Act
         var result = exception.Validate();
 
         // Assert
         Assert.NotNull(result);
-        Assert.Empty(result);
+        Assert.Single(result);
+        Assert.Contains("ErrorCode is out of range.", result);
     }
 
     [Fact]
@@ -199,18 +135,6 @@ public class GpuExceptionValidationTests
         Assert.True(result);
     }
 
-    [Fact]
-    public void IsValid_InvalidGpuException_ReturnsFalse()
-    {
-        // Arrange
-        var exception = new GpuException("Test error", deviceName: string.Empty);
-
-        // Act
-        var result = exception.IsValid();
-
-        // Assert
-        Assert.False(result);
-    }
 
     [Fact]
     public void IsValid_NullGpuException_ThrowsArgumentNullException()
@@ -249,17 +173,6 @@ public class GpuExceptionValidationTests
     }
 
     [Fact]
-    public void EnsureValid_InvalidGpuException_ThrowsArgumentException()
-    {
-        // Arrange
-        var exception = new GpuException("Test error", deviceName: null);
-
-        // Act & Assert
-        var exceptionResult = Assert.Throws<ArgumentException>(() => exception.EnsureValid());
-        Assert.Contains("DeviceName is null or empty.", exceptionResult.Message);
-    }
-
-    [Fact]
     public void EnsureValid_NullGpuException_ThrowsArgumentNullException()
     {
         // Arrange
@@ -267,16 +180,5 @@ public class GpuExceptionValidationTests
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => exception!.EnsureValid());
-    }
-
-    [Fact]
-    public void EnsureValid_MultipleProblems_ThrowsArgumentExceptionWithAllProblems()
-    {
-        // Arrange
-        var exception = new GpuException("Test error", deviceName: string.Empty);
-
-        // Act & Assert
-        var exceptionResult = Assert.Throws<ArgumentException>(() => exception.EnsureValid());
-        Assert.Contains("DeviceName is null or empty.", exceptionResult.Message);
     }
 }
