@@ -1,4 +1,5 @@
 #nullable enable
+
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
@@ -47,7 +48,7 @@ public sealed class DirectoryBatchProcessor
     }
 
     /// <summary>
-    /// Enumerates supported pixmaps in <paramref name="inputDir"/>, applies
+    /// Enumerates supported images in <paramref name="inputDir"/>, applies
     /// <paramref name="filterType"/>, and writes results into
     /// <paramref name="outputDir"/> preserving file names.
     /// </summary>
@@ -65,7 +66,7 @@ public sealed class DirectoryBatchProcessor
             throw new DirectoryNotFoundException($"Input directory not found: {inputDir}");
 
         var files = Directory.EnumerateFiles(inputDir)
-            .Where(PortablePixmap.IsSupported)
+            .Where(f => ImageCodecRegistry.FindCodec(f) != null)
             .OrderBy(f => f, StringComparer.Ordinal)
             .ToList();
 
@@ -93,10 +94,26 @@ public sealed class DirectoryBatchProcessor
 
             try
             {
-                var image = PortablePixmap.Load(input);
+                // Use codec registry to load image
+                var codec = ImageCodecRegistry.FindCodec(input);
+                if (codec == null)
+                {
+                    throw new InvalidOperationException($"No codec found for file: {input}");
+                }
+
+                using var stream = File.OpenRead(input);
+                var image = codec.Read(stream);
+                image.FilePath = input;
+                image.FileName = System.IO.Path.GetFileName(input);
+                image.FileSizeBytes = new FileInfo(input).Length;
+
                 var processed = await _processor.ApplyFilterAsync(image, config, cancellationToken)
                     .ConfigureAwait(false);
-                PortablePixmap.Save(processed, output);
+
+                // Use codec registry to save image
+                using var outputStream = File.Create(output);
+                codec.Write(processed, outputStream);
+
                 results.Add(new BatchItemResult(input, output, true, null));
             }
             catch (OperationCanceledException)
