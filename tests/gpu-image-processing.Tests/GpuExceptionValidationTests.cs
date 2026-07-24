@@ -10,9 +10,6 @@ namespace GpuImageProcessing.Tests.Core;
 /// </summary>
 public class GpuExceptionValidationTests
 {
-    /// <summary>
-    /// Tests that a valid GpuException with all required fields set returns an empty problem list.
-    /// </summary>
     [Fact]
     public void Validate_ValidGpuException_ReturnsEmptyList()
     {
@@ -135,7 +132,6 @@ public class GpuExceptionValidationTests
         Assert.True(result);
     }
 
-
     [Fact]
     public void IsValid_NullGpuException_ThrowsArgumentNullException()
     {
@@ -180,5 +176,38 @@ public class GpuExceptionValidationTests
 
         // Act & Assert
         Assert.Throws<ArgumentNullException>(() => exception!.EnsureValid());
+    }
+
+    [Fact]
+    public void Validate_InvalidGpuException_ThrowsArgumentException()
+    {
+        // Arrange
+        var exception = new GpuException("Test error", "GPU-012", 0);
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => exception.Validate());
+    }
+
+    [Fact]
+    public void IsValid_InvalidGpuException_ReturnsFalse()
+    {
+        // Arrange
+        var exception = new GpuException("Test error", "GPU-013", 0);
+
+        // Act
+        var result = exception.IsValid();
+
+        // Assert
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void EnsureValid_InvalidGpuException_ThrowsArgumentException()
+    {
+        // Arrange
+        var exception = new GpuException("Test error", "GPU-014", 0);
+
+        // Act & Assert
+        Assert.Throws<ArgumentException>(() => exception.EnsureValid());
     }
 }
