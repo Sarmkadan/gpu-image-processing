@@ -256,6 +256,7 @@ public sealed class ComputeShaderPipeline : IComputeShaderPipeline
         if (pass.WorkgroupConfiguration == null)
         {
             var (w, h) = InferImageDimensions(pass);
+            var kernelSource = string.IsNullOrEmpty(pass.KernelSource) ? string.Empty : pass.KernelSource;
             pass.WorkgroupConfiguration = _options.BenchmarkGuidedOptimization
                 ? await _optimizer.BenchmarkAsync(device, w, h,
                     _options.DefaultLocalMemoryPerThreadBytes, cancellationToken)
