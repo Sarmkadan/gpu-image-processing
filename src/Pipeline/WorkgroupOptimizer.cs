@@ -21,23 +21,39 @@ namespace GpuImageProcessing.Pipeline;
 /// </summary>
 /// <remarks>
 /// <para>
-/// The optimiser enumerates power-of-two tile sizes along each axis, evaluates every
-/// (X, Y) candidate against three hardware metrics, and returns the layout with the
+/// The optimiser enumerates power-of-two tile sizes along each axis, evaluates every 25
+/// (X, Y) candidate against three hardware metrics, and returns the layout with the 26
 /// highest composite score for the requested <see cref="WorkgroupOptimizationStrategy"/>.
 /// </para>
 /// <para>
 /// Metrics modelled:
 /// <list type="bullet">
-///   <item><description><b>Occupancy</b> — fraction of wavefronts simultaneously active on the device.</description></item>
-///   <item><description><b>Memory fraction</b> — proportion of local memory left unused per workgroup.</description></item>
-///   <item><description><b>Wavefront alignment</b> — whether the workgroup size is a multiple of the warp/wavefront width.</description></item>
+/// <item><description><b>Occupancy</b> — fraction of wavefronts simultaneously active on the device.</description></item>
+/// <item><description><b>Memory fraction</b> — proportion of local memory left unused per workgroup.</description></item>
+/// <item><description><b>Wavefront alignment</b> — whether the workgroup size is a multiple of the warp/wavefront width.</description></item>
 /// </list>
 /// </para>
+/// <para>
+/// This implementation caches results per (device, shader, image-size bucket) to avoid
+/// re-running expensive autotuning on repeated dispatches. Cache entries are stored in memory
+/// and optionally persisted to disk under <see cref="AppConstants.FileSystem.DefaultCacheDirectory"/>.
+/// </para>
 /// </remarks>
-public sealed class WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger) : IWorkgroupOptimizer
+public sealed class WorkgroupOptimizer : IWorkgroupOptimizer
 {
-    private readonly ILogger<WorkgroupOptimizer> _logger =
-        logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly ILogger<WorkgroupOptimizer> _logger;
+    private readonly WorkgroupOptimizationCache _cache;
+
+    /// <summary>
+    /// Initializes a new <see cref="WorkgroupOptimizer"/>.
+    /// </summary>
+    /// <param name="logger">Logger for diagnostic output.</param>
+    /// <param name="enableCache">Whether to enable caching (enabled by default).</param>
+    public WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger, bool enableCache = true)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _cache = new WorkgroupOptimizationCache(logger as ILogger<WorkgroupOptimizationCache> ?? throw new ArgumentNullException(nameof(logger)));
+    }
 
     // Power-of-two tile dimensions probed during layout search.
     private static readonly int[] TileSizes = [4, 8, 16, 32];
@@ -51,29 +67,18 @@ public sealed class WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger) : IWo
         WorkgroupOptimizationStrategy strategy = WorkgroupOptimizationStrategy.Balanced)
     {
         ArgumentNullException.ThrowIfNull(device);
-        if (imageWidth  <= 0) throw new ArgumentOutOfRangeException(nameof(imageWidth),  "Image width must be positive.");
+        if (imageWidth <= 0) throw new ArgumentOutOfRangeException(nameof(imageWidth), "Image width must be positive.");
         if (imageHeight <= 0) throw new ArgumentOutOfRangeException(nameof(imageHeight), "Image height must be positive.");
 
-        int  wavefront   = DetectWavefrontSize(device);
-        int  maxThreads  = device.MaxWorkGroupSize;
-        long localMemCap = device.LocalMemoryBytes;
-
-        // For very large images (> 8192 on either axis) convolution kernels
-        // allocate a per-workgroup halo tile in local memory.  If the caller
-        // did not supply an explicit estimate we apply a conservative default
-        // (4 float channels × 4 bytes each) so that EnumerateCandidates can
-        // filter out workgroup sizes that would exceed device limits.
-        bool isLargeImage = imageWidth > 8192 || imageHeight > 8192;
-        int effectiveLocalMemPerThread = localMemoryPerThreadBytes > 0
-            ? localMemoryPerThreadBytes
-            : isLargeImage ? 16 : 0;
-
-        var candidates = EnumerateCandidates(maxThreads, localMemCap, effectiveLocalMemPerThread, strategy, isLargeImage);
-        var best       = SelectBest(candidates, device, imageWidth, imageHeight,
-                                    effectiveLocalMemPerThread, localMemCap, wavefront, strategy);
-
-        _logger.LogDebug("Optimised workgroup for '{Device}': {Config}", device.Name, best);
-        return best;
+        // Use cache to avoid re-computing for the same parameters
+        return _cache.GetOrAdd(
+            device,
+            string.Empty, // No shader source for synchronous Compute method
+            imageWidth,
+            imageHeight,
+            localMemoryPerThreadBytes,
+            strategy,
+            () => ComputeInternal(device, imageWidth, imageHeight, localMemoryPerThreadBytes, strategy));
     }
 
     /// <inheritdoc />
@@ -86,6 +91,55 @@ public sealed class WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger) : IWo
     {
         ArgumentNullException.ThrowIfNull(device);
 
+        // Use cache to avoid re-benchmarking for the same parameters
+        return await _cache.GetOrAddAsync(
+            device,
+            string.Empty, // No shader source for BenchmarkAsync method
+            imageWidth,
+            imageHeight,
+            localMemoryPerThreadBytes,
+            WorkgroupOptimizationStrategy.ThroughputMaximized, // Benchmark always uses this strategy
+            () => BenchmarkInternalAsync(device, imageWidth, imageHeight, localMemoryPerThreadBytes, cancellationToken),
+            cancellationToken);
+    }
+
+    // -- Internal implementation methods ----------------------------------------
+
+    private WorkgroupConfiguration ComputeInternal(
+        GpuDevice device,
+        int imageWidth,
+        int imageHeight,
+        int localMemoryPerThreadBytes,
+        WorkgroupOptimizationStrategy strategy)
+    {
+        int wavefront = DetectWavefrontSize(device);
+        int maxThreads = device.MaxWorkGroupSize;
+        long localMemCap = device.LocalMemoryBytes;
+
+        // For very large images (> 8192 on either axis) convolution kernels
+        // allocate a per-workgroup halo tile in local memory. If the caller
+        // did not supply an explicit estimate we apply a conservative default
+        // (4 float channels × 4 bytes each) so that EnumerateCandidates can
+        // filter out workgroup sizes that would exceed device limits.
+        bool isLargeImage = imageWidth > 8192 || imageHeight > 8192;
+        int effectiveLocalMemPerThread = localMemoryPerThreadBytes > 0
+            ? localMemoryPerThreadBytes
+            : isLargeImage ? 16 : 0;
+
+        var candidates = EnumerateCandidates(maxThreads, localMemCap, effectiveLocalMemPerThread, strategy, isLargeImage);
+        var best = SelectBest(candidates, device, imageWidth, imageHeight, effectiveLocalMemPerThread, localMemCap, wavefront, strategy);
+
+        _logger.LogDebug("Optimised workgroup for '{Device}': {Config}", device.Name, best);
+        return best;
+    }
+
+    private async Task<WorkgroupConfiguration> BenchmarkInternalAsync(
+        GpuDevice device,
+        int imageWidth,
+        int imageHeight,
+        int localMemoryPerThreadBytes,
+        CancellationToken cancellationToken)
+    {
         var results = new List<(WorkgroupConfiguration Config, double EstimatedMs)>();
 
         foreach (int tx in TileSizes)
@@ -97,10 +151,8 @@ public sealed class WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger) : IWo
                 if (tx * ty > device.MaxWorkGroupSize) continue;
                 if ((long)tx * ty * localMemoryPerThreadBytes > device.LocalMemoryBytes) continue;
 
-                double ms  = EstimateDispatchMs(device, imageWidth, imageHeight, tx, ty);
-                var    cfg = BuildConfiguration(device, imageWidth, imageHeight,
-                                                tx, ty, localMemoryPerThreadBytes,
-                                                WorkgroupOptimizationStrategy.ThroughputMaximized);
+                double ms = EstimateDispatchMs(device, imageWidth, imageHeight, tx, ty);
+                var cfg = BuildConfiguration(device, imageWidth, imageHeight, tx, ty, localMemoryPerThreadBytes, WorkgroupOptimizationStrategy.ThroughputMaximized);
                 results.Add((cfg, ms));
             }
 
@@ -109,14 +161,17 @@ public sealed class WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger) : IWo
         }
 
         if (results.Count == 0)
-            return Compute(device, imageWidth, imageHeight, localMemoryPerThreadBytes);
+            return ComputeInternal(device, imageWidth, imageHeight, localMemoryPerThreadBytes, WorkgroupOptimizationStrategy.ThroughputMaximized);
 
         var winner = results.MinBy(r => r.EstimatedMs).Config;
 
         _logger.LogInformation(
             "Benchmark selected [{X}×{Y}] for '{Device}' on a {W}×{H} image",
-            winner.WorkgroupSizeX, winner.WorkgroupSizeY,
-            device.Name, imageWidth, imageHeight);
+            winner.WorkgroupSizeX,
+            winner.WorkgroupSizeY,
+            device.Name,
+            imageWidth,
+            imageHeight);
 
         return winner;
     }
@@ -124,17 +179,17 @@ public sealed class WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger) : IWo
     // ── Private helpers ────────────────────────────────────────────────────────
 
     private static List<(int X, int Y)> EnumerateCandidates(
-        int   maxThreads,
-        long  localMemCap,
-        int   localMemPerThread,
+        int maxThreads,
+        long localMemCap,
+        int localMemPerThread,
         WorkgroupOptimizationStrategy strategy,
-        bool  isLargeImage = false)
+        bool isLargeImage = false)
     {
         int[] pool = strategy switch
         {
             WorkgroupOptimizationStrategy.LatencyMinimized => [4, 8],
-            WorkgroupOptimizationStrategy.MemoryOptimized  => [4, 8, 16],
-            _                                              => TileSizes
+            WorkgroupOptimizationStrategy.MemoryOptimized => [4, 8, 16],
+            _ => TileSizes
         };
 
         // Images larger than 8192 pixels on any axis require smaller tiles to keep
@@ -148,8 +203,8 @@ public sealed class WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger) : IWo
         {
             foreach (int y in pool)
             {
-                if (x * y > maxThreads)                              continue;
-                if ((long)x * y * localMemPerThread > localMemCap)   continue;
+                if (x * y > maxThreads) continue;
+                if ((long)x * y * localMemPerThread > localMemCap) continue;
                 result.Add((x, y));
             }
         }
@@ -159,21 +214,21 @@ public sealed class WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger) : IWo
     }
 
     private static WorkgroupConfiguration SelectBest(
-        List<(int X, int Y)>           candidates,
-        GpuDevice                      device,
-        int                            imageWidth,
-        int                            imageHeight,
-        int                            localMemPerThread,
-        long                           localMemCap,
-        int                            wavefront,
-        WorkgroupOptimizationStrategy  strategy)
+        List<(int X, int Y)> candidates,
+        GpuDevice device,
+        int imageWidth,
+        int imageHeight,
+        int localMemPerThread,
+        long localMemCap,
+        int wavefront,
+        WorkgroupOptimizationStrategy strategy)
     {
-        WorkgroupConfiguration? best      = null;
-        double                  bestScore = double.MinValue;
+        WorkgroupConfiguration? best = null;
+        double bestScore = double.MinValue;
 
         foreach (var (x, y) in candidates)
         {
-            var    cfg   = BuildConfiguration(device, imageWidth, imageHeight, x, y, localMemPerThread, strategy);
+            var cfg = BuildConfiguration(device, imageWidth, imageHeight, x, y, localMemPerThread, strategy);
             double score = ComputeScore(cfg, device, localMemCap, wavefront, strategy);
 
             if (score > bestScore)
@@ -187,43 +242,44 @@ public sealed class WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger) : IWo
     }
 
     private static WorkgroupConfiguration BuildConfiguration(
-        GpuDevice                     device,
-        int                           imageWidth,
-        int                           imageHeight,
-        int                           sizeX,
-        int                           sizeY,
-        int                           localMemPerThread,
+        GpuDevice device,
+        int imageWidth,
+        int imageHeight,
+        int sizeX,
+        int sizeY,
+        int localMemPerThread,
         WorkgroupOptimizationStrategy strategy)
     {
-        int    globalX   = AlignUp(imageWidth,  sizeX);
-        int    globalY   = AlignUp(imageHeight, sizeY);
-        long   localMem  = (long)sizeX * sizeY * localMemPerThread;
-        int    wavefront = DetectWavefrontSize(device);
+        int globalX = AlignUp(imageWidth, sizeX);
+        int globalY = AlignUp(imageHeight, sizeY);
+        long localMem = (long)sizeX * sizeY * localMemPerThread;
+        int wavefront = DetectWavefrontSize(device);
         double occupancy = Math.Clamp(
             (double)(sizeX * sizeY) / (wavefront * Math.Max(1, device.MaxComputeUnits / 4.0)),
-            0.0, 1.0);
+            0.0,
+            1.0);
 
         return new WorkgroupConfiguration
         {
-            WorkgroupSizeX           = sizeX,
-            WorkgroupSizeY           = sizeY,
-            WorkgroupSizeZ           = 1,
-            GlobalWorkSizeX          = globalX,
-            GlobalWorkSizeY          = globalY,
-            GlobalWorkSizeZ          = 1,
+            WorkgroupSizeX = sizeX,
+            WorkgroupSizeY = sizeY,
+            WorkgroupSizeZ = 1,
+            GlobalWorkSizeX = globalX,
+            GlobalWorkSizeY = globalY,
+            GlobalWorkSizeZ = 1,
             LocalMemoryRequiredBytes = localMem,
-            EstimatedOccupancy       = occupancy,
-            Strategy                 = strategy,
-            DeviceId                 = device.Id,
-            OptimizationScore        = 0   // scored by SelectBest after construction
+            EstimatedOccupancy = occupancy,
+            Strategy = strategy,
+            DeviceId = device.Id,
+            // ComputedAt will be set by the record constructor
         };
     }
 
     private static double ComputeScore(
-        WorkgroupConfiguration        cfg,
-        GpuDevice                     device,
-        long                          localMemCap,
-        int                           wavefront,
+        WorkgroupConfiguration cfg,
+        GpuDevice device,
+        long localMemCap,
+        int wavefront,
         WorkgroupOptimizationStrategy strategy)
     {
         double memFraction = localMemCap > 0
@@ -253,14 +309,18 @@ public sealed class WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger) : IWo
     }
 
     private static double EstimateDispatchMs(
-        GpuDevice device, int width, int height, int tileX, int tileY)
+        GpuDevice device,
+        int width,
+        int height,
+        int tileX,
+        int tileY)
     {
-        long   dispatches = (long)(AlignUp(width,  tileX) / tileX) *
-                                   (AlignUp(height, tileY) / tileY);
-        double overhead   = dispatches * 0.002;   // ~2 µs per dispatch call
-        double compute    = (double)width * height /
-                            Math.Max(1, device.MaxComputeUnits) /
-                            Math.Max(1.0, device.MaxClockFrequencyMhz * 1_000.0);
+        long dispatches = (long)(AlignUp(width, tileX) / tileX) *
+            (AlignUp(height, tileY) / tileY);
+        double overhead = dispatches * 0.002; // ~2 µs per dispatch call
+        double compute = (double)width * height /
+            Math.Max(1, device.MaxComputeUnits) /
+            Math.Max(1.0, device.MaxClockFrequencyMhz * 1_000.0);
         return overhead + compute * 1_000.0;
     }
 
@@ -286,8 +346,8 @@ public sealed class WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger) : IWo
 
         // RDNA 2/3 devices operate on wave32 by default
         bool isRdna = device.Name.Contains("RX 6", StringComparison.OrdinalIgnoreCase) ||
-                      device.Name.Contains("RX 7", StringComparison.OrdinalIgnoreCase) ||
-                      device.Name.Contains("RDNA", StringComparison.OrdinalIgnoreCase);
+            device.Name.Contains("RX 7", StringComparison.OrdinalIgnoreCase) ||
+            device.Name.Contains("RDNA", StringComparison.OrdinalIgnoreCase);
         return isRdna ? 32 : 64;
     }
 }
