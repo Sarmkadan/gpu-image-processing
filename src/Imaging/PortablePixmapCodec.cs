@@ -108,9 +108,9 @@ public sealed class PortablePixmapCodec : IImageCodec
         int width = int.Parse(ReadToken(stream), CultureInfo.InvariantCulture);
         int height = int.Parse(ReadToken(stream), CultureInfo.InvariantCulture);
         int maxVal = int.Parse(ReadToken(stream), CultureInfo.InvariantCulture);
-        if (maxVal is <= 0 or > 255)
+        if (maxVal <= 0)
         {
-            throw new NotSupportedException($"Only 8-bit channels are supported (max value {maxVal}).");
+            throw new NotSupportedException($"Max value must be positive (got {maxVal}).");
         }
 
         int length = checked(width * height * channels);
@@ -124,6 +124,12 @@ public sealed class PortablePixmapCodec : IImageCodec
                 throw new EndOfStreamException($"Truncated pixmap: expected {length} bytes, got {read}.");
             }
             read += n;
+        }
+
+        // Scale pixel data if maxVal is not 255
+        if (maxVal != 255)
+        {
+            ScalePixelData(pixels, maxVal, channels);
         }
 
         return new Image
@@ -180,6 +186,29 @@ public sealed class PortablePixmapCodec : IImageCodec
             }
         }
         stream.Write(buffer, 0, buffer.Length);
+    }
+
+    /// <summary>
+    /// Scales pixel data from [0, maxVal] range to [0, 255] range.
+    /// </summary>
+    /// <param name="pixels">Pixel buffer to scale in-place.</param>
+    /// <param name="maxVal">Maximum value in the source data.</param>
+    /// <param name="channels">Number of color channels per pixel.</param>
+    private static void ScalePixelData(byte[] pixels, int maxVal, int channels)
+    {
+        if (maxVal == 255)
+        {
+            return; // No scaling needed
+        }
+
+        for (int i = 0; i < pixels.Length; i++)
+        {
+            // Scale from [0, maxVal] to [0, 255]
+            // Formula: (value * 255) / maxVal
+            // Use integer arithmetic with proper rounding
+            int scaled = (pixels[i] * 255 + maxVal / 2) / maxVal;
+            pixels[i] = (byte)Math.Clamp(scaled, 0, 255);
+        }
     }
 
     /// <summary>
