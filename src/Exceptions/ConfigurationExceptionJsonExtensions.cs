@@ -3,7 +3,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =====================================================================
+// ===================================================================
 
 using System.Text.Json;
 
@@ -43,26 +43,25 @@ public static class ConfigurationExceptionJsonExtensions
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
     /// <returns>A deserialized <see cref="ConfigurationException"/> instance, or null if the JSON is empty or whitespace.</returns>
-/// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static ConfigurationException? FromJson(string json)
     {
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return null;
-        }
+        ArgumentNullException.ThrowIfNull(json);
 
-        return JsonSerializer.Deserialize<ConfigurationException>(json, _jsonOptions);
+        return string.IsNullOrWhiteSpace(json)
+            ? null
+            : JsonSerializer.Deserialize<ConfigurationException>(json, _jsonOptions);
     }
 
     /// <summary>
     /// Attempts to deserialize a JSON string to a <see cref="ConfigurationException"/>.
     /// </summary>
     /// <param name="json">The JSON string to deserialize.</param>
-    /// <param name="value">The resulting <see cref="ConfigurationException"/> if successful; otherwise, null.</param>
+    /// <param name="value">The resulting <see cref="ConfigurationException"/> if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise, false.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
-public static bool TryFromJson(string json, out ConfigurationException? value)
+    public static bool TryFromJson(string json, out ConfigurationException? value)
     {
         value = null;
 
