@@ -2,7 +2,7 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// ===================================================================
 
 namespace GpuImageProcessing.Exceptions;
 
@@ -55,6 +55,17 @@ public static class ValidationExceptionValidation
             }
         }
 
+        // Validate ErrorCode against AppConstants.ErrorCodes range
+        if (value.ErrorCode.HasValue)
+        {
+            // Error codes should be positive and within the AppConstants.ErrorCodes range
+            // AppConstants.ErrorCodes starts at 1001
+            if (value.ErrorCode < 1000)
+            {
+                problems.Add("ErrorCode is out of range. Expected 1000 or greater.");
+            }
+        }
+
         return problems.AsReadOnly();
     }
 
@@ -80,7 +91,6 @@ public static class ValidationExceptionValidation
         ArgumentNullException.ThrowIfNull(value);
 
         var problems = value.Validate();
-
         if (problems.Count > 0)
         {
             throw new ArgumentException(

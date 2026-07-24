@@ -2,9 +2,9 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// ===================================================================
 
-namespace GpuImageProcessing.Core;
+using GpuImageProcessing.Core;
 
 /// <summary>
 /// Validation helpers for <see cref="ProcessingException"/>.
@@ -36,6 +36,17 @@ public static class ProcessingExceptionValidation
         if (value.AttemptNumber.HasValue && value.AttemptNumber.Value < 1)
         {
             problems.Add("AttemptNumber must be greater than 0.");
+        }
+
+        // Validate ErrorCode against AppConstants.ErrorCodes range
+        if (value.ErrorCode.HasValue)
+        {
+            // Error codes should be positive and within a reasonable range
+            // AppConstants.ErrorCodes starts at 1001, so we allow 1000+ for future expansion
+            if (value.ErrorCode < 1000)
+            {
+                problems.Add("ErrorCode is out of range. Expected 1000 or greater.");
+            }
         }
 
         return problems;

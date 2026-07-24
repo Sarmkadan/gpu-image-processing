@@ -18,13 +18,25 @@ public static class ConfigurationExceptionValidation
         var problems = new List<string>();
 
         if (string.IsNullOrEmpty(value.ConfigurationKey))
+        {
             problems.Add("ConfigurationKey is null or empty.");
+        }
 
         if (string.IsNullOrEmpty(value.ConfigurationValue))
+        {
             problems.Add("ConfigurationValue is null or empty.");
+        }
 
-        if (value.ErrorCode.HasValue && (value.ErrorCode < 0 || value.ErrorCode > 100))
-            problems.Add("ErrorCode is out of range (0-100).");
+        // Validate ErrorCode against AppConstants.ErrorCodes range
+        if (value.ErrorCode.HasValue)
+        {
+            // Error codes should be positive and within the AppConstants.ErrorCodes range
+            // AppConstants.ErrorCodes starts at 1001
+            if (value.ErrorCode < 1000)
+            {
+                problems.Add("ErrorCode is out of range. Expected 1000 or greater.");
+            }
+        }
 
         return problems;
     }
@@ -52,10 +64,11 @@ public static class ConfigurationExceptionValidation
         ArgumentNullException.ThrowIfNull(value);
 
         var problems = value.Validate();
-
         if (problems.Count > 0)
+        {
             throw new ArgumentException(
                 $"The following problems were found: {string.Join(", ", problems)}",
                 nameof(value));
+        }
     }
 }
