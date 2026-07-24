@@ -1,0 +1,2 @@
+
+This test class covers the happy path for each major public method, edge cases (null inputs, empty collections, boundary values), and error paths (expected exceptions). The test methods are designed to be independent and self-contained, making it easier to maintain and debug the tests.
