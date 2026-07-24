@@ -20,9 +20,10 @@ public static class GpuExceptionJsonExtensions
     /// </summary>
     /// <param name="value">The exception to serialize.</param>
     /// <param name="indented">Whether to format the JSON with indentation for readability.</param>
+    /// <param name="includeDebugDetails">Whether to include detailed diagnostic information in the JSON.</param>
     /// <returns>A JSON string representing the exception.</returns>
     /// <exception cref="ArgumentNullException">Thrown if <paramref name="value"/> is null.</exception>
-    public static string ToJson(this GpuException value, bool indented = false)
+    public static string ToJson(this GpuException value, bool indented = false, bool includeDebugDetails = false)
     {
         ArgumentNullException.ThrowIfNull(value);
 
@@ -30,7 +31,18 @@ public static class GpuExceptionJsonExtensions
             ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
             : _jsonOptions;
 
-        return JsonSerializer.Serialize(value, options);
+        var payload = new
+        {
+            value.Message,
+            value.ErrorCode,
+            value.OccurredAt,
+            DeviceName = includeDebugDetails ? value.DeviceName : null,
+            StackTrace = includeDebugDetails ? value.StackTrace : null,
+            Data = includeDebugDetails ? value.Data : null,
+            InnerException = includeDebugDetails ? value.InnerException : null
+        };
+
+        return JsonSerializer.Serialize(payload, options);
     }
 
     /// <summary>

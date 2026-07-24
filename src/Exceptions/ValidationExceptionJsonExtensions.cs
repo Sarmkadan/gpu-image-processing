@@ -25,9 +25,10 @@ public static class ValidationExceptionJsonExtensions
     /// </summary>
     /// <param name="value">The validation exception to serialize.</param>
     /// <param name="indented">Whether to indent the JSON for readability.</param>
+    /// <param name="includeDebugDetails">Whether to include detailed diagnostic information in the JSON.</param>
     /// <returns>A JSON string representation of the validation exception.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is null.</exception>
-    public static string ToJson(this ValidationException value, bool indented = false)
+    public static string ToJson(this ValidationException value, bool indented = false, bool includeDebugDetails = false)
     {
         ArgumentNullException.ThrowIfNull(value);
 
@@ -35,7 +36,19 @@ public static class ValidationExceptionJsonExtensions
             ? new JsonSerializerOptions(_jsonOptions) { WriteIndented = true }
             : _jsonOptions;
 
-        return JsonSerializer.Serialize(value, options);
+        var payload = new
+        {
+            value.Message,
+            value.ErrorCode,
+            value.OccurredAt,
+            EntityName = includeDebugDetails ? value.EntityName : null,
+            ValidationErrors = includeDebugDetails ? value.ValidationErrors : null,
+            StackTrace = includeDebugDetails ? value.StackTrace : null,
+            Data = includeDebugDetails ? value.Data : null,
+            InnerException = includeDebugDetails ? value.InnerException : null
+        };
+
+        return JsonSerializer.Serialize(payload, options);
     }
 
     /// <summary>
