@@ -3,12 +3,13 @@
 // =============================================================================
 // Author: Vladyslav Zaiets | https://sarmkadan.com
 // CTO & Software Architect
-// =============================================================================
+// =====================================================================
 
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using GpuImageProcessing.Domain;
+using GpuImageProcessing.Exceptions;
 
 namespace GpuImageProcessing.Imaging;
 
@@ -27,7 +28,7 @@ namespace GpuImageProcessing.Imaging;
 public static class PortablePixmap
 {
     /// <summary>File extensions recognised as portable pixmaps.</summary>
-    public static readonly string[] Extensions = [".ppm", ".pgm"];
+    public static readonly string[] Extensions =[".ppm", ".pgm"];
 
     /// <summary>
     /// PPM/PGM format variants supported by this class.
@@ -61,9 +62,15 @@ public static class PortablePixmap
     /// Loads a P3/P5/P6 image file into a fully-populated <see cref="Image"/>
     /// (dimensions, channels, bits-per-pixel and raw pixel data).
     /// </summary>
+    /// <param name="path">Path to the image file to load.</param>
+    /// <exception cref="ValidationException">Thrown when the path contains path traversal sequences or escapes the working directory.</exception>
     public static Image Load(string path)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
+
+        // Validate path for security: prevent path traversal attacks
+        ValidateFilePath(path, nameof(path));
+
         using var stream = File.OpenRead(path);
         var image = Decode(stream);
         image.FilePath = path;
@@ -88,12 +95,16 @@ public static class PortablePixmap
     /// <param name="image">Image to save.</param>
     /// <param name="path">Output file path.</param>
     /// <param name="format">Output format (P6 binary by default).</param>
+    /// <exception cref="ValidationException">Thrown when the path contains path traversal sequences or escapes the working directory.</exception>
     public static void Save(Image image, string path, PpmFormat format = PpmFormat.P6)
     {
         ArgumentNullException.ThrowIfNull(image);
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         if (image.PixelData is null)
             throw new InvalidOperationException("Image has no pixel data to write.");
+
+        // Validate path for security: prevent path traversal attacks
+        ValidateFilePath(path, nameof(path));
 
         var dir = System.IO.Path.GetDirectoryName(path);
         if (!string.IsNullOrEmpty(dir))
@@ -176,5 +187,75 @@ public static class PortablePixmap
 
         // Ensure file ends with newline
         stream.WriteByte((byte)'\n');
+    }
+
+    /// <summary>
+    /// Validates that a file path does not contain path traversal sequences
+    /// and stays within a reasonable base directory.
+    /// </summary>
+    /// <param name="path">The file path to validate.</param>
+    /// <param name="paramName">The name of the parameter being validated.</param>
+    /// <exception cref="ValidationException">Thrown when path traversal is detected.</exception>
+    private static void ValidateFilePath(string path, string paramName)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return;
+
+        // Normalize the path to resolve relative segments and get absolute path
+        string fullPath;
+        try
+        {
+            fullPath = System.IO.Path.GetFullPath(path);
+        }
+        catch (Exception ex) when (ex is ArgumentException or NotSupportedException or PathTooLongException)
+        {
+            throw new ValidationException(
+                $"Invalid file path: {ex.Message}",
+                paramName,
+                new Dictionary<string, string> { { paramName, "Path contains invalid characters or is too long" } },
+                1001);
+        }
+
+        // Get the base directory (current working directory or application base directory)
+        string baseDirectory = AppContext.BaseDirectory;
+        if (string.IsNullOrEmpty(baseDirectory))
+        {
+            // Fallback to current directory if base directory is not available
+            baseDirectory = System.IO.Path.GetFullPath("./");
+        }
+
+        // Normalize base directory to ensure consistent comparison
+        string normalizedBase = System.IO.Path.GetFullPath(baseDirectory).TrimEnd(System.IO.Path.DirectorySeparatorChar);
+        string normalizedFullPath = fullPath.TrimEnd(System.IO.Path.DirectorySeparatorChar);
+
+        // Check if the resolved path starts with the base directory
+        // This prevents path traversal attacks like "../../../etc/passwd"
+        if (!normalizedFullPath.StartsWith(normalizedBase, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ValidationException(
+                $"File path escapes the working directory. Path: '{path}'. " +
+                $"Resolved path: '{fullPath}'. Base directory: '{baseDirectory}'.",
+                paramName,
+                new Dictionary<string, string>
+                {
+                    { paramName, $"Path would access files outside the working directory: '{path}'" }
+                },
+                1002);
+        }
+
+        // Additional check for path traversal sequences in the original path
+        // This catches obvious attempts like "../", "./", etc.
+        if (path.Contains("..") || path.Contains("./") || path.Contains("~/"))
+        {
+            throw new ValidationException(
+                $"File path contains invalid path segments: '{path}'. " +
+                "Relative path segments (../, ./, ~/ ) are not allowed.",
+                paramName,
+                new Dictionary<string, string>
+                {
+                    { paramName, $"Path contains relative segments: '{path}'" }
+                },
+                1003);
+        }
     }
 }
