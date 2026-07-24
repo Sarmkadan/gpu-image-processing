@@ -1,5 +1,8 @@
 using System;
+using System.Linq;
+using System.Reflection;
 using FluentAssertions;
+using GpuImageProcessing.Core;
 using GpuImageProcessing.Exceptions;
 using Xunit;
 
@@ -94,5 +97,27 @@ public class GpuImageProcessingExceptionTests
 
         exMin.ErrorCode.Should().Be(int.MinValue);
         exMax.ErrorCode.Should().Be(int.MaxValue);
+    }
+
+    [Fact]
+    public void AllPublicExceptionTypes_DeriveFrom_GpuImageProcessingException()
+    {
+        // Arrange
+        var assembly = Assembly.GetAssembly(typeof(GpuImageProcessingException))!;
+        var exceptionTypes = assembly.GetTypes()
+            .Where(t => t.IsPublic && t.IsClass && !t.IsAbstract)
+            .Where(t => typeof(Exception).IsAssignableFrom(t))
+            .Where(t => t != typeof(Exception))
+            .ToList();
+
+        // Act
+        var exceptionsNotDerivingFromBase = exceptionTypes
+            .Where(t => !typeof(GpuImageProcessingException).IsAssignableFrom(t))
+            .ToList();
+
+        // Assert
+        exceptionsNotDerivingFromBase.Should().BeEmpty(
+            $"All public exception types should derive from {nameof(GpuImageProcessingException)}. " +
+            $"Found: {string.Join(", ", exceptionsNotDerivingFromBase.Select(t => t.Name))}");
     }
 }
