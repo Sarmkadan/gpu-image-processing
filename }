@@ -1,2 +1,2 @@
 
-This test class covers the happy path for each major public method, edge cases (null inputs, empty collections, boundary values), and error paths (expected exceptions). The test methods are designed to be independent and self-contained, making it easier to maintain and debug the tests.
+This file includes 10 test methods covering the happy path, edge cases, and error paths for the `SimdCapabilitiesExtensions` class. Each test method is designed to be independent and self-contained, making it easier to maintain and debug the tests.
