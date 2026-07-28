@@ -2,6 +2,7 @@ using System;
 using System.Text.Json;
 using Xunit;
 using GpuImageProcessing.Repository;
+using GpuImageProcessing.Core.Repository; // added in case the type lives in this namespace
 
 namespace GpuImageProcessing.Tests;
 
@@ -11,7 +12,7 @@ public class ProcessingResultRepositoryJsonExtensionsTests
     public void ToJson_WithValidRepository_ReturnsJsonString()
     {
         // Arrange
-        var repository = new ProcessingResultRepository(); // assumes a parameterless constructor
+        var repository = new ProcessingResultRepository(); // assumes a public parameter‑less constructor
 
         // Act
         string json = repository.ToJson();
@@ -57,7 +58,7 @@ public class ProcessingResultRepositoryJsonExtensionsTests
     public void TryFromJson_ValidJson_ReturnsTrueAndDeserializedObject()
     {
         // Arrange
-        var repository = new ProcessingResultRepository(); // assumes a parameterless constructor
+        var repository = new ProcessingResultRepository(); // assumes a public parameter‑less constructor
         string json = repository.ToJson();
 
         // Act
