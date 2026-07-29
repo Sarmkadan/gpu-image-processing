@@ -1,2 +1,2 @@
 
-This file includes 15 test methods covering the happy path, edge cases, and error paths for the `ImageRepository` class. Each test method is designed to be independent and self-contained, making it easier to maintain and debug the tests.
+This test class covers the happy path, edge cases, and error paths for the `ComputeShaderPipelineOptionsValidation` class. Each test method is designed to be independent and self-contained, making it easier to maintain and debug the tests.
