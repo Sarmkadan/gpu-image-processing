@@ -242,15 +242,49 @@ namespace GpuImageProcessing.Utilities
         }
     }
 
-    public class FileMetadata
+    public class FileMetadata : IEquatable<FileMetadata>
     {
-        public string Name { get; set; }
-        public string FullPath { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string FullPath { get; set; } = string.Empty;
         public long SizeBytes { get; set; }
-        public string SizeFormatted { get; set; }
+        public string SizeFormatted { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public DateTime ModifiedAt { get; set; }
-        public string Extension { get; set; }
+        public string Extension { get; set; } = string.Empty;
         public bool IsReadOnly { get; set; }
+
+        public bool Equals(FileMetadata? other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Name == other.Name &&
+                   FullPath == other.FullPath &&
+                   SizeBytes == other.SizeBytes &&
+                   SizeFormatted == other.SizeFormatted &&
+                   CreatedAt.Equals(other.CreatedAt) &&
+                   ModifiedAt.Equals(other.ModifiedAt) &&
+                   Extension == other.Extension &&
+                   IsReadOnly == other.IsReadOnly;
+        }
+
+        public override bool Equals(object? obj)
+        {
+            return Equals(obj as FileMetadata);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Name, FullPath, SizeBytes, SizeFormatted, CreatedAt, ModifiedAt, Extension, IsReadOnly);
+        }
+
+        public static bool operator ==(FileMetadata? left, FileMetadata? right)
+        {
+            return Equals(left, right);
+        }
+
+        public static bool operator !=(FileMetadata? left, FileMetadata? right)
+        {
+            return !Equals(left, right);
+        }
     }
 }
