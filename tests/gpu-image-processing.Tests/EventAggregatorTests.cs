@@ -5,6 +5,9 @@ using GpuImageProcessing.Events;
 
 namespace GpuImageProcessing.Tests
 {
+    /// <summary>
+    /// Tests for the <see cref="EventAggregator"/> class.
+    /// </summary>
     public class EventAggregatorTests
     {
         private class TestEvent : DomainEvent
@@ -12,6 +15,9 @@ namespace GpuImageProcessing.Tests
             public string Message { get; set; }
         }
 
+        /// <summary>
+        /// Verifies that when an event is published, it is delivered to subscribers.
+        /// </summary>
         [Fact]
         public void Subscribe_and_publish_delivers_event()
         {
