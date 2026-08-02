@@ -531,6 +531,14 @@ namespace GpuImageProcessing.Tests.Imaging
         /// Tests that decoding a P6 image with negative width throws an OverflowException.
         /// Creates a header with negative width and verifies the appropriate exception is thrown.
         /// </summary>
+        /// <summary>
+        /// Tests that decoding a P6 image with negative width throws an OverflowException.
+        /// Creates a header with negative width and verifies the appropriate exception is thrown.
+        /// </summary>
+        /// <summary>
+        /// Tests that decoding a P6 image with negative width throws an OverflowException.
+        /// Creates a header with negative width and verifies the appropriate exception is thrown.
+        /// </summary>
         [Fact]
         public void Decode_NegativeWidth_ThrowsOverflowException()
         {
