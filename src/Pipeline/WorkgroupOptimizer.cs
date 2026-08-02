@@ -6,6 +6,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -67,8 +68,12 @@ public sealed class WorkgroupOptimizer : IWorkgroupOptimizer
         WorkgroupOptimizationStrategy strategy = WorkgroupOptimizationStrategy.Balanced)
     {
         ArgumentNullException.ThrowIfNull(device);
-        if (imageWidth <= 0) throw new ArgumentOutOfRangeException(nameof(imageWidth), "Image width must be positive.");
-        if (imageHeight <= 0) throw new ArgumentOutOfRangeException(nameof(imageHeight), "Image height must be positive.");
+
+        // Guard against invalid image dimensions – use ValidationException as required.
+        if (imageWidth <= 0)
+            throw new ValidationException($"Image width must be positive. Received: {imageWidth}");
+        if (imageHeight <= 0)
+            throw new ValidationException($"Image height must be positive. Received: {imageHeight}");
 
         // Use cache to avoid re-computing for the same parameters
         return _cache.GetOrAdd(
@@ -90,6 +95,12 @@ public sealed class WorkgroupOptimizer : IWorkgroupOptimizer
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(device);
+
+        // Guard against invalid image dimensions – use ValidationException as required.
+        if (imageWidth <= 0)
+            throw new ValidationException($"Image width must be positive. Received: {imageWidth}");
+        if (imageHeight <= 0)
+            throw new ValidationException($"Image height must be positive. Received: {imageHeight}");
 
         // Use cache to avoid re-benchmarking for the same parameters
         return await _cache.GetOrAddAsync(
@@ -250,6 +261,13 @@ public sealed class WorkgroupOptimizer : IWorkgroupOptimizer
         int localMemPerThread,
         WorkgroupOptimizationStrategy strategy)
     {
+        // Guard against zero or negative workgroup dimensions that would cause
+        // a divide‑by‑zero in AlignUp.
+        if (sizeX <= 0)
+            throw new ValidationException($"Workgroup size X must be positive. Received: {sizeX}");
+        if (sizeY <= 0)
+            throw new ValidationException($"Workgroup size Y must be positive. Received: {sizeY}");
+
         int globalX = AlignUp(imageWidth, sizeX);
         int globalY = AlignUp(imageHeight, sizeY);
         long localMem = (long)sizeX * sizeY * localMemPerThread;
@@ -326,7 +344,9 @@ public sealed class WorkgroupOptimizer : IWorkgroupOptimizer
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static int AlignUp(int value, int alignment) =>
-        ((value + alignment - 1) / alignment) * alignment;
+        alignment <= 0
+            ? throw new ValidationException($"Alignment must be positive. Received: {alignment}")
+            : ((value + alignment - 1) / alignment) * alignment;
 
     /// <summary>
     /// Returns the device wavefront (warp) size. Prefers the value reported by the
