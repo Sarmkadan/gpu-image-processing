@@ -10,12 +10,18 @@ using Xunit;
 
 namespace GpuImageProcessing.Tests.Pipeline;
 
+/// <summary>
+/// Tests for the WorkgroupOptimizer class.
+/// </summary>
 public class WorkgroupOptimizerTests
 {
     private readonly Mock<ILogger<WorkgroupOptimizer>> _loggerMock;
     private readonly WorkgroupOptimizer _optimizer;
     private readonly GpuDevice _testDevice;
 
+    /// <summary>
+    /// Initializes a new instance of the WorkgroupOptimizerTests class.
+    /// </summary>
     public WorkgroupOptimizerTests()
     {
         _loggerMock = new Mock<ILogger<WorkgroupOptimizer>>();
@@ -44,6 +50,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that computing workgroup configuration for typical power-of-two dimensions returns a valid configuration.
+    /// </summary>
     public void Compute_WithTypicalPowerOfTwoDimensions_ReturnsValidConfiguration()
     {
         // Arrange
@@ -66,6 +75,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that computing workgroup configuration for non-power-of-two dimensions returns a valid configuration.
+    /// </summary>
     public void Compute_WithNonPowerOfTwoDimensions_ReturnsValidConfiguration()
     {
         // Arrange
@@ -85,6 +97,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that computing workgroup configuration for a 1x1 image returns a valid configuration.
+    /// </summary>
     public void Compute_With1x1Image_ReturnsValidConfiguration()
     {
         // Arrange
@@ -104,6 +119,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that computing workgroup configuration for very large dimensions does not cause overflow.
+    /// </summary>
     public void Compute_WithVeryLargeDimensions_NoOverflow()
     {
         // Arrange
@@ -129,6 +147,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that computing workgroup configuration for a large image uses smaller tiles.
+    /// </summary>
     public void Compute_WithLargeImage_UsesSmallerTiles()
     {
         // Arrange - large image (> 8192 on either axis)
@@ -146,6 +167,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that computing workgroup configuration with a local memory constraint respects the limit.
+    /// </summary>
     public void Compute_WithLocalMemoryConstraint_RespectsLimit()
     {
         // Arrange - device with small local memory
@@ -183,6 +207,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that computing workgroup configuration with throughput maximized strategy favors larger workgroups.
+    /// </summary>
     public void Compute_WithThroughputMaximizedStrategy_FavorsLargerWorkgroups()
     {
         // Arrange
@@ -200,6 +227,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that computing workgroup configuration with latency minimized strategy favors smaller workgroups.
+    /// </summary>
     public void Compute_WithLatencyMinimizedStrategy_FavorsSmallerWorkgroups()
     {
         // Arrange
@@ -218,6 +248,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that computing workgroup configuration with memory optimized strategy minimizes local memory usage.
+    /// </summary>
     public void Compute_WithMemoryOptimizedStrategy_MinimizesLocalMemory()
     {
         // Arrange
@@ -235,6 +268,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that computing workgroup configuration with balanced strategy returns a valid configuration.
+    /// </summary>
     public void Compute_WithBalancedStrategy_ReturnsConfiguration()
     {
         // Arrange
@@ -252,6 +288,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that computing workgroup configuration with zero width throws an ArgumentOutOfRangeException.
+    /// </summary>
     public void Compute_WithZeroWidth_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
@@ -264,6 +303,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that computing workgroup configuration with negative width throws an ArgumentOutOfRangeException.
+    /// </summary>
     public void Compute_WithNegativeWidth_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
@@ -276,6 +318,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that computing workgroup configuration with zero height throws an ArgumentOutOfRangeException.
+    /// </summary>
     public void Compute_WithZeroHeight_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
@@ -288,6 +333,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that computing workgroup configuration with a null device throws an ArgumentNullException.
+    /// </summary>
     public void Compute_WithNullDevice_ThrowsArgumentNullException()
     {
         // Arrange
@@ -301,6 +349,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that computing workgroup configuration with a device having zero max workgroup size returns a fallback configuration.
+    /// </summary>
     public void Compute_WithDeviceWithZeroMaxWorkGroupSize_ReturnsFallbackConfiguration()
     {
         // Arrange - device with zero max workgroup size (invalid but should handle gracefully)
@@ -336,6 +387,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that the BenchmarkAsync method returns a valid configuration for typical dimensions.
+    /// </summary>
     public void BenchmarkAsync_WithTypicalDimensions_ReturnsConfiguration()
     {
         // Arrange
@@ -353,6 +407,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that the BenchmarkAsync method returns a valid configuration for large image dimensions.
+    /// </summary>
     public void BenchmarkAsync_WithLargeImage_ReturnsValidConfiguration()
     {
         // Arrange
@@ -370,6 +427,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that the WorkgroupConfiguration properties are correctly set and retrievable.
+    /// </summary>
     public void WorkgroupConfiguration_PropertiesAreValid()
     {
         // Arrange
@@ -403,6 +463,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that the WorkgroupConfiguration.GetTotalWorkgroupSize method returns the correct value.
+    /// </summary>
     public void WorkgroupConfiguration_GetTotalWorkgroupSize_ReturnsCorrectValue()
     {
         // Arrange
@@ -426,6 +489,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that the WorkgroupConfiguration.GetTotalDispatchCount method returns the correct value.
+    /// </summary>
     public void WorkgroupConfiguration_GetTotalDispatchCount_ReturnsCorrectValue()
     {
         // Arrange
@@ -446,6 +512,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that the WorkgroupConfiguration.IsValidForDevice method returns true when the device has sufficient memory.
+    /// </summary>
     public void WorkgroupConfiguration_IsValidForDevice_WithSufficientMemory_ReturnsTrue()
     {
         // Arrange
@@ -470,6 +539,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that the WorkgroupConfiguration.IsValidForDevice method returns false when the device has insufficient memory.
+    /// </summary>
     public void WorkgroupConfiguration_IsValidForDevice_WithInsufficientMemory_ReturnsFalse()
     {
         // Arrange
@@ -494,6 +566,9 @@ public class WorkgroupOptimizerTests
     }
 
     [Fact]
+    /// <summary>
+    /// Verifies that the WorkgroupConfiguration.ToString method returns a non-empty string.
+    /// </summary>
     public void WorkgroupConfiguration_ToString_ReturnsNonEmptyString()
     {
         // Arrange
