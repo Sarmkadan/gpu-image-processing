@@ -6290,3 +6290,49 @@ class Program
 ```
 
 ## ProcessingPipeline
+
+## JobProcessingWorkerValidation
+
+The `JobProcessingWorkerValidation` class provides static validation methods for `JobProcessingWorker` instances and their dependencies. It includes methods to validate the worker's state, check validity, and ensure validity by throwing exceptions on failure.
+
+Example usage:
+```csharp
+using GpuImageProcessing.BackgroundWorkers;
+using GpuImageProcessing.Core.Services;
+using GpuImageProcessing.Events;
+using Microsoft.Extensions.Logging;
+
+// Assume we have a JobProcessingWorker instance
+var worker = new JobProcessingWorker(logger, batchProcessingService, imageProcessingService, eventPublisher);
+
+// Validate the worker instance
+var validationErrors = JobProcessingWorkerValidation.Validate(worker);
+if (validationErrors.Count > 0)
+{
+    Console.WriteLine($"Validation errors: {string.Join(", ", validationErrors)}");
+}
+
+// Check if valid using the convenience method
+bool isValid = JobProcessingWorkerValidation.IsValid(worker);
+
+// Throw an exception if invalid
+JobProcessingWorkerValidation.EnsureValid(worker);
+
+// Validate the constructor dependencies
+var dependencyErrors = JobProcessingWorkerValidation.ValidateDependencies(
+    logger,
+    batchProcessingService,
+    imageProcessingService,
+    eventPublisher);
+if (dependencyErrors.Count > 0)
+{
+    Console.WriteLine($"Dependency validation errors: {string.Join(", ", dependencyErrors)}");
+}
+
+// Ensure dependencies are valid (throws on failure)
+JobProcessingWorkerValidation.EnsureDependenciesValid(
+    logger,
+    batchProcessingService,
+    imageProcessingService,
+    eventPublisher);
+```
