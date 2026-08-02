@@ -8,8 +8,19 @@ using GpuImageProcessing.Exceptions;
 
 namespace GpuImageProcessing.Tests.Imaging
 {
+    /// <summary>
+    /// Test suite for the PortablePixmap class, which handles reading and writing
+    /// Portable Pixmap (PPM/PGM) image files in both ASCII and binary formats.
+    /// Tests cover round-trip operations, various format versions, error conditions,
+    /// and utility functions like pixel hashing.
+    /// </summary>
     public class PortablePixmapTests
     {
+        /// <summary>
+        /// Tests that saving and loading a P6 format PPM image preserves pixel data exactly.
+        /// Creates a 3x2 RGB image with specific color values (red, green, blue, white, gray, black),
+        /// saves it to a PPM file, reloads it, and verifies all properties and pixel data match exactly.
+        /// </summary>
         [Fact]
         public void P6_RoundTrip_ByteIdenticalPixelData()
         {
@@ -54,6 +65,11 @@ namespace GpuImageProcessing.Tests.Imaging
             }
         }
 
+        /// <summary>
+        /// Tests that saving and loading a P5 format PGM image preserves pixel data exactly.
+        /// Creates a 4x3 grayscale image with specific pixel values ranging from black to white,
+        /// saves it to a PGM file, reloads it, and verifies all properties and pixel data match exactly.
+        /// </summary>
         [Fact]
         public void P5_RoundTrip_ByteIdenticalPixelData()
         {
@@ -104,228 +120,284 @@ namespace GpuImageProcessing.Tests.Imaging
             }
         }
 
-        [Fact]
-        public void P6_RoundTrip_LargeImage()
+        /// <summary>
+    /// Tests that saving and loading a larger P6 format PPM image preserves pixel data exactly.
+    /// Creates a 10x10 RGB image with sequential pixel values, saves it to a PPM file, reloads it,
+    /// and verifies all properties and pixel data match exactly.
+    /// </summary>
+    [Fact]
+    public void P6_RoundTrip_LargeImage()
+    {
+        // Arrange: create a larger 10x10 RGB image
+        var originalData = new byte[10 * 10 * 3];
+        for (int i = 0; i < originalData.Length; i++)
         {
-            // Arrange: create a larger 10x10 RGB image
-            var originalData = new byte[10 * 10 * 3];
-            for (int i = 0; i < originalData.Length; i++)
-            {
-                originalData[i] = (byte)(i % 256);
-            }
-
-            var image = new Image
-            {
-                Width = 10,
-                Height = 10,
-                Channels = 3,
-                BitsPerPixel = 24,
-                PixelData = originalData
-            };
-
-            var tempFile = "test_p6_large.ppm";
-            try
-            {
-                // Act: save and load
-                PortablePixmap.Save(image, tempFile);
-                var loaded = PortablePixmap.Load(tempFile);
-
-                // Assert: properties match and pixel data is byte-identical
-                Assert.Equal(image.Width, loaded.Width);
-                Assert.Equal(image.Height, loaded.Height);
-                Assert.Equal(image.Channels, loaded.Channels);
-                Assert.Equal(image.BitsPerPixel, loaded.BitsPerPixel);
-                Assert.Equal(image.PixelData, loaded.PixelData);
-            }
-            finally
-            {
-                if (File.Exists(tempFile))
-                    File.Delete(tempFile);
-            }
+            originalData[i] = (byte)(i % 256);
         }
 
-        [Fact]
-        public void P5_RoundTrip_LargeImage()
+        var image = new Image
         {
-            // Arrange: create a larger 8x8 grayscale image
-            var originalData = new byte[8 * 8];
-            for (int i = 0; i < originalData.Length; i++)
-            {
-                originalData[i] = (byte)(i * 3 % 256);
-            }
+            Width = 10,
+            Height = 10,
+            Channels = 3,
+            BitsPerPixel = 24,
+            PixelData = originalData
+        };
 
-            var image = new Image
-            {
-                Width = 8,
-                Height = 8,
-                Channels = 1,
-                BitsPerPixel = 8,
-                PixelData = originalData
-            };
+        var tempFile = "test_p6_large.ppm";
+        try
+        {
+            // Act: save and load
+            PortablePixmap.Save(image, tempFile);
+            var loaded = PortablePixmap.Load(tempFile);
 
-            var tempFile = "test_p5_large.pgm";
-            try
-            {
-                // Act: save and load
-                PortablePixmap.Save(image, tempFile);
-                var loaded = PortablePixmap.Load(tempFile);
+            // Assert: properties match and pixel data is byte-identical
+            Assert.Equal(image.Width, loaded.Width);
+            Assert.Equal(image.Height, loaded.Height);
+            Assert.Equal(image.Channels, loaded.Channels);
+            Assert.Equal(image.BitsPerPixel, loaded.BitsPerPixel);
+            Assert.Equal(image.PixelData, loaded.PixelData);
+        }
+        finally
+        {
+            if (File.Exists(tempFile))
+                File.Delete(tempFile);
+        }
+    }
 
-                // Assert: properties match and pixel data is byte-identical
-                Assert.Equal(image.Width, loaded.Width);
-                Assert.Equal(image.Height, loaded.Height);
-                Assert.Equal(image.Channels, loaded.Channels);
-                Assert.Equal(image.BitsPerPixel, loaded.BitsPerPixel);
-                Assert.Equal(image.PixelData, loaded.PixelData);
-            }
-            finally
-            {
-                if (File.Exists(tempFile))
-                    File.Delete(tempFile);
-            }
+        /// <summary>
+    /// Tests that saving and loading a larger P5 format PGM image preserves pixel data exactly.
+    /// Creates an 8x8 grayscale image with patterned pixel values, saves it to a PGM file, reloads it,
+    /// and verifies all properties and pixel data match exactly.
+    /// </summary>
+    [Fact]
+    public void P5_RoundTrip_LargeImage()
+    {
+        // Arrange: create a larger 8x8 grayscale image
+        var originalData = new byte[8 * 8];
+        for (int i = 0; i < originalData.Length; i++)
+        {
+            originalData[i] = (byte)(i * 3 % 256);
         }
 
-        [Fact]
-        public void Decode_MaxVal1_ParsesAndScalesCorrectly()
+        var image = new Image
         {
-            // Arrange: P6 with maxval=1 (binary 0/1 values)
-            var header = Encoding.ASCII.GetBytes("P6\n2 2\n1\n");
-            // Pixel data: 0,0,0, 1,1,1, 0,0,0, 1,1,1
-            var pixelData = new byte[] { 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1 };
-            var streamData = new byte[header.Length + pixelData.Length];
-            Array.Copy(header, 0, streamData, 0, header.Length);
-            Array.Copy(pixelData, 0, streamData, header.Length, pixelData.Length);
-            using var stream = new MemoryStream(streamData);
+            Width = 8,
+            Height = 8,
+            Channels = 1,
+            BitsPerPixel = 8,
+            PixelData = originalData
+        };
 
-            // Act
-            var image = PortablePixmap.Decode(stream);
-
-            // Assert: should scale to 0/255
-            Assert.Equal(2, image.Width);
-            Assert.Equal(2, image.Height);
-            Assert.Equal(3, image.Channels);
-            Assert.Equal(0, image.PixelData[0]); // 0 -> 0
-            Assert.Equal(255, image.PixelData[3]); // 1 -> 255
-            Assert.Equal(255, image.PixelData[4]);
-            Assert.Equal(255, image.PixelData[5]);
-        }
-
-        [Fact]
-        public void Decode_MaxVal255_ParsesWithoutScaling()
+        var tempFile = "test_p5_large.pgm";
+        try
         {
-            // Arrange: P6 with maxval=255 (standard case)
-            var header = Encoding.ASCII.GetBytes("P6\n2 2\n255\n");
-            // Pixel data: 255,0,0, 0,255,0, 0,0,255, 255,255,255
-            var pixelData = new byte[] { 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255 };
-            var streamData = new byte[header.Length + pixelData.Length];
-            Array.Copy(header, 0, streamData, 0, header.Length);
-            Array.Copy(pixelData, 0, streamData, header.Length, pixelData.Length);
-            using var stream = new MemoryStream(streamData);
+            // Act: save and load
+            PortablePixmap.Save(image, tempFile);
+            var loaded = PortablePixmap.Load(tempFile);
 
-            // Act
-            var image = PortablePixmap.Decode(stream);
-
-            // Assert: should not scale, pixel data should be unchanged
-            Assert.Equal(2, image.Width);
-            Assert.Equal(2, image.Height);
-            Assert.Equal(3, image.Channels);
-            Assert.Equal(255, image.PixelData[0]);
-            Assert.Equal(0, image.PixelData[1]);
-            Assert.Equal(0, image.PixelData[2]);
-            Assert.Equal(255, image.PixelData[3]);
-            Assert.Equal(255, image.PixelData[4]);
-            Assert.Equal(255, image.PixelData[11]);
+            // Assert: properties match and pixel data is byte-identical
+            Assert.Equal(image.Width, loaded.Width);
+            Assert.Equal(image.Height, loaded.Height);
+            Assert.Equal(image.Channels, loaded.Channels);
+            Assert.Equal(image.BitsPerPixel, loaded.BitsPerPixel);
+            Assert.Equal(image.PixelData, loaded.PixelData);
         }
-
-        [Fact]
-        public void Decode_MaxVal65535_SupportsScaling()
+        finally
         {
-            // Arrange: P6 with maxval=65535 (16-bit, supported with scaling)
-            var header = Encoding.ASCII.GetBytes("P6\n1 1\n65535\n");
-            // Pixel data: value 32768 (half of 65535) should scale to 128
-            var pixelData = new byte[] { 0x80, 0x00, 0x00 }; // 128, 0, 0 in little endian? Wait, it's raw bytes
-            // Actually for maxval=65535, each component is 2 bytes
-            // But the current implementation only supports 8-bit, so this will fail
-            // Let me check what the actual behavior is...
-            using var stream = new MemoryStream(header);
-
-            // Act & Assert: The current implementation will try to read 3 bytes but fail with EndOfStreamException
-            // because it expects width*height*channels = 1*1*3 = 3 bytes
-            Assert.Throws<EndOfStreamException>(() => PortablePixmap.Decode(stream));
+            if (File.Exists(tempFile))
+                File.Delete(tempFile);
         }
+    }
 
-        [Fact]
-        public void Decode_MaxVal128_SupportsScaling()
-        {
-            // Arrange: P6 with maxval=128
-            var header = Encoding.ASCII.GetBytes("P6\n1 1\n128\n");
-            // Pixel data: value 64 (half of 128) should scale to 128
-            var pixelData = new byte[] { 64, 64, 64 };
-            var streamData = new byte[header.Length + pixelData.Length];
-            Array.Copy(header, 0, streamData, 0, header.Length);
-            Array.Copy(pixelData, 0, streamData, header.Length, pixelData.Length);
-            using var stream = new MemoryStream(streamData);
+        /// <summary>
+    /// Tests that decoding a P6 image with maxval=1 correctly scales pixel values from [0,1] to [0,255].
+    /// Creates a 2x2 RGB image where pixel values are either 0 or 1, verifies they scale to 0 or 255 respectively.
+    /// </summary>
+    [Fact]
+    public void Decode_MaxVal1_ParsesAndScalesCorrectly()
+    {
+        // Arrange: P6 with maxval=1 (binary 0/1 values)
+        var header = Encoding.ASCII.GetBytes("P6\n2 2\n1\n");
+        // Pixel data: 0,0,0, 1,1,1, 0,0,0, 1,1,1
+        var pixelData = new byte[] { 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1 };
+        var streamData = new byte[header.Length + pixelData.Length];
+        Array.Copy(header, 0, streamData, 0, header.Length);
+        Array.Copy(pixelData, 0, streamData, header.Length, pixelData.Length);
+        using var stream = new MemoryStream(streamData);
 
-            // Act
-            var image = PortablePixmap.Decode(stream);
+        // Act
+        var image = PortablePixmap.Decode(stream);
 
-            // Assert: should scale from [0,128] to [0,255]
-            // 64/128 = 0.5, 0.5*255 = 127.5 -> 128 (rounded)
-            Assert.Equal(1, image.Width);
-            Assert.Equal(1, image.Height);
-            Assert.Equal(3, image.Channels);
-            Assert.Equal(128, image.PixelData[0]); // 64 scaled to 128
-            Assert.Equal(128, image.PixelData[1]);
-            Assert.Equal(128, image.PixelData[2]);
-        }
+        // Assert: should scale to 0/255
+        Assert.Equal(2, image.Width);
+        Assert.Equal(2, image.Height);
+        Assert.Equal(3, image.Channels);
+        Assert.Equal(0, image.PixelData[0]); // 0 -> 0
+        Assert.Equal(255, image.PixelData[3]); // 1 -> 255
+        Assert.Equal(255, image.PixelData[4]);
+        Assert.Equal(255, image.PixelData[5]);
+    }
 
-        [Fact]
-        public void Decode_MalformedMagicNumber_P7_ThrowsNotSupportedException()
-        {
-            // Arrange: unsupported magic "P7"
-            var header = Encoding.ASCII.GetBytes("P7\n1 1\n255\n");
-            using var stream = new MemoryStream(header);
+        /// <summary>
+    /// Tests that decoding a P6 image with maxval=255 preserves pixel values without scaling.
+    /// Creates a 2x2 RGB image with specific color values and verifies they remain unchanged after decoding.
+    /// </summary>
+    [Fact]
+    public void Decode_MaxVal255_ParsesWithoutScaling()
+    {
+        // Arrange: P6 with maxval=255 (standard case)
+        var header = Encoding.ASCII.GetBytes("P6\n2 2\n255\n");
+        // Pixel data: 255,0,0, 0,255,0, 0,0,255, 255,255,255
+        var pixelData = new byte[] { 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255 };
+        var streamData = new byte[header.Length + pixelData.Length];
+        Array.Copy(header, 0, streamData, 0, header.Length);
+        Array.Copy(pixelData, 0, streamData, header.Length, pixelData.Length);
+        using var stream = new MemoryStream(streamData);
 
-            // Act & Assert
-            var ex = Assert.Throws<NotSupportedException>(() => PortablePixmap.Decode(stream));
-            Assert.Contains("Unsupported pixmap magic 'P7'", ex.Message);
-        }
+        // Act
+        var image = PortablePixmap.Decode(stream);
 
-        [Fact]
-        public void Decode_MalformedMagicNumber_P4_ThrowsNotSupportedException()
-        {
-            // Arrange: unsupported magic "P4" (ASCII PBM)
-            var header = Encoding.ASCII.GetBytes("P4\n1 1\n255\n");
-            using var stream = new MemoryStream(header);
+        // Assert: should not scale, pixel data should be unchanged
+        Assert.Equal(2, image.Width);
+        Assert.Equal(2, image.Height);
+        Assert.Equal(3, image.Channels);
+        Assert.Equal(255, image.PixelData[0]);
+        Assert.Equal(0, image.PixelData[1]);
+        Assert.Equal(0, image.PixelData[2]);
+        Assert.Equal(255, image.PixelData[3]);
+        Assert.Equal(255, image.PixelData[4]);
+        Assert.Equal(255, image.PixelData[11]);
+    }
 
-            // Act & Assert
-            var ex = Assert.Throws<NotSupportedException>(() => PortablePixmap.Decode(stream));
-            Assert.Contains("Unsupported pixmap magic 'P4'", ex.Message);
-        }
+        /// <summary>
+    /// Tests that decoding a P6 image with maxval=65535 properly handles the case where
+    /// insufficient pixel data is provided, resulting in an EndOfStreamException.
+    /// Creates a header with maxval=65535 but provides insufficient pixel data.
+    /// </summary>
+    [Fact]
+    public void Decode_MaxVal65535_SupportsScaling()
+    {
+        // Arrange: P6 with maxval=65535 (16-bit, supported with scaling)
+        var header = Encoding.ASCII.GetBytes("P6\n1 1\n65535\n");
+        // Pixel data: value 32768 (half of 65535) should scale to 128
+        var pixelData = new byte[] { 0x80, 0x00, 0x00 }; // 128, 0, 0 in little endian? Wait, it's raw bytes
+        // Actually for maxval=65535, each component is 2 bytes
+        // But the current implementation only supports 8-bit, so this will fail
+        // Let me check what the actual behavior is...
+        using var stream = new MemoryStream(header);
 
-        [Fact]
-        public void Decode_MalformedMagicNumber_P2_ThrowsNotSupportedException()
-        {
-            // Arrange: unsupported magic "P2" (ASCII PGM)
-            var header = Encoding.ASCII.GetBytes("P2\n1 1\n255\n");
-            using var stream = new MemoryStream(header);
+        // Act & Assert: The current implementation will try to read 3 bytes but fail with EndOfStreamException
+        // because it expects width*height*channels = 1*1*3 = 3 bytes
+        Assert.Throws<EndOfStreamException>(() => PortablePixmap.Decode(stream));
+    }
 
-            // Act & Assert
-            var ex = Assert.Throws<NotSupportedException>(() => PortablePixmap.Decode(stream));
-            Assert.Contains("Unsupported pixmap magic 'P2'", ex.Message);
-        }
+        /// <summary>
+    /// Tests that decoding a P6 image with maxval=128 correctly scales pixel values
+    /// from the [0,128] range to the [0,255] range.
+    /// Creates a single pixel RGB (6400, 1262
+    /// </summary>
+    [Fact]
+    public void Decode_MaxVal128_SupportsScaling()
+    {
+        // Arrange: P6 with maxval=128
+        var header = Encoding.ASCII.GetBytes("P6\n1 1\n128\n");
+        // Pixel data: value 64 (half of 128) should scale to 128
+        var pixelData = new byte[] { 64, 64, 64 };
+        var streamData = new byte[header.Length + pixelData.Length];
+        Array.Copy(header, 0, streamData, 0, header.Length);
+        Array.Copy(pixelData, 0, streamData, header.Length, pixelData.Length);
+        using var stream = new MemoryStream(streamData);
 
-        [Fact]
-        public void Decode_MalformedMagicNumber_P1_ThrowsNotSupportedException()
-        {
-            // Arrange: unsupported magic "P1" (ASCII PBM)
-            var header = Encoding.ASCII.GetBytes("P1\n1 1\n255\n");
-            using var stream = new MemoryStream(header);
+        // Act
+        var image = PortablePixmap.Decode(stream);
 
-            // Act & Assert
-            var ex = Assert.Throws<NotSupportedException>(() => PortablePixmap.Decode(stream));
-            Assert.Contains("Unsupported pixmap magic 'P1'", ex.Message);
-        }
+        // Assert: should scale from [0,128] to [0,255]
+        // 64/128 = 0.5, 0.5*255 = 127.5 -> 128 (rounded)
+        Assert.Equal(1, image.Width);
+        Assert.Equal(1, image.Height);
+        Assert.Equal(3, image.Channels);
+        Assert.Equal(128, image.PixelData[0]); // 64 scaled to 128
+        Assert.Equal(128, image.PixelData[1]);
+        Assert.Equal(128, image.PixelData[2]);
+    }
 
+        /// <summary>
+    /// Tests that decoding a P6 image with an unsupported magic number "P7" throws a NotSupportedException.
+    /// Creates a header with magic number "P7" and verifies the appropriate exception is thrown.
+    /// </summary>
+    [Fact]
+    public void Decode_MalformedMagicNumber_P7_ThrowsNotSupportedException()
+    {
+        // Arrange: unsupported magic "P7"
+        var header = Encoding.ASCII.GetBytes("P7\n1 1\n255\n");
+        using var stream = new MemoryStream(header);
+
+        // Act & Assert
+        var ex = Assert.Throws<NotSupportedException>(() => PortablePixmap.Decode(stream));
+        Assert.Contains("Unsupported pixmap magic 'P7'", ex.Message);
+    }
+
+        /// <summary>
+    /// Tests that decoding a P6 image with an unsupported magic number "P4" throws a NotSupportedException.
+    /// Creates a header with magic number "P4" and verifies the appropriate exception is thrown.
+    /// </summary>
+    [Fact]
+    public void Decode_MalformedMagicNumber_P4_ThrowsNotSupportedException()
+    {
+        // Arrange: unsupported magic "P4" (ASCII PBM)
+        var header = Encoding.ASCII.GetBytes("P4\n1 1\n255\n");
+        using var stream = new MemoryStream(header);
+
+        // Act & Assert
+        var ex = Assert.Throws<NotSupportedException>(() => PortablePixmap.Decode(stream));
+        Assert.Contains("Unsupported pixmap magic 'P4'", ex.Message);
+    }
+
+        /// <summary>
+    /// Tests that decoding a P6 image with an unsupported magic number "P2" throws a NotSupportedException.
+    /// Creates a header with magic number "P2" and verifies the appropriate exception is thrown.
+    /// </summary>
+    [Fact]
+    public void Decode_MalformedMagicNumber_P2_ThrowsNotSupportedException()
+    {
+        // Arrange: unsupported magic "P2" (ASCII PGM)
+        var header = Encoding.ASCII.GetBytes("P2\n1 1\n255\n");
+        using var stream = new MemoryStream(header);
+
+        // Act & Assert
+        var ex = Assert.Throws<NotSupportedException>(() => PortablePixmap.Decode(stream));
+        Assert.Contains("Unsupported pixmap magic 'P2'", ex.Message);
+    }
+
+        /// <summary>
+    /// Tests that decoding a P6 image with an unsupported magic number "P1" throws a NotSupportedException.
+    /// Creates a header with magic number "P1" and verifies the appropriate exception is thrown.
+    /// </summary>
+    [Fact]
+    public void Decode_MalformedMagicNumber_P1_ThrowsNotSupportedException()
+    {
+        // Arrange: unsupported magic "P1" (ASCII PBM)
+        var header = Encoding.ASCII.GetBytes("P1\n1 1\n255\n");
+        using var stream = new MemoryStream(header);
+
+        // Act & Assert
+        var ex = Assert.Throws<NotSupportedException>(() => PortablePixmap.Decode(stream));
+        Assert.Contains("Unsupported pixmap magic 'P1'", ex.Message);
+    }
+
+        /// <summary>
+        /// Tests that decoding a P6 image with truncated pixel data throws an EndOfStreamException.
+        /// Creates a header indicating 2x2x3 pixels but provides only 3 bytes of pixel data instead of 12.
+        /// </summary>
+        /// <summary>
+        /// Tests that decoding a P6 image with truncated pixel data throws an EndOfStreamException.
+        /// Creates a header indicating 2x2x3 pixels but provides only 3 bytes of pixel data instead of 12.
+        /// </summary>
+        /// <summary>
+        /// Tests that decoding a P6 image with truncated pixel data throws an EndOfStreamException.
+        /// Creates a header indicating 2x2x3 pixels but provides only 3 bytes of pixel data instead of 12.
+        /// </summary>
         [Fact]
         public void Decode_TruncatedPixelData_ThrowsEndOfStreamException()
         {
@@ -342,6 +414,10 @@ namespace GpuImageProcessing.Tests.Imaging
             Assert.Throws<EndOfStreamException>(() => PortablePixmap.Decode(stream));
         }
 
+        /// <summary>
+        /// Tests that decoding a P5 image with truncated pixel data throws an EndOfStreamException.
+        /// Creates a header indicating 2x2x1 pixels but provides only 2 bytes of pixel data instead of 4.
+        /// </summary>
         [Fact]
         public void Decode_TruncatedPixelData_P5_ThrowsEndOfStreamException()
         {
@@ -358,6 +434,10 @@ namespace GpuImageProcessing.Tests.Imaging
             Assert.Throws<EndOfStreamException>(() => PortablePixmap.Decode(stream));
         }
 
+        /// <summary>
+        /// Tests that decoding a P6 image with comments in the header parses correctly.
+        /// Creates a P6 image with comments in the header, decodes it, and verifies all properties match.
+        /// </summary>
         [Fact]
         public void Decode_HeaderWithComments_ParsesCorrectly()
         {
@@ -381,6 +461,14 @@ namespace GpuImageProcessing.Tests.Imaging
             Assert.Equal(255, image.PixelData[11]);
         }
 
+        /// <summary>
+        /// Tests that decoding a P6 image with zero width returns an image with zero width.
+        /// Creates a header with width=0 and height=1, decodes it, and verifies the width is zero.
+        /// </summary>
+        /// <summary>
+        /// Tests that decoding a P6 image with zero width returns an image with zero width.
+        /// Creates a header with width=0 and height=1, decodes it, and verifies the width is zero.
+        /// </summary>
         [Fact]
         public void Decode_ZeroWidth_ReturnsImageWithZeroWidth()
         {
@@ -396,6 +484,14 @@ namespace GpuImageProcessing.Tests.Imaging
             Assert.Equal(1, image.Height);
         }
 
+        /// <summary>
+        /// Tests that decoding a P6 image with zero height returns an image with zero height.
+        /// Creates a header with width=1 and height=0, decodes it, and verifies the height is zero.
+        /// </summary>
+        /// <summary>
+        /// Tests that decoding a P6 image with zero height returns an image with zero height.
+        /// Creates a header with width=1 and height=0, decodes it, and verifies the height is zero.
+        /// </summary>
         [Fact]
         public void Decode_ZeroHeight_ReturnsImageWithZeroHeight()
         {
@@ -411,6 +507,30 @@ namespace GpuImageProcessing.Tests.Imaging
             Assert.Equal(0, image.Height);
         }
 
+        /// <summary>
+        /// Tests that decoding a P6 image with negative width throws an OverflowException.
+        /// Creates a header with negative width and verifies the appropriate exception is thrown.
+        /// </summary>
+        /// <summary>
+        /// Tests that decoding a P6 image with negative width throws an OverflowException.
+        /// Creates a header with negative width and verifies the appropriate exception is thrown.
+        /// </summary>
+        /// <summary>
+        /// Tests that decoding a P6 image with negative width throws an OverflowException.
+        /// Creates a header with negative width and verifies the appropriate exception is thrown.
+        /// </summary>
+        /// <summary>
+        /// Tests that decoding a P6 image with negative width throws an OverflowException.
+        /// Creates a header with negative width and verifies the appropriate exception is thrown.
+        /// </summary>
+        /// <summary>
+        /// Tests that decoding a P6 image with negative width throws an OverflowException.
+        /// Creates a header with negative width and verifies the appropriate exception is thrown.
+        /// </summary>
+        /// <summary>
+        /// Tests that decoding a P6 image with negative width throws an OverflowException.
+        /// Creates a header with negative width and verifies the appropriate exception is thrown.
+        /// </summary>
         [Fact]
         public void Decode_NegativeWidth_ThrowsOverflowException()
         {
