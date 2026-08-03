@@ -6336,3 +6336,40 @@ JobProcessingWorkerValidation.EnsureDependenciesValid(
     imageProcessingService,
     eventPublisher);
 ```
+
+## FilterPresetsTests
+
+The `FilterPresetsTests` class contains unit tests for the `FilterPresets` class, which provides preconfigured filter chain presets for common image processing tasks.
+
+### Key Features
+
+- Tests that each preset produces a valid filter chain with the expected steps
+- Validates that the Sharpen preset contains the expected filter sequence: 1. Color correction, 2. Sharpen
+- Validates that the Vintage preset contains the expected filter sequence: 1. Grayscale, 2. Color correction (reduced brightness), 3. Blur, 4. Sharpen
+- Validates that the Dramatic preset contains the expected filter sequence: 1. Grayscale, 2. Color correction (increased brightness), 3. Sharpen, 4. Threshold
+- Tests that all presets produce chains that can be customized after retrieval
+- Tests that all presets produce distinct chains
+- Tests that all presets produce chains with valid processing times
+
+### Usage Examples
+
+```csharp
+public void Sharpen_Preset_ProducesValidChainWithExpectedSteps()
+{
+    // Act
+    var chain = FilterPresets.Sharpen.Build();
+    
+    // Assert
+    chain.Should().NotBeNull();
+    chain.Name.Should().Be("Sharpen");
+    chain.Description.Should().Be("Enhances image detail and edges with sharpening filter");
+    chain.Steps.Should().HaveCount(2);
+    chain.Steps[0].FilterId.Should().NotBe(Guid.Empty);
+    chain.Steps[0].Order.Should().Be(0);
+    chain.Steps[0].IsEnabled.Should().BeTrue();
+    
+    chain.Steps[1].FilterId.Should().NotBe(Guid.Empty);
+    chain.Steps[1].Order.Should().Be(1);
+    chain.Steps[1].IsEnabled.Should().BeTrue();
+}
+```
