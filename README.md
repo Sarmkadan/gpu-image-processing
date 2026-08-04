@@ -6372,4 +6372,53 @@ public void Sharpen_Preset_ProducesValidChainWithExpectedSteps()
     chain.Steps[1].Order.Should().Be(1);
     chain.Steps[1].IsEnabled.Should().BeTrue();
 }
+
+## AsyncTaskQueueTests
+
+The `AsyncTaskQueueTests` class provides comprehensive unit tests for the `AsyncTaskQueue` service, ensuring reliable task management and asynchronous processing. It validates key functionalities including concurrent task execution, priority handling, event notification, and task cancellation.
+
+### Key Features
+
+- Validates basic queuing and task execution
+- Tests concurrent processing and priority ordering
+- Verifies task lifecycle events (Started, Completed, Failed)
+- Tests queue state management
+- Validates task cancellation and queue disposal
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Services;
+using System.Threading.Tasks;
+using Xunit;
+
+public class AsyncTaskQueueTestsExample
+{
+    [Fact]
+    public async Task RunQueueTests()
+    {
+        var tests = new AsyncTaskQueueTests();
+
+        // Validate basic queuing and execution
+        await tests.EnqueueTask_ShouldAddTaskToQueue();
+        await tests.EnqueueTask_ShouldExecuteTaskWhenStarted();
+
+        // Test concurrent processing and priority
+        await tests.StartAsync_ShouldProcessMultipleTasksConcurrently();
+        await tests.StartAsync_ShouldExecuteTasksInPriorityOrder();
+
+        // Verify lifecycle events
+        await tests.TaskStartedEvent_ShouldBeRaisedWhenTaskBegins();
+        await tests.TaskCompletedEvent_ShouldBeRaisedOnSuccess();
+        await tests.TaskFailedEvent_ShouldBeRaisedOnException();
+        
+        // Test state management and cancellation
+        await tests.GetStatus_ShouldReflectCurrentQueueState();
+        await tests.CancelTask_ShouldRemoveQueuedTask();
+        await tests.StartAsync_ShouldStopWhenCancellationRequested();
+        tests.Dispose_ShouldStopProcessing();
+    }
+}
+```
 ```
