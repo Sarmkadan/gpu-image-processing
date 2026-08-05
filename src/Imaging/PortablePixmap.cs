@@ -157,6 +157,9 @@ public static class PortablePixmap
         // with values from 0 to maxval (255), separated by whitespace.
         // Lines should be no longer than 768 characters for readability.
 
+        if (image.PixelData is null)
+            throw new InvalidOperationException("Image has no pixel data to write.");
+
         var header = Encoding.ASCII.GetBytes(
             $"P3\n{image.Width} {image.Height}\n255\n");
         stream.Write(header, 0, header.Length);
