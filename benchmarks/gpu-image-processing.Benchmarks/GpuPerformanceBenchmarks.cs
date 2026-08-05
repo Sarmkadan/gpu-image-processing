@@ -56,6 +56,7 @@ public class GpuPerformanceBenchmarks
     [GlobalSetup]
     public void Setup()
     {
+        _logger.LogInformation("Setup started");
         // Initialize services for benchmarking
         var serviceProvider = BenchmarkServiceProvider.CreateServiceProvider();
 
@@ -151,11 +152,13 @@ public class GpuPerformanceBenchmarks
 
         // Register test image
         _imageRepository.CreateAsync(_testImage).Wait();
+        _logger.LogInformation("Setup completed");
     }
 
     [GlobalCleanup]
     public void Cleanup()
     {
+        _logger.LogInformation("Cleanup started");
         // Clean up test data
         _imageRepository.DeleteAsync(_testImage.Id).Wait();
         _filterRepository.DeleteAsync(_gaussianBlurFilter.Id).Wait();
@@ -163,6 +166,7 @@ public class GpuPerformanceBenchmarks
         _filterRepository.DeleteAsync(_sharpenFilter.Id).Wait();
         _filterRepository.DeleteAsync(_grayscaleFilter.Id).Wait();
         _filterRepository.DeleteAsync(_customConvolutionFilter.Id).Wait();
+        _logger.LogInformation("Cleanup completed");
     }
 
     #region Single Filter Performance
@@ -176,10 +180,13 @@ public class GpuPerformanceBenchmarks
     [BenchmarkCategory("Single Filter", "Gaussian Blur")]
     public async Task<ProcessingResult> ApplyGaussianBlurFilter()
     {
-        return await _imageProcessingService.ProcessImageAsync(
+        _logger.LogInformation("ApplyGaussianBlurFilter called with image {ImageId}", _testImage.Id);
+        var result = await _imageProcessingService.ProcessImageAsync(
             _testImage.Id,
             new List<Guid> { _gaussianBlurFilter.Id }
         );
+        _logger.LogInformation("ApplyGaussianBlurFilter completed");
+        return result;
     }
 
     /// <summary>
@@ -190,10 +197,13 @@ public class GpuPerformanceBenchmarks
     [BenchmarkCategory("Single Filter", "Edge Detection")]
     public async Task<ProcessingResult> ApplyEdgeDetectionFilter()
     {
-        return await _imageProcessingService.ProcessImageAsync(
+        _logger.LogInformation("ApplyEdgeDetectionFilter called with image {ImageId}", _testImage.Id);
+        var result = await _imageProcessingService.ProcessImageAsync(
             _testImage.Id,
             new List<Guid> { _edgeDetectionFilter.Id }
         );
+        _logger.LogInformation("ApplyEdgeDetectionFilter completed");
+        return result;
     }
 
     /// <summary>
@@ -204,10 +214,13 @@ public class GpuPerformanceBenchmarks
     [BenchmarkCategory("Single Filter", "Sharpen")]
     public async Task<ProcessingResult> ApplySharpenFilter()
     {
-        return await _imageProcessingService.ProcessImageAsync(
+        _logger.LogInformation("ApplySharpenFilter called with image {ImageId}", _testImage.Id);
+        var result = await _imageProcessingService.ProcessImageAsync(
             _testImage.Id,
             new List<Guid> { _sharpenFilter.Id }
         );
+        _logger.LogInformation("ApplySharpenFilter completed");
+        return result;
     }
 
     /// <summary>
@@ -218,10 +231,13 @@ public class GpuPerformanceBenchmarks
     [BenchmarkCategory("Single Filter", "Grayscale")]
     public async Task<ProcessingResult> ApplyGrayscaleFilter()
     {
-        return await _imageProcessingService.ProcessImageAsync(
+        _logger.LogInformation("ApplyGrayscaleFilter called with image {ImageId}", _testImage.Id);
+        var result = await _imageProcessingService.ProcessImageAsync(
             _testImage.Id,
             new List<Guid> { _grayscaleFilter.Id }
         );
+        _logger.LogInformation("ApplyGrayscaleFilter completed");
+        return result;
     }
 
     /// <summary>
@@ -232,10 +248,13 @@ public class GpuPerformanceBenchmarks
     [BenchmarkCategory("Single Filter", "Custom Convolution")]
     public async Task<ProcessingResult> ApplyCustomConvolutionFilter()
     {
-        return await _imageProcessingService.ProcessImageAsync(
+        _logger.LogInformation("ApplyCustomConvolutionFilter called with image {ImageId}", _testImage.Id);
+        var result = await _imageProcessingService.ProcessImageAsync(
             _testImage.Id,
             new List<Guid> { _customConvolutionFilter.Id }
         );
+        _logger.LogInformation("ApplyCustomConvolutionFilter completed");
+        return result;
     }
 
     #endregion
@@ -251,10 +270,13 @@ public class GpuPerformanceBenchmarks
     [BenchmarkCategory("Filter Chain", "3 Filters")]
     public async Task<ProcessingResult> ApplyThreeFilterChain()
     {
-        return await _imageProcessingService.ProcessImageAsync(
+        _logger.LogInformation("ApplyThreeFilterChain called with image {ImageId}", _testImage.Id);
+        var result = await _imageProcessingService.ProcessImageAsync(
             _testImage.Id,
             new List<Guid> { _grayscaleFilter.Id, _gaussianBlurFilter.Id, _sharpenFilter.Id }
         );
+        _logger.LogInformation("ApplyThreeFilterChain completed");
+        return result;
     }
 
     /// <summary>
@@ -266,7 +288,8 @@ public class GpuPerformanceBenchmarks
     [BenchmarkCategory("Filter Chain", "5 Filters")]
     public async Task<ProcessingResult> ApplyFiveFilterChain()
     {
-        return await _imageProcessingService.ProcessImageAsync(
+        _logger.LogInformation("ApplyFiveFilterChain called with image {ImageId}", _testImage.Id);
+        var result = await _imageProcessingService.ProcessImageAsync(
             _testImage.Id,
             new List<Guid> {
                 _grayscaleFilter.Id,
@@ -276,6 +299,8 @@ public class GpuPerformanceBenchmarks
                 _customConvolutionFilter.Id
             }
         );
+        _logger.LogInformation("ApplyFiveFilterChain completed");
+        return result;
     }
 
     #endregion
@@ -290,7 +315,10 @@ public class GpuPerformanceBenchmarks
     [BenchmarkCategory("Memory", "Allocation")]
     public long CalculatePixelDataSize()
     {
-        return _testImage.CalculatePixelDataSize();
+        _logger.LogInformation("CalculatePixelDataSize called");
+        var result = _testImage.CalculatePixelDataSize();
+        _logger.LogInformation("CalculatePixelDataSize completed");
+        return result;
     }
 
     /// <summary>
@@ -301,13 +329,16 @@ public class GpuPerformanceBenchmarks
     [BenchmarkCategory("Memory", "1080p")]
     public long MemoryFootprint1080p()
     {
+        _logger.LogInformation("MemoryFootprint1080p called");
         var image = new Image
         {
             Width = 1920,
             Height = 1080,
             BitsPerPixel = 24
         };
-        return image.CalculatePixelDataSize();
+        var result = image.CalculatePixelDataSize();
+        _logger.LogInformation("MemoryFootprint1080p completed");
+        return result;
     }
 
     /// <summary>
@@ -318,13 +349,16 @@ public class GpuPerformanceBenchmarks
     [BenchmarkCategory("Memory", "4K")]
     public long MemoryFootprint4K()
     {
+        _logger.LogInformation("MemoryFootprint4K called");
         var image = new Image
         {
             Width = 3840,
             Height = 2160,
             BitsPerPixel = 24
         };
-        return image.CalculatePixelDataSize();
+        var result = image.CalculatePixelDataSize();
+        _logger.LogInformation("MemoryFootprint4K completed");
+        return result;
     }
 
     #endregion
@@ -339,6 +373,7 @@ public class GpuPerformanceBenchmarks
     [BenchmarkCategory("Throughput", "10 Images")]
     public async Task ProcessTenImages()
     {
+        _logger.LogInformation("ProcessTenImages called");
         for (int i = 0; i < 10; i++)
         {
             await _imageProcessingService.ProcessImageAsync(
@@ -346,6 +381,7 @@ public class GpuPerformanceBenchmarks
                 new List<Guid> { _gaussianBlurFilter.Id }
             );
         }
+        _logger.LogInformation("ProcessTenImages completed");
     }
 
     #endregion
@@ -360,7 +396,10 @@ public class GpuPerformanceBenchmarks
     [BenchmarkCategory("Device", "Initialization")]
     public async Task<GpuDevice?> GetBestDevice()
     {
-        return _gpuService.GetBestDevice();
+        _gpuLogger.LogInformation("GetBestDevice called");
+        var result = _gpuService.GetBestDevice();
+        _gpuLogger.LogInformation("GetBestDevice completed");
+        return result;
     }
 
     #endregion
