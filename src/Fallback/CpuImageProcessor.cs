@@ -253,7 +253,7 @@ internal static class CpuFilters
         int rgb = Math.Min(bpp, 3);
         for (int p = 0; p <= src.Length - bpp; p += bpp)
         {
-            byte y = (byte)((77 * src[p] + 150 * src[p + 1] + 29 * src[p + 2]) >> 8);
+            byte y = (byte)Math.Clamp((77 * src[p] + 150 * src[p + 1] + 29 * src[p + 2]) >> 8, 0, 255);
             for (int c = 0; c < rgb; c++) dst[p + c] = y;
             if (bpp > 3) dst[p + 3] = src[p + 3];
         }
