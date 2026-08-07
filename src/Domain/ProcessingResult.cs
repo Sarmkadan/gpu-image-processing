@@ -39,6 +39,7 @@ public class ProcessingResult
     /// </summary>
     public void Complete(string outputPath)
     {
+        ArgumentException.ThrowIfNullOrEmpty(outputPath);
         CompletedAt = DateTime.UtcNow;
         OutputPath = outputPath;
         Status = ProcessingStatus.Completed;
@@ -51,6 +52,7 @@ public class ProcessingResult
     /// </summary>
     public void Fail(string errorMessage, int errorCode = 0)
     {
+        ArgumentException.ThrowIfNullOrEmpty(errorMessage);
         CompletedAt = DateTime.UtcNow;
         ErrorMessage = errorMessage;
         ErrorCode = errorCode;
@@ -64,6 +66,7 @@ public class ProcessingResult
     /// </summary>
     public void AddFilterApplied(string filterName, FilterType filterType, double executionTimeMs)
     {
+        ArgumentException.ThrowIfNullOrEmpty(filterName);
         FiltersApplied.Add(new FilterApplied
         {
             FilterName = filterName,
