@@ -6422,3 +6422,55 @@ public class AsyncTaskQueueTestsExample
 }
 ```
 ```
+
+## DeviceInfoExtensions
+
+The `DeviceInfoExtensions` class provides a set of extension methods for the `DeviceInfo` class, facilitating easier resource management, capability evaluation, and human-readable formatting of device information. It includes utilities to check for sufficient resources, summarize device capabilities, and format complex hardware properties like memory and clock frequency.
+
+### Key Features
+
+- Check if the device has sufficient compute units and memory for specific tasks
+- Retrieve a structured summary of device capabilities
+- Format clock frequency and memory capacity for human readability
+- Generate formatted strings for capability scores and overall capabilities summaries
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Core.Models;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        // Assuming we have a DeviceInfo object
+        var deviceInfo = new DeviceInfo 
+        { 
+            Name = "NVIDIA RTX 3090",
+            DeviceType = "GPU",
+            ComputeUnits = 82,
+            ClockFrequencyMHz = 1695
+        };
+
+        // Check if device has sufficient resources for a task (e.g., 4 compute units, 1GB memory)
+        bool hasResources = deviceInfo.HasSufficientResources(4, 1024 * 1024 * 1024);
+        Console.WriteLine($"Has sufficient resources: {hasResources}");
+
+        // Get formatted device hardware information
+        Console.WriteLine($"Clock Frequency: {deviceInfo.GetFormattedClockFrequency()}");
+        Console.WriteLine($"Memory: {deviceInfo.GetFormattedMemory()}");
+
+        // Evaluate device capability score
+        Console.WriteLine($"Capability Score: {deviceInfo.GetFormattedCapabilityScore()}");
+
+        // Get a structured capability summary
+        var summary = deviceInfo.GetCapabilitySummary();
+        Console.WriteLine($"Device Name: {summary["DeviceName"]}");
+        
+        // Get full capability string
+        Console.WriteLine($"Capabilities: {deviceInfo.GetCapabilitiesSummary()}");
+    }
+}
+```
