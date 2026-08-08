@@ -103,8 +103,8 @@ public sealed class ComputeShaderPass
         ShaderPassType passType = ShaderPassType.ImageFilter,
         int priority = 0)
     {
-        if (string.IsNullOrWhiteSpace(kernelName))
-            throw new ArgumentException("Kernel name must not be empty.", nameof(kernelName));
+        ArgumentException.ThrowIfNullOrEmpty(kernelName);
+        ArgumentException.ThrowIfNullOrEmpty(kernelSource);
 
         Id = Guid.NewGuid();
         KernelName = kernelName;
