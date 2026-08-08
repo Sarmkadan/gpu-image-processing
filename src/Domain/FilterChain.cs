@@ -75,6 +75,7 @@ public class FilterChain
     /// </summary>
     public void ReorderSteps(List<Guid> filterIds)
     {
+        ArgumentNullException.ThrowIfNull(filterIds);
         if (filterIds.Count != Steps.Count)
             throw new ArgumentException("Filter list must match current step count");
 
