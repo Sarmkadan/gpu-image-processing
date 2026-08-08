@@ -124,6 +124,7 @@ public class FilterConfiguration
     /// </summary>
     public T? GetParameter<T>(string key) where T : class
     {
+        ArgumentException.ThrowIfNullOrEmpty(key);
         if (Parameters.TryGetValue(key, out var value))
             return value as T;
         return null;
@@ -134,6 +135,9 @@ public class FilterConfiguration
     /// </summary>
     public void SetParameter(string key, object value, string typeName)
     {
+        ArgumentException.ThrowIfNullOrEmpty(key);
+        ArgumentNullException.ThrowIfNull(value);
+        ArgumentException.ThrowIfNullOrEmpty(typeName);
         Parameters[key] = value;
         ParameterTypes[key] = typeName;
         ModifiedAt = DateTime.UtcNow;
