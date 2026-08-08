@@ -57,13 +57,18 @@ public sealed class FilterChainBuilder
     /// Starts building a new filter chain with the given <paramref name="name"/>.
     /// </summary>
     /// <param name="name">Human-readable name for the chain. Must not be blank.</param>
-    public static FilterChainBuilder Create(string name) => new(name);
+    public static FilterChainBuilder Create(string name)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(name);
+        return new(name);
+    }
 
     // ── Chain metadata ────────────────────────────────────────────────────────
 
     /// <summary>Sets the chain description.</summary>
     public FilterChainBuilder WithDescription(string description)
     {
+        ArgumentException.ThrowIfNullOrEmpty(description);
         _description = description ?? string.Empty;
         return this;
     }
@@ -85,6 +90,8 @@ public sealed class FilterChainBuilder
     /// </param>
     public FilterChainBuilder AllowParallelExecution(int maxParallelSteps = 0)
     {
+        if (maxParallelSteps <= 0)
+            throw new ArgumentOutOfRangeException(nameof(maxParallelSteps), "maxParallelSteps must be positive.");
         _allowParallel = true;
         _maxParallelSteps = maxParallelSteps > 0
             ? Math.Clamp(maxParallelSteps, 1, AppConstants.Processing.DefaultThreadCount * 4)
