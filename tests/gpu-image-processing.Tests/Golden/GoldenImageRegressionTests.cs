@@ -53,6 +53,8 @@ namespace GpuImageProcessing.Tests.Golden
         public async Task Filter_output_matches_golden_hash(
             string fixture, FilterType filterType, float threshold, string expectedHash)
         {
+            ArgumentException.ThrowIfNullOrEmpty(fixture);
+            ArgumentException.ThrowIfNullOrEmpty(expectedHash);
             var image = PortablePixmap.Load(System.IO.Path.Combine(FixtureDir, fixture));
             var config = new FilterConfiguration
             {
