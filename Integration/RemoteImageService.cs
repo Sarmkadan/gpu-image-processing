@@ -39,8 +39,9 @@ namespace GpuImageProcessing.Integration
         /// <summary>
         /// Registers a trusted remote source for automatic authorization
         /// </summary>
-        public void RegisterTrustedSource(string url, string apiKey = null)
+        public void RegisterTrustedSource(string url, string? apiKey = null)
         {
+            ArgumentNullException.ThrowIfNull(url);
             if (string.IsNullOrWhiteSpace(url))
             {
                 throw new ValidationException("URL cannot be null or whitespace", nameof(url));
@@ -57,11 +58,15 @@ namespace GpuImageProcessing.Integration
         /// <summary>
         /// Downloads an image from a remote URL with retry logic
         /// </summary>
-        public async Task<RemoteImageResult> DownloadImageAsync(string imageUrl, Dictionary<string, string> headers = null)
+        public async Task<RemoteImageResult> DownloadImageAsync(string? imageUrl, Dictionary<string, string>? headers = null)
         {
+            if (imageUrl == null)
+            {
+                throw new ArgumentNullException(nameof(imageUrl), "URL cannot be null");
+            }
             if (string.IsNullOrWhiteSpace(imageUrl))
             {
-                return RemoteImageResult.Failure("Image URL cannot be null or whitespace");
+                throw new ValidationException("URL cannot be null or whitespace", nameof(imageUrl));
             }
 
             if (!IsValidUrl(imageUrl))
@@ -146,10 +151,11 @@ namespace GpuImageProcessing.Integration
         /// Downloads multiple images concurrently with rate limiting
         /// </summary>
         public async Task<List<RemoteImageResult>> DownloadImagesAsync(
-            List<string> imageUrls,
+            List<string>? imageUrls,
             int maxConcurrentDownloads = 3)
         {
-            if (imageUrls == null || imageUrls.Count == 0)
+            ArgumentNullException.ThrowIfNull(imageUrls);
+            if (imageUrls.Count == 0)
             {
                 throw new ValidationException("Image URLs list cannot be null or empty", nameof(imageUrls));
             }
@@ -188,9 +194,10 @@ namespace GpuImageProcessing.Integration
         /// <summary>
         /// Validates image integrity after download
         /// </summary>
-        public bool ValidateImageData(byte[] imageData, string expectedContentType = null)
+        public bool ValidateImageData(byte[]? imageData, string? expectedContentType = null)
         {
-            if (imageData == null || imageData.Length == 0)
+            ArgumentNullException.ThrowIfNull(imageData);
+            if (imageData.Length == 0)
                 return false;
 
             // Check common image magic numbers
