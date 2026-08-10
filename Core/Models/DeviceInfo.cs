@@ -155,6 +155,7 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public bool SupportsExtension(string extensionName)
         {
+            ArgumentException.ThrowIfNullOrEmpty(extensionName);
             return Extensions.ContainsKey(extensionName) ||
                    (Extensions_String?.Contains(extensionName) ?? false);
         }
@@ -164,6 +165,8 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public void AddExtension(string extensionName, string version = "1.0")
         {
+            ArgumentException.ThrowIfNullOrEmpty(extensionName);
+            ArgumentException.ThrowIfNullOrEmpty(version);
             Extensions[extensionName] = version;
         }
     }
