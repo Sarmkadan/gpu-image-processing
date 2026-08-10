@@ -71,7 +71,9 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static double GetLatencyPercentile(List<long> latencies, double percentile)
         {
-            if (latencies == null || latencies.Count == 0)
+            ArgumentNullException.ThrowIfNull(latencies);
+
+            if (latencies.Count == 0)
                 return 0;
 
             if (percentile < 0 || percentile > 100)
@@ -87,7 +89,9 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static double GetAverageLatency(List<long> latencies)
         {
-            if (latencies == null || latencies.Count == 0)
+            ArgumentNullException.ThrowIfNull(latencies);
+
+            if (latencies.Count == 0)
                 return 0;
 
             long sum = 0;
@@ -104,7 +108,9 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static double GetMedianLatency(List<long> latencies)
         {
-            if (latencies == null || latencies.Count == 0)
+            ArgumentNullException.ThrowIfNull(latencies);
+
+            if (latencies.Count == 0)
                 return 0;
 
             return GetLatencyPercentile(latencies, 50);
@@ -168,7 +174,9 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static double CalculateStandardDeviation(List<long> values)
         {
-            if (values == null || values.Count == 0)
+            ArgumentNullException.ThrowIfNull(values);
+
+            if (values.Count == 0)
                 return 0;
 
             double average = GetAverageLatency(values);
