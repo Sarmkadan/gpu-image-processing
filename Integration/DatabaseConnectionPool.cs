@@ -34,6 +34,8 @@ namespace GpuImageProcessing.Integration
             int maxPoolSize = 20,
             int timeoutSeconds = 30)
         {
+            ArgumentException.ThrowIfNullOrEmpty(connectionString);
+
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new ValidationException(
@@ -180,10 +182,7 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public async Task ReleaseConnectionAsync(DatabaseConnection connection)
         {
-            if (connection == null)
-            {
-                throw new ValidationException("Connection cannot be null", nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
 
             try
             {
@@ -250,10 +249,7 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public async Task CloseConnectionAsync(DatabaseConnection connection)
         {
-            if (connection == null)
-            {
-                throw new ValidationException("Connection cannot be null", nameof(connection));
-            }
+            ArgumentNullException.ThrowIfNull(connection);
 
             try
             {
