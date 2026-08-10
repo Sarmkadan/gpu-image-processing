@@ -41,6 +41,8 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         public string FormatResult(ProcessingResult result)
         {
+            if (result == null)
+                throw new ArgumentNullException(nameof(result));
             var sb = new StringBuilder();
 
             sb.AppendLine(Separator);
@@ -90,6 +92,8 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         public string FormatResults(List<ProcessingResult> results)
         {
+            if (results == null)
+                throw new ArgumentNullException(nameof(results));
             var sb = new StringBuilder();
 
             sb.AppendLine(Separator);
@@ -132,6 +136,8 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         public string FormatJob(ProcessingJob job)
         {
+            if (job == null)
+                throw new ArgumentNullException(nameof(job));
             var sb = new StringBuilder();
 
             sb.AppendLine(Separator);
@@ -170,6 +176,8 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         public string FormatDevice(DeviceInfo device)
         {
+            if (device == null)
+                throw new ArgumentNullException(nameof(device));
             var sb = new StringBuilder();
 
             sb.AppendLine(Separator);
@@ -209,6 +217,7 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         public string FormatError(string errorMessage, string errorCode = null, Exception exception = null)
         {
+            ArgumentException.ThrowIfNullOrEmpty(errorMessage);
             var sb = new StringBuilder();
 
             sb.AppendLine(Separator);
