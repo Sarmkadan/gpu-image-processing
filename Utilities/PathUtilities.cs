@@ -34,6 +34,9 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static string GetRelativePath(string fromPath, string toPath)
         {
+            ArgumentException.ThrowIfNullOrEmpty(fromPath);
+            ArgumentException.ThrowIfNullOrEmpty(toPath);
+
             try
             {
                 Uri fromUri = new Uri(NormalizePath(fromPath));
@@ -249,6 +252,8 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static string GenerateUniqueFilename(string filePath)
         {
+            ArgumentException.ThrowIfNullOrEmpty(filePath);
+
             if (!File.Exists(filePath))
                 return filePath;
 
@@ -362,6 +367,8 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static string GetPathSizeInfo(string path)
         {
+            ArgumentException.ThrowIfNullOrEmpty(path);
+
             if (File.Exists(path))
             {
                 long size = new FileInfo(path).Length;
