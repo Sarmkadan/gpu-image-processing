@@ -22,12 +22,21 @@ namespace GpuImageProcessing.Formatters
 
         public string GetMimeType() => "text/markdown";
 
-        public string FormatResult(ProcessingResult result) => Format(new List<ProcessingResult> { result });
+        public string FormatResult(ProcessingResult result)
+        {
+            ArgumentNullException.ThrowIfNull(result);
+            return Format(new List<ProcessingResult> { result });
+        }
 
-        public string FormatResults(List<ProcessingResult> results) => Format(results);
+        public string FormatResults(List<ProcessingResult> results)
+        {
+            ArgumentNullException.ThrowIfNull(results);
+            return Format(results);
+        }
 
         public string FormatJob(ProcessingJob job)
         {
+            ArgumentNullException.ThrowIfNull(job);
             var md = new StringBuilder();
             md.AppendLine($"## Job: {job.Name}");
             md.AppendLine();
@@ -40,6 +49,7 @@ namespace GpuImageProcessing.Formatters
 
         public string FormatDevice(DeviceInfo device)
         {
+            ArgumentNullException.ThrowIfNull(device);
             var md = new StringBuilder();
             md.AppendLine($"## Device: {device.Name}");
             md.AppendLine();
@@ -52,6 +62,7 @@ namespace GpuImageProcessing.Formatters
 
         public string FormatError(string errorMessage, string? errorCode = null, Exception? exception = null)
         {
+            ArgumentException.ThrowIfNullOrEmpty(errorMessage);
             var md = new StringBuilder();
             md.AppendLine("## Error");
             md.AppendLine();
@@ -65,6 +76,7 @@ namespace GpuImageProcessing.Formatters
 
         public string Format(List<ProcessingResult> results)
         {
+            ArgumentNullException.ThrowIfNull(results);
             var md = new StringBuilder();
 
             md.AppendLine("# GPU Image Processing Results Report");
