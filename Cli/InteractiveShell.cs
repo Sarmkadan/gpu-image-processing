@@ -23,6 +23,7 @@ namespace GpuImageProcessing.Cli
 
         public InteractiveShell(CliParser parser)
         {
+            ArgumentNullException.ThrowIfNull(parser);
             _parser = parser;
             _handlers = new Dictionary<string, Func<ParsedCommand, Task>>(StringComparer.OrdinalIgnoreCase);
             _history = new CommandHistory();
@@ -34,6 +35,8 @@ namespace GpuImageProcessing.Cli
         /// </summary>
         public void RegisterHandler(string commandName, Func<ParsedCommand, Task> handler)
         {
+            ArgumentException.ThrowIfNullOrEmpty(commandName);
+            ArgumentNullException.ThrowIfNull(handler);
             _handlers[commandName] = handler;
         }
 
@@ -162,6 +165,7 @@ namespace GpuImageProcessing.Cli
 
         public void RegisterCommand(string name)
         {
+            ArgumentException.ThrowIfNullOrEmpty(name);
             if (!_registeredCommands.Contains(name))
                 _registeredCommands.Add(name);
         }
