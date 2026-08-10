@@ -28,6 +28,7 @@ namespace GpuImageProcessing.Api
         /// </summary>
         public RequestValidator RequireField(string fieldName, Func<object, bool> validator = null)
         {
+            ArgumentException.ThrowIfNullOrEmpty(fieldName);
             _rules.Add(new ValidationRule
             {
                 FieldName = fieldName,
@@ -45,6 +46,7 @@ namespace GpuImageProcessing.Api
             int minLength,
             int maxLength)
         {
+            ArgumentException.ThrowIfNullOrEmpty(fieldName);
             _rules.Add(new ValidationRule
             {
                 FieldName = fieldName,
@@ -69,6 +71,7 @@ namespace GpuImageProcessing.Api
             double minimum,
             double maximum)
         {
+            ArgumentException.ThrowIfNullOrEmpty(fieldName);
             _rules.Add(new ValidationRule
             {
                 FieldName = fieldName,
@@ -96,6 +99,9 @@ namespace GpuImageProcessing.Api
             Func<object, bool> validator,
             string errorMessage)
         {
+            ArgumentException.ThrowIfNullOrEmpty(fieldName);
+            ArgumentNullException.ThrowIfNull(validator);
+            ArgumentException.ThrowIfNullOrEmpty(errorMessage);
             _rules.Add(new ValidationRule
             {
                 FieldName = fieldName,
@@ -110,6 +116,7 @@ namespace GpuImageProcessing.Api
         /// </summary>
         public ValidationResult Validate(Dictionary<string, object> requestData)
         {
+            ArgumentNullException.ThrowIfNull(requestData);
             var errors = new List<string>();
 
             foreach (var rule in _rules)
@@ -142,6 +149,7 @@ namespace GpuImageProcessing.Api
         /// </summary>
         public static Dictionary<string, object> SanitizeRequest(Dictionary<string, object> requestData)
         {
+            ArgumentNullException.ThrowIfNull(requestData);
             var sanitized = new Dictionary<string, object>();
 
             foreach (var kvp in requestData)
