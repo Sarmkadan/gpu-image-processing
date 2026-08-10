@@ -134,7 +134,9 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static string GenerateOutputFilename(string inputPath, string filterName, string outputDirectory = null)
         {
+            ArgumentException.ThrowIfNullOrEmpty(filterName);
             if (string.IsNullOrWhiteSpace(inputPath))
+
                 throw new ArgumentException("Input path cannot be empty", nameof(inputPath));
 
             outputDirectory = outputDirectory ?? Path.GetDirectoryName(inputPath);
