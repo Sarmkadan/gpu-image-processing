@@ -47,6 +47,7 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public void RegisterEndpoint(string url, MetricsFormat format, string apiKey = null)
         {
+            ArgumentException.ThrowIfNullOrEmpty(url);
             _endpoints.Add(new MetricsEndpoint
             {
                 Url = url,
@@ -62,6 +63,7 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public void RecordMetric(string name, double value, Dictionary<string, string> tags = null)
         {
+            ArgumentException.ThrowIfNullOrEmpty(name);
             var metricEvent = new MetricEvent
             {
                 Name = name,
@@ -82,6 +84,7 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public void RecordTiming(string operationName, TimeSpan duration, Dictionary<string, string> tags = null)
         {
+            ArgumentException.ThrowIfNullOrEmpty(operationName);
             if (tags == null)
                 tags = new Dictionary<string, string>();
 
