@@ -23,6 +23,8 @@ namespace GpuImageProcessing.Api
 
         public static ApiResponse<T> Success(T data, string message = "Operation completed successfully")
         {
+            ArgumentNullException.ThrowIfNull(data);
+            ArgumentException.ThrowIfNullOrEmpty(message);
             return new ApiResponse<T>
             {
                 IsSuccess = true,
@@ -35,6 +37,7 @@ namespace GpuImageProcessing.Api
 
         public static ApiResponse<T> Failure(string message, T defaultData = default)
         {
+            ArgumentException.ThrowIfNullOrEmpty(message);
             return new ApiResponse<T>
             {
                 IsSuccess = false,
@@ -47,6 +50,8 @@ namespace GpuImageProcessing.Api
 
         public static ApiResponse<T> Failure(string message, List<ApiError> errors, T defaultData = default)
         {
+            ArgumentNullException.ThrowIfNull(message);
+            ArgumentNullException.ThrowIfNull(errors);
             return new ApiResponse<T>
             {
                 IsSuccess = false,
