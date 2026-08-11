@@ -81,9 +81,7 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public void SetParameter(string name, float value)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Parameter name cannot be empty", nameof(name));
-
+            ArgumentException.ThrowIfNullOrEmpty(name);
             Parameters[name] = value;
         }
 
@@ -92,6 +90,7 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public float GetParameter(string name, float defaultValue = 0f)
         {
+            ArgumentException.ThrowIfNullOrEmpty(name);
             return Parameters.TryGetValue(name, out var value) ? value : defaultValue;
         }
 
@@ -108,6 +107,7 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public bool HasParameter(string name)
         {
+            ArgumentException.ThrowIfNullOrEmpty(name);
             return Parameters.ContainsKey(name);
         }
 
