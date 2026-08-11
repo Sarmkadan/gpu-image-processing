@@ -65,6 +65,7 @@ namespace GpuImageProcessing.Core.Repository
         /// </summary>
         public async Task<IEnumerable<Image>> GetByNamePatternAsync(string pattern)
         {
+            ArgumentException.ThrowIfNullOrEmpty(pattern);
             if (string.IsNullOrWhiteSpace(pattern))
                 return new List<Image>();
 
