@@ -30,6 +30,8 @@ namespace GpuImageProcessing.Monitoring
         /// </summary>
         public void RegisterHealthCheck(string name, IHealthCheck healthCheck)
         {
+            ArgumentNullException.ThrowIfNull(healthCheck);
+
             if (string.IsNullOrEmpty(name))
                 throw new ArgumentException("Health check name cannot be empty", nameof(name));
 
@@ -96,6 +98,8 @@ namespace GpuImageProcessing.Monitoring
         /// </summary>
         public async Task<ComponentHealth> CheckComponentAsync(string componentName)
         {
+            ArgumentException.ThrowIfNullOrEmpty(componentName);
+
             IHealthCheck check;
 
             lock (_lockObject)
