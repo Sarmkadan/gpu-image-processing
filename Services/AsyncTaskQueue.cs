@@ -42,12 +42,14 @@ namespace GpuImageProcessing.Services
         /// </summary>
         public Guid EnqueueTask(Func<CancellationToken, Task> taskAction, int priority = 0, string name = null)
         {
+            ArgumentNullException.ThrowIfNull(taskAction);
+            ArgumentException.ThrowIfNullOrEmpty(name);
             var task = new QueuedTask
             {
                 Id = Guid.NewGuid(),
                 Action = taskAction,
                 Priority = priority,
-                Name = name ?? $"Task_{Guid.NewGuid().ToString().Substring(0, 8)}",
+                Name = name,
                 EnqueuedAt = DateTime.UtcNow,
                 State = TaskState.Queued
             };
