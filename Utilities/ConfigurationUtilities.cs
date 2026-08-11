@@ -21,6 +21,7 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static string GetConfigValue(string key, string defaultValue = null)
         {
+            ArgumentException.ThrowIfNullOrEmpty(key);
             return Environment.GetEnvironmentVariable(key) ?? defaultValue;
         }
 
@@ -29,6 +30,7 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static int GetConfigInteger(string key, int defaultValue)
         {
+            ArgumentException.ThrowIfNullOrEmpty(key);
             string value = Environment.GetEnvironmentVariable(key);
             if (string.IsNullOrEmpty(value) || !int.TryParse(value, out int result))
                 return defaultValue;
@@ -42,6 +44,7 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static bool GetConfigBoolean(string key, bool defaultValue)
         {
+            ArgumentException.ThrowIfNullOrEmpty(key);
             string value = Environment.GetEnvironmentVariable(key);
             if (string.IsNullOrEmpty(value))
                 return defaultValue;
@@ -55,6 +58,7 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static double GetConfigDouble(string key, double defaultValue)
         {
+            ArgumentException.ThrowIfNullOrEmpty(key);
             string value = Environment.GetEnvironmentVariable(key);
             if (string.IsNullOrEmpty(value) || !double.TryParse(value, out double result))
                 return defaultValue;
@@ -223,6 +227,7 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static Dictionary<string, string> BuildConfigurationDictionary(IConfiguration configuration)
         {
+            ArgumentNullException.ThrowIfNull(configuration);
             var dict = new Dictionary<string, string>();
 
             if (configuration == null)
@@ -252,6 +257,7 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static (bool isValid, List<string> missingKeys) ValidateRequiredConfiguration(params string[] requiredKeys)
         {
+            ArgumentNullException.ThrowIfNull(requiredKeys);
             var missingKeys = new List<string>();
 
             foreach (var key in requiredKeys)
