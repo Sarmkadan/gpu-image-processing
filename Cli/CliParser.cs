@@ -28,8 +28,11 @@ namespace GpuImageProcessing.Cli
         /// <summary>
         /// Registers a command with its options and description
         /// </summary>
-        public void RegisterCommand(string name, string description, Action<CommandBuilder> builder)
+        public void RegisterCommand(string? name, string description, Action<CommandBuilder> builder)
         {
+            ArgumentException.ThrowIfNullOrEmpty(name);
+            ArgumentException.ThrowIfNullOrEmpty(description);
+            ArgumentNullException.ThrowIfNull(builder);
             var cmdBuilder = new CommandBuilder(name, description);
             builder(cmdBuilder);
             _commands[name] = cmdBuilder.Build();
@@ -40,6 +43,9 @@ namespace GpuImageProcessing.Cli
         /// </summary>
         public void RegisterGlobalOption(string name, string shortForm, string description, bool requiresValue = false)
         {
+            ArgumentException.ThrowIfNullOrEmpty(name);
+            ArgumentException.ThrowIfNullOrEmpty(shortForm);
+            ArgumentException.ThrowIfNullOrEmpty(description);
             _globalOptions.Add(new OptionDefinition
             {
                 LongForm = name,
@@ -54,7 +60,8 @@ namespace GpuImageProcessing.Cli
         /// </summary>
         public ParsedCommand Parse(string[] args)
         {
-            if (args == null || args.Length == 0)
+            ArgumentNullException.ThrowIfNull(args);
+            if (args.Length == 0)
                 return ParsedCommand.Empty();
 
             var commandName = args[0];
