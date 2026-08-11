@@ -89,6 +89,7 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public void MarkFailed(string errorMessage)
         {
+            ArgumentException.ThrowIfNullOrEmpty(errorMessage);
             Status = ProcessingStatus.Failed;
             ErrorMessage = errorMessage;
             CompletedAt = DateTime.UtcNow;
@@ -164,6 +165,8 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public void AddMetadata(string key, string value)
         {
+            ArgumentException.ThrowIfNullOrEmpty(key);
+            ArgumentException.ThrowIfNullOrEmpty(value);
             JobMetadata[key] = value;
         }
 
