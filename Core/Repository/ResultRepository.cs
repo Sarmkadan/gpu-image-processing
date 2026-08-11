@@ -22,6 +22,8 @@ namespace GpuImageProcessing.Core.Repository
         /// </summary>
         public async Task<IEnumerable<ProcessingResult>> GetByJobAsync(Guid jobId)
         {
+            if (jobId == null)
+                throw new ArgumentNullException(nameof(jobId));
             return await Task.FromResult(
                 _entities.Where(r => r.JobId == jobId).ToList()
             );
@@ -32,6 +34,8 @@ namespace GpuImageProcessing.Core.Repository
         /// </summary>
         public async Task<IEnumerable<ProcessingResult>> GetByImageAsync(Guid imageId)
         {
+            if (imageId == null)
+                throw new ArgumentNullException(nameof(imageId));
             return await Task.FromResult(
                 _entities.Where(r => r.ImageId == imageId)
                     .OrderByDescending(r => r.ProcessedAt).ToList()
@@ -43,6 +47,8 @@ namespace GpuImageProcessing.Core.Repository
         /// </summary>
         public async Task<IEnumerable<ProcessingResult>> GetSuccessfulAsync()
         {
+            if (_entities == null)
+                throw new ArgumentNullException(nameof(_entities));
             return await Task.FromResult(
                 _entities.Where(r => r.IsSuccessful).ToList()
             );
@@ -64,6 +70,8 @@ namespace GpuImageProcessing.Core.Repository
         /// </summary>
         public async Task<IEnumerable<ProcessingResult>> GetProcessedBetweenAsync(DateTime startDate, DateTime endDate)
         {
+            if (startDate == null || endDate == null)
+                throw new ArgumentNullException(nameof(startDate) + " or " + nameof(endDate));
             return await Task.FromResult(
                 _entities.Where(r => r.ProcessedAt >= startDate && r.ProcessedAt <= endDate)
                     .OrderByDescending(r => r.ProcessedAt).ToList()
@@ -75,6 +83,7 @@ namespace GpuImageProcessing.Core.Repository
         /// </summary>
         public async Task<IEnumerable<ProcessingResult>> GetByAppliedFilterAsync(string filterName)
         {
+            ArgumentException.ThrowIfNullOrEmpty(filterName);
             return await Task.FromResult(
                 _entities.Where(r => r.AppliedFilters.Contains(filterName)).ToList()
             );
@@ -85,6 +94,8 @@ namespace GpuImageProcessing.Core.Repository
         /// </summary>
         public async Task<IEnumerable<ProcessingResult>> GetSlowProcessingAsync(float minTimeMs = 1000)
         {
+            if (minTimeMs == null)
+                throw new ArgumentNullException(nameof(minTimeMs));
             return await Task.FromResult(
                 _entities.Where(r => r.ProcessingTimeMs >= minTimeMs)
                     .OrderByDescending(r => r.ProcessingTimeMs).ToList()
@@ -177,6 +188,8 @@ namespace GpuImageProcessing.Core.Repository
         /// </summary>
         public async Task<int> ClearOldResultsAsync(DateTime beforeDate)
         {
+            if (beforeDate == null)
+                throw new ArgumentNullException(nameof(beforeDate));
             var resultsToRemove = _entities.Where(r => r.ProcessedAt < beforeDate).ToList();
 
             foreach (var result in resultsToRemove)
