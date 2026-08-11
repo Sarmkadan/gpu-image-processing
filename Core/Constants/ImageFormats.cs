@@ -74,8 +74,9 @@ namespace GpuImageProcessing.Core.Constants
         /// <summary>
         /// Determines the format from file extension
         /// </summary>
-        public static ImageFormat FromExtension(string extension)
+        public static ImageFormat FromExtension(string? extension)
         {
+            ArgumentException.ThrowIfNullOrEmpty(extension);
             return extension?.ToLowerInvariant() switch
             {
                 ".jpg" or ".jpeg" => ImageFormat.Jpeg,
