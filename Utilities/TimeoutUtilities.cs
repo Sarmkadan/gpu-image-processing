@@ -24,6 +24,9 @@ namespace GpuImageProcessing.Utilities
             TimeSpan timeout,
             string operationName = "Operation")
         {
+            ArgumentNullException.ThrowIfNull(operation);
+            ArgumentException.ThrowIfNullOrEmpty(operationName);
+
             using (var cts = new CancellationTokenSource(timeout))
             {
                 try
@@ -46,6 +49,9 @@ namespace GpuImageProcessing.Utilities
             TimeSpan timeout,
             string operationName = "Operation")
         {
+            ArgumentNullException.ThrowIfNull(operation);
+            ArgumentException.ThrowIfNullOrEmpty(operationName);
+
             using (var cts = new CancellationTokenSource(timeout))
             {
                 try
@@ -69,6 +75,8 @@ namespace GpuImageProcessing.Utilities
             int maxRetries = 5,
             TimeSpan? initialDelay = null)
         {
+            ArgumentNullException.ThrowIfNull(operation);
+
             var deadline = DateTime.UtcNow + timeout;
             var delay = initialDelay ?? TimeSpan.FromMilliseconds(100);
             var lastException = (Exception)null;
@@ -118,6 +126,8 @@ namespace GpuImageProcessing.Utilities
             TimeSpan timeout,
             TimeSpan? pollInterval = null)
         {
+            ArgumentNullException.ThrowIfNull(condition);
+
             var deadline = DateTime.UtcNow + timeout;
             var poll = pollInterval ?? TimeSpan.FromMilliseconds(100);
 
@@ -163,6 +173,8 @@ namespace GpuImageProcessing.Utilities
             TimeSpan timeout,
             params CancellationToken[] tokens)
         {
+            ArgumentNullException.ThrowIfNull(tokens);
+
             var cts = new CancellationTokenSource(timeout);
 
             if (tokens.Length > 0)
