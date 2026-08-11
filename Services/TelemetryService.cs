@@ -35,6 +35,8 @@ namespace GpuImageProcessing.Services
         /// </summary>
         public void RecordEvent(string eventName, Dictionary<string, object> properties = null, string severity = "info")
         {
+            ArgumentException.ThrowIfNullOrEmpty(eventName);
+            ArgumentException.ThrowIfNullOrEmpty(severity);
             lock (_lockObject)
             {
                 var telemetryEvent = new TelemetryEvent
@@ -59,6 +61,7 @@ namespace GpuImageProcessing.Services
         /// </summary>
         public TimingToken StartTiming(string operationName)
         {
+            ArgumentException.ThrowIfNullOrEmpty(operationName);
             return new TimingToken(operationName, this);
         }
 
@@ -99,6 +102,7 @@ namespace GpuImageProcessing.Services
         /// </summary>
         public void IncrementCounter(string counterName, int value = 1)
         {
+            ArgumentException.ThrowIfNullOrEmpty(counterName);
             lock (_lockObject)
             {
                 if (!_counters.TryGetValue(counterName, out var counter))
@@ -117,6 +121,7 @@ namespace GpuImageProcessing.Services
         /// </summary>
         public void SetGauge(string gaugeName, double value)
         {
+            ArgumentException.ThrowIfNullOrEmpty(gaugeName);
             lock (_lockObject)
             {
                 if (!_counters.TryGetValue(gaugeName, out var counter))
@@ -135,6 +140,7 @@ namespace GpuImageProcessing.Services
         /// </summary>
         public OperationStats GetOperationStats(string operationName)
         {
+            ArgumentException.ThrowIfNullOrEmpty(operationName);
             var key = $"timing_{operationName}";
 
             lock (_lockObject)
