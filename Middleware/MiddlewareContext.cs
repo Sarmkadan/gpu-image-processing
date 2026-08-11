@@ -35,6 +35,7 @@ namespace GpuImageProcessing.Middleware
 
         public void SetSuccess(object data, int statusCode = 200)
         {
+            if (data == null) throw new ArgumentNullException(nameof(data));
             IsSuccessful = true;
             ResponseData = data;
             ResponseStatusCode = statusCode;
@@ -43,6 +44,7 @@ namespace GpuImageProcessing.Middleware
 
         public void SetError(string message, int statusCode = 500)
         {
+            if (string.IsNullOrEmpty(message)) throw new ArgumentException("Message cannot be null or empty.", nameof(message));
             IsSuccessful = false;
             ErrorMessage = message;
             ResponseStatusCode = statusCode;
