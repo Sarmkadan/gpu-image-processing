@@ -83,6 +83,8 @@ namespace GpuImageProcessing.Middleware
         /// </summary>
         public void SetParameter(string key, object value)
         {
+            ArgumentException.ThrowIfNullOrEmpty(key);
+            ArgumentNullException.ThrowIfNull(value);
             Parameters[key] = value;
         }
 
@@ -91,6 +93,7 @@ namespace GpuImageProcessing.Middleware
         /// </summary>
         public T GetParameter<T>(string key, T defaultValue = default)
         {
+            ArgumentException.ThrowIfNullOrEmpty(key);
             if (Parameters.TryGetValue(key, out var value))
             {
                 return value is T typed ? typed : defaultValue;
@@ -103,6 +106,8 @@ namespace GpuImageProcessing.Middleware
         /// </summary>
         public void SetState(string key, object value)
         {
+            ArgumentException.ThrowIfNullOrEmpty(key);
+            ArgumentNullException.ThrowIfNull(value);
             State[key] = value;
         }
 
@@ -111,6 +116,7 @@ namespace GpuImageProcessing.Middleware
         /// </summary>
         public T GetState<T>(string key, T defaultValue = default)
         {
+            ArgumentException.ThrowIfNullOrEmpty(key);
             if (State.TryGetValue(key, out var value))
             {
                 return value is T typed ? typed : defaultValue;
