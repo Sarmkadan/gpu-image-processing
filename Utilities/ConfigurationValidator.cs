@@ -21,6 +21,7 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static ConfigurationValidationResult ValidateConfiguration(Dictionary<string, string> config, params string[] requiredKeys)
         {
+            ArgumentNullException.ThrowIfNull(requiredKeys);
             var missingKeys = new List<string>();
 
             foreach (var key in requiredKeys)
@@ -48,6 +49,7 @@ namespace GpuImageProcessing.Utilities
             int maximum,
             string parameterName)
         {
+            ArgumentException.ThrowIfNullOrEmpty(parameterName);
             if (!int.TryParse(value, out var intValue))
                 return ConfigurationValidationResult.Failure($"{parameterName} must be a valid integer");
 
@@ -68,6 +70,7 @@ namespace GpuImageProcessing.Utilities
             TimeSpan maximum,
             string parameterName = "Timeout")
         {
+            ArgumentNullException.ThrowIfNull(nameof(parameterName));
             if (timeout < minimum)
                 return ConfigurationValidationResult.Failure(
                     $"{parameterName} ({timeout.TotalSeconds:F1}s) is below minimum ({minimum.TotalSeconds:F1}s)"
@@ -121,6 +124,7 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static ConfigurationValidationResult ValidateUrl(string url)
         {
+            ArgumentException.ThrowIfNullOrEmpty(url);
             if (string.IsNullOrWhiteSpace(url))
                 return ConfigurationValidationResult.Failure("URL cannot be empty");
 
@@ -138,6 +142,7 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static ConfigurationValidationResult ValidateEnvironmentVariable(string variableName, bool required = true)
         {
+            ArgumentNullException.ThrowIfNull(variableName);
             var value = Environment.GetEnvironmentVariable(variableName);
 
             if (string.IsNullOrWhiteSpace(value))
