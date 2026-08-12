@@ -23,8 +23,7 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static ValidationResult ValidateFilterParameters(FilterType filterType, Dictionary<string, object> parameters)
         {
-            if (parameters == null)
-                return ValidationResult.Success();
+            ArgumentNullException.ThrowIfNull(parameters);
 
             return filterType switch
             {
@@ -123,8 +122,7 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static bool IsSafeFilePath(string filePath)
         {
-            if (string.IsNullOrWhiteSpace(filePath))
-                return false;
+            ArgumentException.ThrowIfNullOrEmpty(filePath);
 
             // Check for path traversal attempts
             if (filePath.Contains(".."))
@@ -153,8 +151,7 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static ValidationResult ValidateStringParameter(string value, string parameterName, int minLength = 1, int maxLength = int.MaxValue)
         {
-            if (string.IsNullOrWhiteSpace(value))
-                return ValidationResult.Failure($"{parameterName} cannot be empty");
+            ArgumentException.ThrowIfNullOrEmpty(value);
 
             if (value.Length < minLength)
                 return ValidationResult.Failure($"{parameterName} must be at least {minLength} characters");
