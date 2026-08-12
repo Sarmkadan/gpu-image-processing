@@ -26,6 +26,7 @@ public class PerformanceMonitoringService
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _currentMetrics = new PerformanceMetrics();
+        _logger.LogInformation("Initializing PerformanceMonitoringService");
     }
 
     /// <summary>
@@ -59,6 +60,7 @@ public class PerformanceMonitoringService
             _currentMetrics.MemoryUsedBytes = memoryBytes;
             _currentMetrics.GpuMemoryUsedBytes = gpuMemoryBytes;
             _currentMetrics.GpuUtilizationPercent = gpuUtilization;
+            _logger.LogInformation("Updated system metrics: CPU {CpuPercent}%, Memory {MemoryBytes}B, GPU Memory {GpuMemoryBytes}B, GPU Utilization {GpuUtilization}%", cpuPercent, memoryBytes, gpuMemoryBytes, gpuUtilization);
         }
     }
 
@@ -71,6 +73,7 @@ public class PerformanceMonitoringService
         {
             _currentMetrics.ImagePixelsProcessedPerSecond = pixelsPerSecond;
             _currentMetrics.ThroughputMegabytesPerSecond = megabytesPerSecond;
+            _logger.LogInformation("Updated throughput metrics: {PixelsPerSecond} pixels/s, {MegabytesPerSecond} MB/s", pixelsPerSecond, megabytesPerSecond);
         }
     }
 
