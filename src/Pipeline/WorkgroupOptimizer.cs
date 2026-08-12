@@ -51,10 +51,11 @@ public sealed class WorkgroupOptimizer : IWorkgroupOptimizer
     /// <param name="logger">Logger for diagnostic output.</param>
     /// <param name="enableCache">Whether to enable caching (enabled by default).</param>
     public WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger, bool enableCache = true)
-    {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _cache = new WorkgroupOptimizationCache(logger as ILogger<WorkgroupOptimizationCache> ?? throw new ArgumentNullException(nameof(logger)));
-    }
+        {
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _cache = new WorkgroupOptimizationCache(logger as ILogger<WorkgroupOptimizationCache> ?? throw new ArgumentNullException(nameof(logger)));
+            _logger.LogInformation("Initializing {WorkgroupOptimizer}", nameof(WorkgroupOptimizer));
+        }
 
     // Power-of-two tile dimensions probed during layout search.
     private static readonly int[] TileSizes = [4, 8, 16, 32];
