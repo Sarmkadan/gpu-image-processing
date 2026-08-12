@@ -38,6 +38,12 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static float CalculatePeakPerformance(int computeUnits, int clockFrequencyMhz, int computePerCore = 64)
         {
+            if (computeUnits == null)
+                throw new ArgumentNullException(nameof(computeUnits));
+            if (clockFrequencyMhz == null)
+                throw new ArgumentNullException(nameof(clockFrequencyMhz));
+            if (computePerCore == null)
+                throw new ArgumentNullException(nameof(computePerCore));
             // Simplification: 64 FLOPs per core per clock
             return (computeUnits * clockFrequencyMhz * computePerCore) / 1000f;
         }
@@ -72,6 +78,12 @@ namespace GpuImageProcessing.Utilities
             long requiredMemoryBytes,
             float safetyMargin = 0.2f)
         {
+            if (availableMemoryBytes == null)
+                throw new ArgumentNullException(nameof(availableMemoryBytes));
+            if (requiredMemoryBytes == null)
+                throw new ArgumentNullException(nameof(requiredMemoryBytes));
+            if (safetyMargin == null)
+                throw new ArgumentNullException(nameof(safetyMargin));
             var safeAvailableMemory = (long)(availableMemoryBytes * (1 - safetyMargin));
             return safeAvailableMemory >= requiredMemoryBytes;
         }
