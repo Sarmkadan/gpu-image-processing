@@ -68,6 +68,7 @@ namespace GpuImageProcessing.Formatters
             {
                 foreach (var result in results)
                 {
+                    if (result == null) throw new ArgumentNullException(nameof(result));
                     long durationMs = (long)((result.CompletionTime - result.StartTime)?.TotalMilliseconds ?? 0);
                     sb.AppendLine($"\"{result.Id}\",\"{result.JobId}\",\"{result.ImageId}\",\"{result.Status}\",\"{result.StartTime:O}\",\"{result.CompletionTime:O}\",{durationMs},\"{EscapeCsvValue(result.OutputImagePath)}\"");
                 }
@@ -81,17 +82,15 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         public string FormatJob(ProcessingJob job)
         {
+            ArgumentNullException.ThrowIfNull(job);
             var sb = new StringBuilder();
 
             // Header
             sb.AppendLine("JobID,Name,Status,TotalImages,ProcessedImages,FailedImages,CompletionPercent,CreatedAt,StartedAt,CompletedAt");
 
             // Data
-            if (job != null)
-            {
-                double completionPercent = (job.ProcessedImages / (double)job.TotalImages) * 100;
-                sb.AppendLine($"\"{job.Id}\",\"{EscapeCsvValue(job.Name)}\",\"{job.Status}\",{job.TotalImages},{job.ProcessedImages},{job.FailedImages},{completionPercent:F2},\"{job.CreatedAt:O}\",\"{job.StartedAt:O}\",\"{job.CompletedAt:O}\"");
-            }
+            double completionPercent = (job.ProcessedImages / (double)job.TotalImages) * 100;
+            sb.AppendLine($"\"{job.Id}\",\"{EscapeCsvValue(job.Name)}\",\"{job.Status}\",{job.TotalImages},{job.ProcessedImages},{job.FailedImages},{completionPercent:F2},\"{job.CreatedAt:O}\",\"{job.StartedAt:O}\",\"{job.CompletedAt:O}\"");
 
             return sb.ToString();
         }
@@ -101,17 +100,15 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         public string FormatDevice(DeviceInfo device)
         {
+            ArgumentNullException.ThrowIfNull(device);
             var sb = new StringBuilder();
 
             // Header
             sb.AppendLine("DeviceID,Name,Type,Vendor,MemoryBytes,MemoryGB,ComputeUnits,Available,DriverVersion");
 
             // Data
-            if (device != null)
-            {
-                double memoryGb = device.MemoryBytes / (1024.0 * 1024.0 * 1024.0);
-                sb.AppendLine($"{device.Id},\"{EscapeCsvValue(device.Name)}\",\"{device.Type}\",\"{EscapeCsvValue(device.Vendor)}\",{device.MemoryBytes},{memoryGb:F2},{device.ComputeUnits},{device.IsAvailable},\"{EscapeCsvValue(device.DriverVersion)}\"");
-            }
+            double memoryGb = device.MemoryBytes / (1024.0 * 1024.0 * 1024.0);
+            sb.AppendLine($"{device.Id},\"{EscapeCsvValue(device.Name)}\",\"{device.Type}\",\"{EscapeCsvValue(device.Vendor)}\",{device.MemoryBytes},{memoryGb:F2},{device.ComputeUnits},{device.IsAvailable},\"{EscapeCsvValue(device.DriverVersion)}\"");
 
             return sb.ToString();
         }
@@ -121,6 +118,7 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         public string FormatError(string errorMessage, string errorCode = null, Exception exception = null)
         {
+            ArgumentNullException.ThrowIfNull(errorMessage);
             var sb = new StringBuilder();
 
             // Header
@@ -151,9 +149,10 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         public string FormatStatistics(Dictionary<string, object> statistics)
         {
+            ArgumentNullException.ThrowIfNull(statistics);
             var sb = new StringBuilder();
 
-            if (statistics == null || statistics.Count == 0)
+            if (statistics.Count == 0)
                 return sb.ToString();
 
             // Header
