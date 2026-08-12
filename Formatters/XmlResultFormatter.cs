@@ -69,6 +69,7 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         public string FormatResults(List<ProcessingResult> results)
         {
+            ArgumentNullException.ThrowIfNull(results);
             var root = new XElement("ProcessingResults");
 
             if (results != null)
@@ -161,6 +162,7 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         public string FormatError(string errorMessage, string errorCode = null, Exception exception = null)
         {
+            ArgumentException.ThrowIfNullOrEmpty(errorMessage);
             var root = new XElement("Error",
                 new XElement("Code", errorCode ?? "UNKNOWN_ERROR"),
                 new XElement("Message", errorMessage),
