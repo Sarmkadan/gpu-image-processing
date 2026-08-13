@@ -19,6 +19,7 @@ public class BatchProcessingServiceTests
 	private readonly Mock<ImageProcessingService> _processingServiceMock;
 	private readonly Mock<ImageRepository> _imageRepositoryMock;
 	private readonly Mock<ILogger<BatchProcessingService>> _loggerMock;
+	private readonly ILogger<BatchProcessingServiceTests> _logger = Microsoft.Extensions.Logging.Abstractions.NullLogger<BatchProcessingServiceTests>.Instance;
 	private readonly BatchProcessingService _sut;
 
 	/// <summary>
@@ -43,6 +44,7 @@ public class BatchProcessingServiceTests
 			_processingServiceMock.Object,
 			_imageRepositoryMock.Object,
 			_loggerMock.Object);
+		_logger.LogInformation("BatchProcessingServiceTests initialized");
 	}
 
 	/// <summary>
@@ -99,6 +101,7 @@ public class BatchProcessingServiceTests
 	[Fact]
 	public async Task ProcessBatchAsync_ValidBatch_ReturnsCompletedBatch()
 	{
+		_logger.LogInformation("ProcessBatchAsync_ValidBatch_ReturnsCompletedBatch called");
 		// Arrange
 		var batch = CreateValidBatch();
 		var result = new ProcessingResult { ImageId = batch.ImageIds[0], IsSuccessful = true };
@@ -114,6 +117,7 @@ public class BatchProcessingServiceTests
 		processed.Status.Should().Be(ProcessingStatus.Completed);
 		processed.ProcessedImages.Should().Be(3);
 		processed.FailedImages.Should().Be(0);
+		_logger.LogInformation("ProcessBatchAsync_ValidBatch_ReturnsCompletedBatch completed");
 	}
 
 	/// <summary>
