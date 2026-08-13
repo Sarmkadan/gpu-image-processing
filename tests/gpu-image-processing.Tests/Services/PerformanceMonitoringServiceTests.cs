@@ -18,6 +18,7 @@ public class PerformanceMonitoringServiceTests
 {
     private readonly Mock<ILogger<PerformanceMonitoringService>> _loggerMock;
     private readonly PerformanceMonitoringService _sut;
+    private ILogger<PerformanceMonitoringService> _logger => _loggerMock.Object;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="PerformanceMonitoringServiceTests"/> class.
@@ -49,6 +50,7 @@ public class PerformanceMonitoringServiceTests
     [Fact]
     public void RecordOperation_SuccessfulOperation_RecordsMetrics()
     {
+        _logger.LogInformation("Test {TestName} started", nameof(RecordOperation_SuccessfulOperation_RecordsMetrics));
         // Act
         _sut.RecordOperation(100, true);
         var metrics = _sut.GetCurrentMetrics();
@@ -140,6 +142,7 @@ public class PerformanceMonitoringServiceTests
     [Fact]
     public void UpdateSystemMetrics_UpdatesCpuAndMemoryMetrics()
     {
+        _logger.LogInformation("Test {TestName} started", nameof(UpdateSystemMetrics_UpdatesCpuAndMemoryMetrics));
         // Act
         _sut.UpdateSystemMetrics(cpuPercent: 75.5, memoryBytes: 2_000_000_000, gpuMemoryBytes: 1_000_000_000, gpuUtilization: 85.0);
         var metrics = _sut.GetCurrentMetrics();
