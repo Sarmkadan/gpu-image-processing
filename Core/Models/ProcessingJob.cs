@@ -182,5 +182,15 @@ namespace GpuImageProcessing.Core.Models
         {
             return FilterIds.Count + TransformIds.Count;
         }
+
+        /// <summary>
+        /// Returns a concise string representation of the processing job.
+        /// </summary>
+        public override string ToString()
+        {
+            var imageIds = string.Join(\", \", ImageIds);
+            var filterIds = string.Join(\", \", FilterIds);
+            return $"ProcessingJob {{ Id = {Id}, Name = {Name}, Description = {Description}, Status = {Status}, ImageIds = [{imageIds}], FilterIds = [{filterIds}] }}";
+        }
     }
 }
