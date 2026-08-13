@@ -145,8 +145,11 @@ public class ImageProcessingService
     /// <returns>The latest <see cref="ProcessingResult"/>, or <c>null</c> if the image has not been processed.</returns>
     public async Task<ProcessingResult?> GetProcessingResultAsync(Guid imageId, CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Retrieving processing result for image {ImageId}", imageId);
         var results = await _resultRepository.GetByImageIdAsync(imageId, cancellationToken);
-        return results.OrderByDescending(r => r.StartedAt).FirstOrDefault();
+        var result = results.OrderByDescending(r => r.StartedAt).FirstOrDefault();
+        _logger.LogInformation("Retrieved {ResultCount} results for image {ImageId}", results.Count(), imageId);
+        return result;
     }
 
     /// <summary>
@@ -160,9 +163,11 @@ public class ImageProcessingService
     /// </returns>
     public async Task<Dictionary<string, object>> GetStatisticsAsync(CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation("Retrieving statistics");
         var totalImages = await _imageRepository.CountAsync(cancellationToken);
         var results = (await _resultRepository.GetAllAsync(cancellationToken)).ToList();
         var successfulResults = results.Where(r => r.IsSuccessful).ToList();
+        _logger.LogInformation("Retrieved statistics for {TotalImages} images, with {ProcessedCount} processed", totalImages, results.Count);
 
         return new Dictionary<string, object>
         {
