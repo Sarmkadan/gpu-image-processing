@@ -132,6 +132,7 @@ public class BatchProcessingPipelineTests
     [Fact]
     public async Task RunAsync_AllImagesSucceed_ReturnsFullSuccessResult()
     {
+        _loggerMock.Object.LogInformation("Starting test {TestName}", nameof(RunAsync_AllImagesSucceed_ReturnsFullSuccessResult));
         var batch = CreateValidBatch(imageCount: 3);
         try
         {
@@ -154,6 +155,7 @@ public class BatchProcessingPipelineTests
             if (Directory.Exists(batch.OutputDirectory))
                 Directory.Delete(batch.OutputDirectory);
         }
+        _loggerMock.Object.LogInformation("Finished test {TestName}", nameof(RunAsync_AllImagesSucceed_ReturnsFullSuccessResult));
     }
 
     /// <summary>
@@ -163,6 +165,7 @@ public class BatchProcessingPipelineTests
     [Fact]
     public async Task RunAsync_AllImagesFail_ReturnsFullFailureResult()
     {
+        _loggerMock.Object.LogInformation("Starting test {TestName}", nameof(RunAsync_AllImagesFail_ReturnsFullFailureResult));
         var batch = CreateValidBatch(imageCount: 2);
         try
         {
@@ -179,11 +182,17 @@ public class BatchProcessingPipelineTests
             result.SucceededCount.Should().Be(0);
             result.SuccessRate.Should().Be(0.0);
         }
+        catch (Exception ex)
+        {
+            _loggerMock.Object.LogError(ex, "Test {TestName} failed unexpectedly", nameof(RunAsync_AllImagesFail_ReturnsFullFailureResult));
+            throw;
+        }
         finally
         {
             if (Directory.Exists(batch.OutputDirectory))
                 Directory.Delete(batch.OutputDirectory);
         }
+        _loggerMock.Object.LogInformation("Finished test {TestName}", nameof(RunAsync_AllImagesFail_ReturnsFullFailureResult));
     }
 
     /// <summary>
