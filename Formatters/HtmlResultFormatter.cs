@@ -22,12 +22,21 @@ namespace GpuImageProcessing.Formatters
 
         public string GetMimeType() => "text/html";
 
-        public string FormatResult(ProcessingResult result) => Format(new List<ProcessingResult> { result });
+        public string FormatResult(ProcessingResult result)
+        {
+            ArgumentNullException.ThrowIfNull(result);
+            return Format(new List<ProcessingResult> { result });
+        }
 
-        public string FormatResults(List<ProcessingResult> results) => Format(results);
+        public string FormatResults(List<ProcessingResult> results)
+        {
+            ArgumentNullException.ThrowIfNull(results);
+            return Format(results);
+        }
 
         public string FormatJob(ProcessingJob job)
         {
+            ArgumentNullException.ThrowIfNull(job);
             var html = new StringBuilder();
             html.AppendLine("<div class=\"job\">");
             html.AppendLine($"  <h2>Job: {job.Name}</h2>");
@@ -41,6 +50,7 @@ namespace GpuImageProcessing.Formatters
 
         public string FormatDevice(DeviceInfo device)
         {
+            ArgumentNullException.ThrowIfNull(device);
             var html = new StringBuilder();
             html.AppendLine("<div class=\"device\">");
             html.AppendLine($"  <h2>Device: {device.Name}</h2>");
@@ -54,6 +64,7 @@ namespace GpuImageProcessing.Formatters
 
         public string FormatError(string errorMessage, string? errorCode = null, Exception? exception = null)
         {
+            ArgumentException.ThrowIfNullOrEmpty(errorMessage);
             var html = new StringBuilder();
             html.AppendLine("<div class=\"error-report\">");
             html.AppendLine($"  <h2>Error</h2>");
@@ -68,6 +79,7 @@ namespace GpuImageProcessing.Formatters
 
         public string Format(List<ProcessingResult> results)
         {
+            ArgumentNullException.ThrowIfNull(results);
             var html = new StringBuilder();
 
             html.AppendLine("<!DOCTYPE html>");
