@@ -21,6 +21,11 @@ public class GpuManagementServiceTests
 	private readonly Mock<ILogger<GpuManagementService>> _loggerMock;
 
 	/// <summary>
+	/// Logger for the test class itself
+	/// </summary>
+	private readonly ILogger<GpuManagementServiceTests> _logger = Microsoft.Extensions.Logging.Abstractions.NullLogger<GpuManagementServiceTests>.Instance;
+
+	/// <summary>
 	/// System under test - the GPU management service instance
 	/// </summary>
 	private readonly GpuManagementService _sut;
@@ -29,6 +34,7 @@ public class GpuManagementServiceTests
 	{
 		_loggerMock = new Mock<ILogger<GpuManagementService>>();
 		_sut = new GpuManagementService(_loggerMock.Object);
+		_logger.LogInformation("GpuManagementServiceTests initialized");
 	}
 
 	/// <summary>
@@ -77,11 +83,13 @@ public class GpuManagementServiceTests
 	[Fact]
 	public void GetAvailableDevices_AlwaysContainsAtLeastOneDevice()
 	{
+		_logger.LogInformation("GetAvailableDevices_AlwaysContainsAtLeastOneDevice called");
 		// Act
 		var devices = _sut.GetAvailableDevices();
 
 		// Assert
 		devices.Should().NotBeEmpty();
+		_logger.LogInformation("GetAvailableDevices_AlwaysContainsAtLeastOneDevice completed with {DeviceCount} devices", devices.Count());
 	}
 
 	/// <summary>
@@ -90,12 +98,14 @@ public class GpuManagementServiceTests
 	[Fact]
 	public void GetBestDevice_ReturnsDeviceWithHighestPerformanceScore()
 	{
+		_logger.LogInformation("GetBestDevice_ReturnsDeviceWithHighestPerformanceScore called");
 		// Act
 		var bestDevice = _sut.GetBestDevice();
 
 		// Assert
 		bestDevice.Should().NotBeNull();
 		bestDevice!.IsAvailable.Should().BeTrue();
+		_logger.LogInformation("GetBestDevice_ReturnsDeviceWithHighestPerformanceScore completed with device {DeviceId}", bestDevice.Id);
 	}
 
 	/// <summary>
@@ -165,6 +175,7 @@ public class GpuManagementServiceTests
 	[Fact]
 	public void AllocateMemory_SufficientMemory_ReturnsTrue()
 	{
+		_logger.LogInformation("AllocateMemory_SufficientMemory_ReturnsTrue called");
 		// Arrange
 		var device = _sut.GetBestDevice();
 		var availableMemory = device!.GetAvailableMemory();
@@ -172,6 +183,7 @@ public class GpuManagementServiceTests
 
 		// Act
 		var allocated = _sut.AllocateMemory(allocateBytes, device.Id);
+		_logger.LogInformation("AllocateMemory_SufficientMemory_ReturnsTrue completed with allocation result {AllocationResult}", allocated);
 
 		// Assert
 		allocated.Should().BeTrue();
