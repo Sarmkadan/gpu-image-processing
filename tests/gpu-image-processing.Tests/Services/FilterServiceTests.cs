@@ -60,6 +60,7 @@ public class FilterServiceTests
     [Fact]
     public async Task ApplyFilterAsync_FilterNotFound_ThrowsInvalidFilterException()
     {
+        _loggerMock.Object.LogInformation("Starting test {TestName}", nameof(ApplyFilterAsync_FilterNotFound_ThrowsInvalidFilterException));
         // Arrange
         var image = CreateValidImage();
         var nonExistentId = Guid.NewGuid();
@@ -69,6 +70,7 @@ public class FilterServiceTests
 
         // Assert
         await act.Should().ThrowAsync<InvalidFilterException>();
+        _loggerMock.Object.LogInformation("Finished test {TestName}", nameof(ApplyFilterAsync_FilterNotFound_ThrowsInvalidFilterException));
     }
 
     /// <summary>
@@ -77,6 +79,7 @@ public class FilterServiceTests
     [Fact]
     public async Task ApplyFilterAsync_InactiveFilter_ThrowsInvalidFilterException()
     {
+        _loggerMock.Object.LogInformation("Starting test {TestName}", nameof(ApplyFilterAsync_InactiveFilter_ThrowsInvalidFilterException));
         // Arrange
         var image = CreateValidImage();
         var config = CreateFilterConfig("Inactive Blur", FilterType.Blur, isActive: false);
@@ -88,6 +91,7 @@ public class FilterServiceTests
         // Assert
         var assertion = await act.Should().ThrowAsync<InvalidFilterException>();
         assertion.Which.Message.Should().Contain("not active");
+        _loggerMock.Object.LogInformation("Finished test {TestName}", nameof(ApplyFilterAsync_InactiveFilter_ThrowsInvalidFilterException));
     }
 
     /// <summary>
@@ -96,6 +100,7 @@ public class FilterServiceTests
     [Fact]
     public async Task ApplyFilterAsync_GrayscaleFilter_SetsColorSpaceToGrayscale()
     {
+        _loggerMock.Object.LogInformation("Starting test {TestName}", nameof(ApplyFilterAsync_GrayscaleFilter_SetsColorSpaceToGrayscale));
         // Arrange
         var image = CreateValidImage(ColorSpace.Rgb);
         var config = CreateFilterConfig("Grayscale", FilterType.Grayscale);
@@ -107,6 +112,7 @@ public class FilterServiceTests
         // Assert
         result.ColorSpace.Should().Be(ColorSpace.Grayscale);
         result.BitsPerPixel.Should().Be(8);
+        _loggerMock.Object.LogInformation("Finished test {TestName}", nameof(ApplyFilterAsync_GrayscaleFilter_SetsColorSpaceToGrayscale));
     }
 
     /// <summary>
@@ -115,12 +121,14 @@ public class FilterServiceTests
     [Fact]
     public async Task CreateFilterAsync_NullConfig_ThrowsArgumentNullException()
     {
+        _loggerMock.Object.LogInformation("Starting test {TestName}", nameof(CreateFilterAsync_NullConfig_ThrowsArgumentNullException));
         // Act
         var act = async () => await _sut.CreateFilterAsync(null!);
 
         // Assert
         var assertion = await act.Should().ThrowAsync<ArgumentNullException>();
         assertion.Which.ParamName.Should().Be("config");
+        _loggerMock.Object.LogInformation("Finished test {TestName}", nameof(CreateFilterAsync_NullConfig_ThrowsArgumentNullException));
     }
 
     /// <summary>
@@ -129,6 +137,7 @@ public class FilterServiceTests
     [Fact]
     public async Task CreateFilterAsync_InvalidConfig_ThrowsInvalidFilterException()
     {
+        _loggerMock.Object.LogInformation("Starting test {TestName}", nameof(CreateFilterAsync_InvalidConfig_ThrowsInvalidFilterException));
         // Arrange — FilterType.None always fails Validate()
         var config = new FilterConfiguration
         {
@@ -142,6 +151,7 @@ public class FilterServiceTests
 
         // Assert
         await act.Should().ThrowAsync<InvalidFilterException>();
+        _loggerMock.Object.LogInformation("Finished test {TestName}", nameof(CreateFilterAsync_InvalidConfig_ThrowsInvalidFilterException));
     }
 
     /// <summary>
@@ -150,6 +160,7 @@ public class FilterServiceTests
     [Fact]
     public async Task GetFiltersByTypeAsync_MultipleTypesStored_ReturnsOnlyMatchingType()
     {
+        _loggerMock.Object.LogInformation("Starting test {TestName}", nameof(GetFiltersByTypeAsync_MultipleTypesStored_ReturnsOnlyMatchingType));
         // Arrange
         await _repository.CreateAsync(CreateFilterConfig("Blur A", FilterType.Blur));
         await _repository.CreateAsync(CreateFilterConfig("Sharpen A", FilterType.Sharpen));
@@ -161,5 +172,6 @@ public class FilterServiceTests
         // Assert
         results.Should().HaveCount(1);
         results.Should().OnlyContain(f => f.FilterType == FilterType.Blur);
+        _loggerMock.Object.LogInformation("Finished test {TestName}", nameof(GetFiltersByTypeAsync_MultipleTypesStored_ReturnsOnlyMatchingType));
     }
 }
