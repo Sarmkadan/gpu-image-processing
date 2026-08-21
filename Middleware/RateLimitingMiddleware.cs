@@ -45,6 +45,8 @@ namespace GpuImageProcessing.Middleware
             _config = config ?? new RateLimitConfig();
             _tokenBucket = new TokenBucket(_config.MaxTokens, _config.RefillRate);
             _semaphore = new SemaphoreSlim(_config.MaxConcurrentOperations);
+            _logger.LogInformation("Initializing RateLimitingMiddleware with config: MaxTokens={MaxTokens}, RefillRate={RefillRate}, TokenCost={TokenCost}, MaxConcurrentOperations={MaxConcurrentOperations}",
+                _config.MaxTokens, _config.RefillRate, _config.TokenCost, _config.MaxConcurrentOperations);
         }
 
         /// <summary>
