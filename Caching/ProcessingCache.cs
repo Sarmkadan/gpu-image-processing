@@ -25,6 +25,7 @@ namespace GpuImageProcessing.Caching
 
         public ProcessingCache(ILogger<ProcessingCache> logger, int maxEntries = 1000, TimeSpan? defaultTtl = null)
         {
+            _logger.LogInformation("ProcessingCache initialized with MaxEntries: {MaxEntries}, DefaultTTL: {DefaultTtl}", maxEntries, defaultTtl ?? TimeSpan.FromHours(1));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _maxEntries = maxEntries;
             _defaultTtl = defaultTtl ?? TimeSpan.FromHours(1);
