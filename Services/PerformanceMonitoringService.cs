@@ -46,11 +46,8 @@ namespace GpuImageProcessing.Services
 
                 metric.RecordMeasurement(durationMs);
 
-                _logger.LogDebug(
-                    "Metric recorded - Operation: {Operation}, Duration: {DurationMs}ms, Count: {Count}",
-                    operationName,
-                    durationMs,
-                    metric.MeasurementCount);
+                _logger.LogInformation("Metric recorded - Operation: {Operation}, Duration: {DurationMs}ms, Count: {Count}", operationName, durationMs, metric.MeasurementCount);
+                _logger.LogInformation("Metric recorded - Operation: {Operation}, Duration: {DurationMs}ms, Count: {Count}", operationName, durationMs, metric.MeasurementCount);
             }
         }
 
