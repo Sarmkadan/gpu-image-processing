@@ -55,6 +55,7 @@ public class WorkgroupOptimizerTests
     /// </summary>
     public void Compute_WithTypicalPowerOfTwoDimensions_ReturnsValidConfiguration()
     {
+        _loggerMock.Object.LogInformation("Starting test {TestName}", nameof(Compute_WithTypicalPowerOfTwoDimensions_ReturnsValidConfiguration));
         // Arrange
         int width = 1024;
         int height = 1024;
@@ -72,6 +73,7 @@ public class WorkgroupOptimizerTests
         config.IsValidForDevice(_testDevice.LocalMemoryBytes).Should().BeTrue();
         config.OptimizationScore.Should().BeGreaterThan(0);
         config.EstimatedOccupancy.Should().BeInRange(0.0, 1.0);
+        _loggerMock.Object.LogInformation("Finished test {TestName}", nameof(Compute_WithTypicalPowerOfTwoDimensions_ReturnsValidConfiguration));
     }
 
     [Fact]
