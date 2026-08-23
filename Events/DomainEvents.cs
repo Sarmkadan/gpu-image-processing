@@ -21,6 +21,8 @@ namespace GpuImageProcessing.Events
         public int Width { get; set; }
         public int Height { get; set; }
         public string Description { get; set; }
+
+        public override string ToString() => $"ImageRegisteredEvent {{ ImageId = {ImageId}, ImagePath = {ImagePath}, Width = {Width}, Height = {Height}, Description = {Description} }}";
     }
 
     public class FilterAppliedEvent : DomainEvent
