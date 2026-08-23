@@ -5,6 +5,7 @@
 // =============================================================================
 
 using GpuImageProcessing.Core;
+using GpuImageProcessing.Exceptions;
 
 namespace GpuImageProcessing.Configuration;
 
@@ -38,33 +39,31 @@ public class AppSettings
     /// <summary>
     /// Validates application settings.
     /// </summary>
-    public bool Validate()
+    public void Validate()
     {
         if (string.IsNullOrWhiteSpace(ApplicationName))
-            return false;
+            throw new ConfigurationException("Invalid application name", "ApplicationName", ApplicationName);
 
         if (MaxConcurrentOperations < 1 || MaxConcurrentOperations > 128)
-            return false;
+            throw new ConfigurationException("Invalid concurrent operations count", "MaxConcurrentOperations", MaxConcurrentOperations.ToString());
 
         if (OperationTimeoutMs < 100)
-            return false;
+            throw new ConfigurationException("Invalid operation timeout", "OperationTimeoutMs", OperationTimeoutMs.ToString());
 
         if (MaxBatchSize < 1 || MaxBatchSize > AppConstants.Processing.MaxBatchSize)
-            return false;
+            throw new ConfigurationException("Invalid batch size", "MaxBatchSize", MaxBatchSize.ToString());
 
         if (MaxMemoryPerImage <= 0)
-            return false;
+            throw new ConfigurationException("Invalid max memory per image", "MaxMemoryPerImage", MaxMemoryPerImage.ToString());
 
         if (MaxTotalGpuMemory <= 0)
-            return false;
+            throw new ConfigurationException("Invalid total GPU memory", "MaxTotalGpuMemory", MaxTotalGpuMemory.ToString());
 
         if (CacheExpirMinutes < 1)
-            return false;
+            throw new ConfigurationException("Invalid cache expiration", "CacheExpirMinutes", CacheExpirMinutes.ToString());
 
         if (!SupportedImageFormats.Any())
-            return false;
-
-        return true;
+            throw new ConfigurationException("No supported image formats configured", "SupportedImageFormats", string.Join(", ", SupportedImageFormats));
     }
 
     /// <summary>

@@ -59,6 +59,7 @@ public static class DependencyInjectionExtensions
         // Register configuration
         var appSettings = new AppSettings();
         configuration.GetSection(AppSettings.SectionName).Bind(appSettings);
+        appSettings.Validate();
         services.AddSingleton(appSettings);
 
         return services;
