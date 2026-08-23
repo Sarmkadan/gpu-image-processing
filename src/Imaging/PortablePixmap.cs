@@ -27,18 +27,38 @@ namespace GpuImageProcessing.Imaging;
 /// </summary>
 public static class PortablePixmap
 {
-    /// <summary>File extensions recognised as portable pixmaps.</summary>
+    /// <summary>
+    /// File extensions recognised as portable pixmaps.
+    /// </summary>
+    /// <remarks>
+    /// Supports the Netpbm format family:
+    /// <list type="bullet">
+    /// <item><term>.ppm</term><description>Portable Pixmap (P3 ASCII RGB, P6 Binary RGB).</description></item>
+    /// <item><term>.pgm</term><description>Portable Graymap (P5 Binary Grayscale).</description></item>
+    /// </list>
+    /// These are simple, dependency-free image formats ideal for golden-image regression tests.
+    /// </remarks>
     public static readonly string[] Extensions =[".ppm", ".pgm"];
 
     /// <summary>
-    /// PPM/PGM format variants supported by this class.
+    /// PPM/PGM format variants supported for encoding/decoding.
     /// </summary>
+    /// <remarks>
+    /// <list type="bullet">
+    /// <item><term>P6</term><description>Binary RGB (Portable Pixmap).</description></item>
+    /// <item><term>P5</term><description>Binary Grayscale (Portable Graymap).</description></item>
+    /// <item><term>P3</term><description>ASCII RGB (Portable Pixmap).</description></item>
+    /// </list>
+    /// </remarks>
     public enum PpmFormat
     {
         /// <summary>Binary P6 format (24-bit RGB PPM).</summary>
         P6,
 
-        /// <summary>ASCII P3 format (768-column plain text PPM).</summary>
+        /// <summary>Binary P5 format (8-bit grayscale PGM).</summary>
+        P5,
+
+        /// <summary>ASCII P3 format (plain text RGB PPM).</summary>
         P3
     }
 
