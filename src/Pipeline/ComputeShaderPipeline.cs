@@ -23,6 +23,15 @@ namespace GpuImageProcessing.Pipeline;
 /// workgroup optimisation, per-pass profiling, and GPU memory lifecycle management.
 /// </summary>
 /// <remarks>
+/// This class implements <see cref="IComputeShaderPipeline"/> and provides
+/// the following key features:
+/// <list type="bullet">
+/// <item><description>Automatic workgroup optimization using <see cref="IWorkgroupOptimizer"/></description></item>
+/// <item><description>Per-pass profiling with detailed telemetry</description></item>
+/// <item><description>GPU memory management with safe disposal patterns</description></item>
+/// </list>
+/// </remarks>
+/// <remarks>
 /// <para>
 /// Before each pipeline run the engine sorts passes by <see cref="ComputeShaderPass.Priority"/>,
 /// calls <see cref="IWorkgroupOptimizer"/> for any pass that has not yet been optimised,
