@@ -177,6 +177,15 @@ namespace GpuImageProcessing.Events
             }
         }
 
+        /// <summary>
+        /// Returns a concise, informative representation of this <see cref="EventAggregator"/>.
+        /// </summary>
+        public override string ToString()
+        {
+            var stats = GetStats();
+            return $"EventAggregator {{ TotalEventTypes = {stats.TotalEventTypes}, TotalSubscriptions = {stats.TotalSubscriptions} }}";
+        }
+
         internal void Unsubscribe(EventSubscription subscription)
         {
             _subscriptionLock.EnterWriteLock();
