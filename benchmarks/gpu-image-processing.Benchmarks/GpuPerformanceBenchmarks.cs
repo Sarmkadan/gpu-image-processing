@@ -402,7 +402,9 @@ public class GpuPerformanceBenchmarks
         return result;
     }
 
-    #endregion
+    public override string ToString() => $"GpuPerformanceBenchmarks {{ ImageWidth = {ImageWidth}, ImageHeight = {ImageHeight} }}";
+
+#endregion
 }
 
 /// <summary>
