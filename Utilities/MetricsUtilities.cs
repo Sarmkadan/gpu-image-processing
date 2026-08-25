@@ -192,6 +192,8 @@ namespace GpuImageProcessing.Utilities
         public double P99 { get; set; }
         public double StdDev { get; set; }
         public double Sum { get; set; }
+
+        public override string ToString() => $"StatisticalMetrics {{ Count = {Count}, Min = {Min}, Max = {Max}, Mean = {Mean}, Median = {Median}, P95 = {P95} }}";
     }
 
     public class Histogram
