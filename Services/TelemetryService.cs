@@ -240,6 +240,34 @@ namespace GpuImageProcessing.Services
             }
         }
 
+        /// <summary>
+        /// Returns a concise summary of the telemetry metrics recorded by this service.
+        /// </summary>
+        public override string ToString()
+        {
+            lock (_lockObject)
+            {
+                long count = 0;
+                long successCount = 0;
+                long failureCount = 0;
+                double totalMilliseconds = 0;
+                double minMilliseconds = 0;
+
+                foreach (var counter in _counters.Values)
+                {
+                    count += counter.Count;
+                    successCount += counter.SuccessCount;
+                    failureCount += counter.FailureCount;
+                    totalMilliseconds += counter.TotalMilliseconds;
+
+                    if (counter.MinMilliseconds > 0 && (minMilliseconds == 0 || counter.MinMilliseconds < minMilliseconds))
+                        minMilliseconds = counter.MinMilliseconds;
+                }
+
+                return $"TelemetryService {{ Name = TelemetryService, Count = {count}, SuccessCount = {successCount}, FailureCount = {failureCount}, TotalMilliseconds = {totalMilliseconds:F2}, MinMilliseconds = {minMilliseconds:F2} }}";
+            }
+        }
+
         private class PerformanceCounter
         {
             public string Name { get; set; }
