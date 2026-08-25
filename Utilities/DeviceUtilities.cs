@@ -196,5 +196,7 @@ namespace GpuImageProcessing.Utilities
         public MemoryPressureLevel PressureLevel { get; set; }
         public bool IsMemoryConstrained { get; set; }
         public int RecommendedBatchSize { get; set; }
+
+        public override string ToString() => $"MemoryPressureAnalysis {{ TotalMemoryBytes = {TotalMemoryBytes}, UsedMemoryBytes = {UsedMemoryBytes}, FreeMemoryBytes = {FreeMemoryBytes}, UsagePercent = {UsagePercent}, PressureLevel = {PressureLevel}, IsMemoryConstrained = {IsMemoryConstrained} }}";
     }
 }
