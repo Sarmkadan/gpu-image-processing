@@ -48,6 +48,8 @@ public class FilterConfiguration
         MaxThreadsPerBlock = 256;
     }
 
+    public override string ToString() => $"FilterConfiguration {{ Id = {Id}, Name = {Name}, FilterType = {FilterType}, Description = {Description}, Parameters = {Parameters}, ParameterTypes = {ParameterTypes} }}";
+
     /// <summary>
     /// Validates filter configuration parameters.
     /// </summary>
