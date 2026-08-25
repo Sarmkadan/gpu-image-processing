@@ -151,6 +151,22 @@ namespace GpuImageProcessing.Services
 
             return slowOps;
         }
+
+        public override string ToString()
+        {
+            lock (_lockObject)
+            {
+                if (_metrics.Count == 0)
+                    return "SystemPerformanceMonitoringService { }";
+
+                // Get the first metric for demonstration purposes
+                // In a real scenario, you might want to aggregate or show summary info
+                var firstMetric = _metrics.First().Value;
+                var stats = firstMetric.GetStatistics();
+
+                return $"SystemPerformanceMonitoringService {{ OperationName = {stats.OperationName}, OperationName = {stats.OperationName}, TotalMeasurements = {stats.TotalMeasurements}, MinMs = {stats.MinMs}, MaxMs = {stats.MaxMs}, AverageMs = {stats.AverageMs} }}";
+            }
+        }
     }
 
     /// <summary>
