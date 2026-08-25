@@ -34,6 +34,8 @@ public class ProcessingResult
         Status = ProcessingStatus.Pending;
     }
 
+    public override string ToString() => $"ProcessingResult {{ Id = {Id}, ImageId = {ImageId}, OutputPath = {OutputPath}, Status = {Status}, StartedAt = {StartedAt}, CompletedAt = {CompletedAt} }}";
+
     /// <summary>
     /// Completes the processing result.
     /// </summary>
