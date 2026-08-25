@@ -125,6 +125,8 @@ public sealed class ComputeShaderPass
         WorkgroupConfiguration is not null &&
         InputImages.Count > 0 &&
         OutputImage is not null;
+
+    public override string ToString() => $"ComputeShaderPass {{ WorkgroupConfiguration = {WorkgroupConfiguration}, OutputImage = {OutputImage} }}";
 }
 
 /// <summary>
