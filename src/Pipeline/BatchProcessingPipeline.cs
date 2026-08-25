@@ -42,6 +42,10 @@ public sealed class BatchProcessingPipeline
     /// </summary>
     public event EventHandler<BatchPipelineProgressEventArgs>? ProgressChanged;
 
+    /// <inheritdoc />
+    public override string ToString() =>
+        $"BatchProcessingPipeline {{ MaxConcurrency = {_options.MaxConcurrency}, MaxRetries = {_options.MaxRetries}, RetryBaseDelayMs = {_options.RetryBaseDelayMs} }}";
+
     /// <summary>
     /// Initialises a new <see cref="BatchProcessingPipeline"/>.
     /// </summary>
