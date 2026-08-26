@@ -21,6 +21,19 @@ namespace GpuImageProcessing.Core.Repository
     public class ImageRepository : GenericRepository<Image>
     {
         /// <summary>
+        /// Returns a concise representation of the repository's image statistics
+        /// </summary>
+        public override string ToString()
+        {
+            var count = _entities.Count;
+            var totalStorageBytes = _entities.Sum(i => i.FileSizeBytes);
+            var averageFileSize = count > 0 ? _entities.Average(i => i.FileSizeBytes) : 0;
+            var averageWidth = count > 0 ? _entities.Average(i => i.Width) : 0;
+
+            return $"ImageRepository {{ TotalImages = {count}, ProcessedImages = {_entities.Count(i => i.IsProcessed)}, UnprocessedImages = {_entities.Count(i => !i.IsProcessed)}, TotalStorageBytes = {totalStorageBytes}, AverageFileSize = {averageFileSize}, AverageWidth = {averageWidth} }}";
+        }
+
+        /// <summary>
         /// Gets all images in a specific format
         /// </summary>
         public async Task<IEnumerable<Image>> GetByFormatAsync(ImageFormat format)
