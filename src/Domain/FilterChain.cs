@@ -26,6 +26,8 @@ public class FilterChain
     public int MaxParallelSteps { get; set; }
     public bool CacheIntermediateResults { get; set; }
 
+    public override string ToString() => $"FilterChain {{ Id = {Id}, Name = {Name}, Description = {Description}, Steps = {Steps}, IsEnabled = {IsEnabled}, ExecutionOrder = {ExecutionOrder} }}";
+
     public FilterChain()
     {
         Id = Guid.NewGuid();
