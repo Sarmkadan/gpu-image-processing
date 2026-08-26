@@ -24,6 +24,13 @@ namespace GpuImageProcessing.Integration
         private readonly TimeSpan _timeout;
         private readonly List<RemoteImageSource> _trustedSources;
 
+        public string Url { get; set; }
+        public string ApiKey { get; set; }
+        public DateTime RegisteredAt { get; set; }
+        public byte[] ImageData { get; set; }
+        public string ContentType { get; set; }
+        public long SizeBytes { get; set; }
+
         public RemoteImageService(
             HttpClient httpClient = null,
             int maxRetries = 3,
@@ -35,6 +42,8 @@ namespace GpuImageProcessing.Integration
             _httpClient.Timeout = _timeout;
             _trustedSources = new List<RemoteImageSource>();
         }
+
+        public override string ToString() => $"RemoteImageService {{ Url = {Url}, ApiKey = {ApiKey}, RegisteredAt = {RegisteredAt}, ImageData = {ImageData}, ContentType = {ContentType}, SizeBytes = {SizeBytes} }}";
 
         /// <summary>
         /// Registers a trusted remote source for automatic authorization
