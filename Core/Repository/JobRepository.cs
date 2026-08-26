@@ -21,6 +21,21 @@ namespace GpuImageProcessing.Core.Repository
     public class JobRepository : GenericRepository<ProcessingJob>
     {
         /// <summary>
+        /// Returns a concise representation of the repository's job statistics
+        /// </summary>
+        public override string ToString()
+        {
+            var totalJobs = _entities.Count;
+            var pendingJobs = _entities.Count(j => j.Status == ProcessingStatus.Pending);
+            var runningJobs = _entities.Count(j => j.Status == ProcessingStatus.Running);
+            var completedJobs = _entities.Count(j => j.Status == ProcessingStatus.Completed);
+            var failedJobs = _entities.Count(j => j.Status == ProcessingStatus.Failed);
+            var cancelledJobs = _entities.Count(j => j.Status == ProcessingStatus.Cancelled);
+
+            return $"JobRepository {{ TotalJobs = {totalJobs}, PendingJobs = {pendingJobs}, RunningJobs = {runningJobs}, CompletedJobs = {completedJobs}, FailedJobs = {failedJobs}, CancelledJobs = {cancelledJobs} }}";
+        }
+
+        /// <summary>
         /// Gets all jobs with a specific status
         /// </summary>
         public async Task<IEnumerable<ProcessingJob>> GetByStatusAsync(ProcessingStatus status)
