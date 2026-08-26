@@ -47,6 +47,8 @@ namespace GpuImageProcessing.Core.Models
             set => GlobalMemoryBytes = value;
         }
 
+        public override string ToString() => $"DeviceInfo {{ Id = {Id}, Name = {Name}, Vendor = {Vendor}, DeviceType = {DeviceType}, GlobalMemoryBytes = {GlobalMemoryBytes}, LocalMemoryBytes = {LocalMemoryBytes} }}";
+
         /// <summary>
         /// Initializes a new instance of the DeviceInfo class
         /// </summary>
