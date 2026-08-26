@@ -31,6 +31,8 @@ namespace GpuImageProcessing.Core.Models
         public DateTime ModifiedAt { get; set; }
         public bool IsDefault { get; set; } = false;
 
+        public override string ToString() => $"ProcessingProfile {{ Id = {Id}, Name = {Name}, Description = {Description}, UseGPUAcceleration = {UseGPUAcceleration}, MaxParallelOperations = {MaxParallelOperations}, BatchSize = {BatchSize} }}";
+
         /// <summary>
         /// Initializes a new instance of the ProcessingProfile class
         /// </summary>
