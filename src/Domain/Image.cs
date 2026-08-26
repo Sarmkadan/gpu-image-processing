@@ -118,4 +118,10 @@ public class Image
     /// Gets total pixel count.
     /// </summary>
     public long GetPixelCount() => (long)Width * Height;
+
+    /// <summary>
+    /// Returns a concise, informative representation of the image.
+    /// </summary>
+    public override string ToString() =>
+        $"Image {{ Id = {Id}, FilePath = {FilePath}, FileName = {FileName}, Format = {Format}, ColorSpace = {ColorSpace}, Width = {Width} }}";
 }
