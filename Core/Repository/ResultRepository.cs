@@ -199,6 +199,26 @@ namespace GpuImageProcessing.Core.Repository
 
             return await Task.FromResult(resultsToRemove.Count);
         }
+
+        public override string ToString()
+        {
+            var successfulResults = _entities.Where(r => r.IsSuccessful).ToList();
+            var failedResults = _entities.Where(r => !r.IsSuccessful).ToList();
+
+            double successRate = _entities.Count > 0
+                ? (successfulResults.Count / (double)_entities.Count) * 100
+                : 0;
+
+            float averageProcessingTimeMs = successfulResults.Count > 0
+                ? successfulResults.Average(r => r.ProcessingTimeMs)
+                : 0;
+
+            float fastestProcessingMs = successfulResults.Count > 0
+                ? successfulResults.Min(r => r.ProcessingTimeMs)
+                : 0;
+
+            return $"ResultRepository {{ TotalResults = {_entities.Count}, SuccessfulResults = {successfulResults.Count}, FailedResults = {failedResults.Count}, SuccessRate = {successRate:F1}%, AverageProcessingTimeMs = {averageProcessingTimeMs:F1}ms, FastestProcessingMs = {fastestProcessingMs:F1}ms }}";
+        }
     }
 
     /// <summary>
