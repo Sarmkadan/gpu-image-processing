@@ -159,4 +159,5 @@ public class ImageBatch
 
         return TimeSpan.FromSeconds(estimatedSeconds);
     }
+    public override string ToString() => $"ImageBatch {{ Id = {Id}, Name = {Name}, Description = {Description}, ImageIds = {ImageIds}, Status = {Status}, CreatedAt = {CreatedAt} }}";
 }
