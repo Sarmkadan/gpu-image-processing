@@ -32,6 +32,11 @@ namespace GpuImageProcessing.Core.Models
         }
 
         /// <summary>
+        /// Returns a string representation of the parameter
+        /// </summary>
+        public override string ToString() => $"FilterParameter {{ Id = {Id}, Name = {Name}, Value = {Value}, Min = {Min}, Max = {Max}, Type = {Type} }}";
+
+        /// <summary>
         /// Validates if the current value is within the allowed range
         /// </summary>
         public bool IsValid()
