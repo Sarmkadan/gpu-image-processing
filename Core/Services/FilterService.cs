@@ -32,6 +32,22 @@ namespace GpuImageProcessing.Core.Services
         }
 
         /// <summary>
+        /// Returns a concise representation of the service's filter statistics
+        /// </summary>
+        public override string ToString()
+        {
+            var filters = _filterRepository.GetAllAsync().GetAwaiter().GetResult().ToList();
+
+            var totalFilters = filters.Count;
+            var activeFilters = filters.Count(f => f.IsActive);
+            var filterTypes = filters.DistinctBy(f => f.Type).Count();
+            var customFilters = filters.Count(f => f.Type == FilterType.Custom);
+            var parameterCount = filters.Sum(f => f.Parameters.Count);
+
+            return $"FilterService {{ TotalFilters = {totalFilters}, ActiveFilters = {activeFilters}, FilterTypes = {filterTypes}, CustomFilters = {customFilters}, ParameterCount = {parameterCount} }}";
+        }
+
+        /// <summary>
         /// Creates and stores a new filter
         /// </summary>
         public async Task<Filter> CreateFilterAsync(FilterType type, string name, string description = "")
