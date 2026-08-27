@@ -224,6 +224,20 @@ namespace GpuImageProcessing.Caching
             ItemEvicted?.Invoke(this, new CacheEventArgs { Key = entryToEvict.Key });
         }
 
+        public override string ToString()
+        {
+            lock (_lockObject)
+            {
+                if (_memoryStore.Count == 0)
+                {
+                    return $"DistributedCache {{ Key = null, Value = null, SizeBytes = 0, CreatedAt = {DateTime.MinValue}, LastAccessedAt = {DateTime.MinValue}, ExpiresAt = {DateTime.MinValue} }}";
+                }
+
+                var firstEntry = _memoryStore.First().Value;
+                return $"DistributedCache {{ Key = {firstEntry.Key}, Value = {firstEntry.Value}, SizeBytes = {firstEntry.SizeBytes}, CreatedAt = {firstEntry.CreatedAt}, LastAccessedAt = {firstEntry.LastAccessedAt}, ExpiresAt = {firstEntry.ExpiresAt} }}";
+            }
+        }
+
         public sealed class CacheEntry
         {
             public string Key { get; set; }
