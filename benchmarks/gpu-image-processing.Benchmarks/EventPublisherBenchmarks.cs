@@ -1,6 +1,7 @@
 using BenchmarkDotNet.Attributes;
 using GpuImageProcessing.Events;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
