@@ -23,6 +23,8 @@ namespace GpuImageProcessing.Core.Configuration
         public StorageSettings Storage { get; set; } = new();
         public PerformanceSettings Performance { get; set; } = new();
         public LoggingSettings Logging { get; set; } = new();
+
+        public override string ToString() => $"ApplicationSettings {{ ApplicationName = {ApplicationName}, Version = {Version}, Environment = {Environment}, OpenCL = {OpenCL}, Processing = {Processing}, Storage = {Storage} }}";
     }
 
     /// <summary>
