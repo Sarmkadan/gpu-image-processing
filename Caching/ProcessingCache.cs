@@ -46,6 +46,20 @@ namespace GpuImageProcessing.Caching
             }
         }
 
+        public override string ToString()
+        {
+            lock (_lockObject)
+            {
+                if (_cache.Count == 0)
+                {
+                    return $"ProcessingCache {{ Value = null, CreatedAt = {DateTime.MinValue}, LastAccessedAt = {DateTime.MinValue}, Ttl = {_defaultTtl}, EntryCount = 0, MaxEntries = {_maxEntries} }}";
+                }
+
+                var firstEntry = _cache.First().Value;
+                return $"ProcessingCache {{ Value = {firstEntry.Value}, CreatedAt = {firstEntry.CreatedAt}, LastAccessedAt = {firstEntry.LastAccessedAt}, Ttl = {firstEntry.Ttl}, EntryCount = {_cache.Count}, MaxEntries = {_maxEntries} }}";
+            }
+        }
+
         /// <summary>
         /// Adds or updates a cache entry with default TTL.
         /// </summary>
