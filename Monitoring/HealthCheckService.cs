@@ -25,6 +25,14 @@ namespace GpuImageProcessing.Monitoring
             _healthChecks = new Dictionary<string, IHealthCheck>();
         }
 
+        public override string ToString()
+        {
+            lock (_lockObject)
+            {
+                return $"HealthCheckService {{ RegisteredCheckCount = {_healthChecks.Count} }}";
+            }
+        }
+
         /// <summary>
         /// Registers a health check component
         /// </summary>
