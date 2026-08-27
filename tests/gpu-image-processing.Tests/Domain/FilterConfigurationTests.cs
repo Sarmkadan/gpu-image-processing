@@ -7,8 +7,14 @@ using Xunit;
 
 namespace GpuImageProcessing.Tests.Domain
 {
+    /// <summary>
+    /// Contains unit tests for the <see cref="FilterConfiguration"/> class.
+    /// </summary>
     public class FilterConfigurationTests
     {
+        /// <summary>
+        /// Tests that the FilterConfiguration constructor initializes all properties with their default values.
+        /// </summary>
         [Fact]
         public void Constructor_InitializesPropertiesWithDefaults()
         {
@@ -31,6 +37,9 @@ namespace GpuImageProcessing.Tests.Domain
             config.ConvolutionKernel.Should().BeNull();
         }
 
+        /// <summary>
+        /// Tests that the Clone method creates an independent copy of the FilterConfiguration with all values duplicated.
+        /// </summary>
         [Fact]
         public void Clone_CreatesIndependentCopy()
         {
@@ -71,6 +80,9 @@ namespace GpuImageProcessing.Tests.Domain
             clone.ConvolutionKernel.Should().NotBeSameAs(original.ConvolutionKernel);
         }
 
+        /// <summary>
+        /// Tests that the SetParameter method adds a parameter and its type to the configuration dictionaries.
+        /// </summary>
         [Fact]
         public void SetParameter_AddsParameterAndType()
         {
@@ -91,6 +103,9 @@ namespace GpuImageProcessing.Tests.Domain
             config.ModifiedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
         }
 
+        /// <summary>
+        /// Tests that the GetParameter method returns the correct typed value when a parameter exists.
+        /// </summary>
         [Fact]
         public void GetParameter_ReturnsCorrectType_WhenParameterExists()
         {
@@ -113,6 +128,9 @@ namespace GpuImageProcessing.Tests.Domain
             missing.Should().BeNull();
         }
 
+        /// <summary>
+        /// Tests that the Validate method returns false when the filter name is null, empty, or whitespace.
+        /// </summary>
         [Theory]
         [InlineData(null)]
         [InlineData("")]
@@ -133,6 +151,9 @@ namespace GpuImageProcessing.Tests.Domain
             isValid.Should().BeFalse();
         }
 
+        /// <summary>
+        /// Tests that the Validate method returns false when the filter type is set to None.
+        /// </summary>
         [Fact]
         public void Validate_ReturnsFalse_WhenFilterTypeIsNone()
         {
@@ -150,6 +171,9 @@ namespace GpuImageProcessing.Tests.Domain
             isValid.Should().BeFalse();
         }
 
+        /// <summary>
+        /// Tests that the Validate method returns false when MaxThreadsPerBlock is outside the valid range (32-1024).
+        /// </summary>
         [Theory]
         [InlineData(31)]
         [InlineData(1025)]
@@ -170,6 +194,9 @@ namespace GpuImageProcessing.Tests.Domain
             isValid.Should().BeFalse();
         }
 
+        /// <summary>
+        /// Tests that the Validate method returns false when a parameter is set without its corresponding type.
+        /// </summary>
         [Fact]
         public void Validate_ReturnsFalse_WhenParameterTypeMissing()
         {
@@ -188,6 +215,9 @@ namespace GpuImageProcessing.Tests.Domain
             isValid.Should().BeFalse();
         }
 
+        /// <summary>
+        /// Tests that the Validate method returns the expected result for various filter type parameters based on their validation rules.
+        /// </summary>
         [Theory]
         [InlineData(FilterType.Blur, "radius", 0.5f, true)]
         [InlineData(FilterType.Blur, "radius", 0.1f, false)]
@@ -234,6 +264,9 @@ namespace GpuImageProcessing.Tests.Domain
             isValid.Should().Be(expectedValid);
         }
 
+        /// <summary>
+        /// Tests that the Validate method returns true when the convolution kernel is a valid odd-sized square (e.g., 3x3).
+        /// </summary>
         [Fact]
         public void Validate_ReturnsTrue_WhenConvolutionKernelIsValid()
         {
@@ -252,6 +285,9 @@ namespace GpuImageProcessing.Tests.Domain
             isValid.Should().BeTrue();
         }
 
+        /// <summary>
+        /// Tests that the Validate method returns false when the convolution kernel is null or empty.
+        /// </summary>
         [Theory]
         [InlineData(null)]
         [InlineData(new float[0])]
@@ -272,6 +308,9 @@ namespace GpuImageProcessing.Tests.Domain
             isValid.Should().BeFalse();
         }
 
+        /// <summary>
+        /// Tests that the Validate method returns false when the convolution kernel size is not an odd square (e.g., 2x2, 4x4).
+        /// </summary>
         [Theory]
         [InlineData(2)]  // 2x2 = 4 elements
         [InlineData(4)]  // 4x4 = 16 elements
@@ -299,6 +338,9 @@ namespace GpuImageProcessing.Tests.Domain
             isValid.Should().BeFalse();
         }
 
+        /// <summary>
+        /// Tests that the Validate method returns false when the convolution kernel size is outside the valid range (3-15).
+        /// </summary>
         [Theory]
         [InlineData(2)]  // Too small
         [InlineData(17)] // Too large
@@ -326,6 +368,9 @@ namespace GpuImageProcessing.Tests.Domain
             isValid.Should().BeFalse();
         }
 
+        /// <summary>
+        /// Tests that the Validate method returns true when all required parameters are valid for a filter configuration.
+        /// </summary>
         [Fact]
         public void Validate_ReturnsTrue_WhenAllRequiredParametersAreValid()
         {
