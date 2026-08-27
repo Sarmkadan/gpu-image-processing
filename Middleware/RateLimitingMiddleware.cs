@@ -128,6 +128,11 @@ namespace GpuImageProcessing.Middleware
                 MaxConcurrentOperations = _config.MaxConcurrentOperations
             };
         }
+
+        public override string ToString()
+        {
+            return $"RateLimitingMiddleware {{ MaxTokens = {Config.MaxTokens}, RefillRate = {Config.RefillRate}, TokenCost = {Config.TokenCost}, MaxConcurrentOperations = {Config.MaxConcurrentOperations}, RetryAfterSeconds = {Config.RetryAfterSeconds}, AvailableTokens = {TokenBucket.AvailableTokens} }}";
+        }
     }
 
     /// <summary>
