@@ -123,6 +123,19 @@ namespace GpuImageProcessing.Middleware
                 .ToList();
         }
 
+        public override string ToString()
+        {
+            var firstActiveKey = _validKeys.FirstOrDefault(k => k.IsActive);
+            if (firstActiveKey != null)
+            {
+                return $"AuthorizationMiddleware {{ Key = {firstActiveKey.Key}, UserId = {firstActiveKey.UserId}, Scopes = {string.Join(",", firstActiveKey.Scopes)}, CreatedAt = {firstActiveKey.CreatedAt}, IsActive = {firstActiveKey.IsActive} }}";
+            }
+            else
+            {
+                return "AuthorizationMiddleware { no active keys }";
+            }
+        }
+
         private sealed class ApiKey
         {
             public string Key { get; set; } = string.Empty;
