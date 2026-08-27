@@ -31,6 +31,8 @@ namespace GpuImageProcessing.BackgroundWorkers
             _memoryWarningThreshold = memoryWarningThreshold;
         }
 
+        public override string ToString() => $"CacheMaintenanceWorker {{ Cache = {_cache}, CleanupInterval = {_cleanupInterval}, MemoryWarningThreshold = {_memoryWarningThreshold} }}";
+
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
