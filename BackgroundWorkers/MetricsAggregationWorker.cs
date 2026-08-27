@@ -32,6 +32,18 @@ namespace GpuImageProcessing.BackgroundWorkers
             _snapshots = new List<MetricsSnapshot>();
         }
 
+        public override string ToString()
+        {
+            lock (_lockObject)
+            {
+                if (_snapshots == null || _snapshots.Count == 0)
+                    return "MetricsAggregationWorker { no snapshots }";
+
+                var last = _snapshots[_snapshots.Count - 1];
+                return $"MetricsAggregationWorker {{ Timestamp = {last.Timestamp}, ProcessId = {last.ProcessId}, MemoryUsageMb = {last.MemoryUsageMb}, ThreadCount = {last.ThreadCount}, TotalOperations = {last.TotalOperations}, SuccessRate = {last.SuccessRate} }}";
+            }
+        }
+
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
