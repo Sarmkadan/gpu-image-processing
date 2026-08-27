@@ -31,6 +31,16 @@ namespace GpuImageProcessing.Core.Services
         }
 
         /// <summary>
+        /// Returns a concise representation of the service's transform statistics
+        /// </summary>
+        public override string ToString()
+        {
+            var stats = GetStatisticsAsync().GetAwaiter().GetResult();
+
+            return $"TransformService {{ TotalTransforms = {stats.TotalTransforms}, ActiveTransforms = {stats.ActiveTransforms}, TransformTypes = {stats.TransformTypes}, AverageParametersPerTransform = {stats.AverageParametersPerTransform}, TotalExecutionTime = {stats.TotalExecutionTime} }}";
+        }
+
+        /// <summary>
         /// Creates a new transformation
         /// </summary>
         public async Task<Transform> CreateTransformAsync(TransformType type, string name, string description = "")
