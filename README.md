@@ -6531,3 +6531,58 @@ class Program
     }
 }
 ```
+
+## WorkgroupOptimizerTests
+
+The `WorkgroupOptimizerTests` class verifies the behavior of the `WorkgroupOptimizer` class, which computes optimal workgroup sizes for GPU compute shaders based on image dimensions, device capabilities, and optimization strategies (throughput, latency, memory, or balanced). It ensures the returned configuration is valid for the device and meets the specified constraints.
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Core;
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Pipeline;
+using Microsoft.Extensions.Logging;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a logger (using NullLogger to avoid needing a logger implementation)
+        var logger = NullLogger<WorkgroupOptimizer>.Instance;
+
+        // Create the optimizer
+        var optimizer = new WorkgroupOptimizer(logger);
+
+        // Create a test device (similar to the one in the tests)
+        var device = new GpuDevice
+        {
+            Id = Guid.NewGuid(),
+            Name = "Example GPU",
+            Vendor = "Example Vendor",
+            DeviceType = GpuDeviceType.Gpu,
+            GlobalMemoryBytes = 8L * 1024 * 1024 * 1024L, // 8 GB
+            LocalMemoryBytes = 64 * 1024, // 64 KB
+            MaxAllocatableMemoryBytes = 7L * 1024 * 1024 * 1024L,
+            MaxComputeUnits = 32,
+            MaxWorkGroupSize = 1024,
+            MaxWorkItemDimensions = 3,
+            MaxWorkItemSizes = new[] { 1024, 1024, 64 },
+            MaxClockFrequencyMhz = 2000.0,
+            WavefrontSize = 32,
+            IsAvailable = true,
+            ComputeCapabilityMajor = 8,
+            ComputeCapabilityMinor = 0
+        };
+
+        // Compute workgroup configuration for a 1024x1024 image
+        var config = optimizer.Compute(device, 1024, 1024);
+
+        Console.WriteLine($"Workgroup size: {config.WorkgroupSizeX}x{config.WorkgroupSizeY}");
+        Console.WriteLine($"Global work size: {config.GlobalWorkSizeX}x{config.GlobalWorkSizeY}");
+        Console.WriteLine($"Estimated occupancy: {config.EstimatedOccupancy:P2}");
+        Console.WriteLine($"Optimization score: {config.OptimizationScore:F2}");
+    }
+}
+```
