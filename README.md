@@ -6586,3 +6586,252 @@ class Program
     }
 }
 ```
+
+
+
+
+
+
+
+## FilterConfigurationTests
+
+The `FilterConfigurationTests` class contains unit tests for the `FilterConfiguration` class, ensuring that filter configurations are properly initialized, cloned, validated, and parameterized. It tests constructor defaults, cloning independence, parameter handling, and validation logic for various filter types and convolution kernels.
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a new filter configuration with default values
+        var config = new FilterConfiguration();
+        Console.WriteLine($"Filter ID: {config.Id}");
+        Console.WriteLine($"Filter Type: {config.FilterType}");
+        Console.WriteLine($"Is Active: {config.IsActive}");
+
+        // Set parameters for a blur filter
+        config.SetParameter("radius", 4.0f, "float");
+        config.FilterType = FilterType.Blur;
+
+        // Validate the configuration
+        bool isValid = config.Validate();
+        Console.WriteLine($"Configuration valid: {isValid}");
+
+        // Create an independent copy
+        var clone = config.Clone();
+        Console.WriteLine($"Clone has same radius: {clone.GetParameter<float?>("radius") == 4.0f}");
+        Console.WriteLine($"Clone is independent: {clone.Parameters != config.Parameters}");
+    }
+}
+
+## FilterConfigurationTests
+
+The `FilterConfigurationTests` class contains unit tests for the `FilterConfiguration` class. It verifies the constructor, cloning, parameter setting and getting, validation logic, and convolution kernel validation.
+
+### Key Features
+
+- Tests constructor initializes properties with defaults
+- Verifies cloning creates an independent copy
+- Ensures SetParameter adds parameters and types correctly
+- Validates GetParameter returns correct types
+- Checks validation for invalid names, filter types, thread counts, missing parameter types
+- Validates filter type parameters (blur, sharpen, rotation, scaling, color correction, threshold)
+- Tests convolution kernel validation (valid, invalid, size, range)
+- Confirms validation passes when all required parameters are valid
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a new filter configuration with default values
+        var config = new FilterConfiguration();
+        Console.WriteLine($"Filter ID: {config.Id}");
+        Console.WriteLine($"Filter Type: {config.FilterType}");
+        Console.WriteLine($"Is Active: {config.IsActive}");
+
+        // Set parameters for a blur filter
+        config.SetParameter("radius", 4.0f, "float");
+        config.FilterType = FilterType.Blur;
+
+        // Validate the configuration
+        bool isValid = config.Validate();
+        Console.WriteLine($"Configuration valid: {isValid}");
+
+        // Create an independent copy
+        var clone = config.Clone();
+        Console.WriteLine($"Clone has same radius: {clone.GetParameter<float?>("radius") == 4.0f}");
+        Console.WriteLine($"Clone is independent: {clone.Parameters != config.Parameters}");
+    }
+}
+```
+
+## FilterConfigurationTests
+
+The  class contains unit tests for the  class. It verifies the constructor, cloning, parameter setting and getting, validation logic, and convolution kernel validation.
+
+### Key Features
+
+- Tests constructor initializes properties with defaults
+- Verifies cloning creates an independent copy
+- Ensures SetParameter adds parameters and types correctly
+- Validates GetParameter returns correct types
+- Checks validation for invalid names, filter types, thread counts, missing parameter types
+- Validates filter type parameters (blur, sharpen, rotation, scaling, color correction, threshold)
+- Tests convolution kernel validation (valid, invalid, size, range)
+- Confirms validation passes when all required parameters are valid
+
+### Usage Examples
+
+
+
+
+## FilterConfigurationTests
+
+The `FilterConfigurationTests` class contains unit tests for the `FilterConfiguration` class. It verifies the constructor, cloning, parameter setting and getting, validation logic, and convolution kernel validation.
+
+### Key Features
+
+- Tests constructor initializes properties with defaults
+- Verifies cloning creates an independent copy
+- Ensures SetParameter adds parameters and types correctly
+- Validates GetParameter returns correct types
+- Checks validation for invalid names, filter types, thread counts, missing parameter types
+- Validates filter type parameters (blur, sharpen, rotation, scaling, color correction, threshold)
+- Tests convolution kernel validation (valid, invalid, size, range)
+- Confirms validation passes when all required parameters are valid
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a new filter configuration with default values
+        var config = new FilterConfiguration();
+        Console.WriteLine($"Filter ID: {config.Id}");
+        Console.WriteLine($"Filter Type: {config.FilterType}");
+        Console.WriteLine($"Is Active: {config.IsActive}");
+
+        // Set parameters for a blur filter
+        config.SetParameter("radius", 4.0f, "float");
+        config.FilterType = FilterType.Blur;
+
+        // Validate the configuration
+        bool isValid = config.Validate();
+        Console.WriteLine($"Configuration valid: {isValid}");
+
+        // Create an independent copy
+        var clone = config.Clone();
+        Console.WriteLine($"Clone has same radius: {clone.GetParameter<float?>("radius") == 4.0f}");
+        Console.WriteLine($"Clone is independent: {clone.Parameters != config.Parameters}");
+    }
+}
+```
+
+## FilterConfigurationTests
+
+The `FilterConfigurationTests` class contains unit tests for the `FilterConfiguration` class. It verifies the constructor, cloning, parameter setting and getting, validation logic, and convolution kernel validation.
+
+### Key Features
+
+- Tests constructor initializes properties with defaults
+- Verifies cloning creates an independent copy
+- Ensures SetParameter adds parameters and types correctly
+- Validates GetParameter returns correct types
+- Checks validation for invalid names, filter types, thread counts, missing parameter types
+- Validates filter type parameters (blur, sharpen, rotation, scaling, color correction, threshold)
+- Tests convolution kernel validation (valid, invalid, size, range)
+- Confirms validation passes when all required parameters are valid
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a new filter configuration with default values
+        var config = new FilterConfiguration();
+        Console.WriteLine($"Filter ID: {config.Id}");
+        Console.WriteLine($"Filter Type: {config.FilterType}");
+        Console.WriteLine($"Is Active: {config.IsActive}");
+
+        // Set parameters for a blur filter
+        config.SetParameter("radius", 4.0f, "float");
+        config.FilterType = FilterType.Blur;
+
+        // Validate the configuration
+        bool isValid = config.Validate();
+        Console.WriteLine($"Configuration valid: {isValid}");
+
+        // Create an independent copy
+        var clone = config.Clone();
+        Console.WriteLine($"Clone has same radius: {clone.GetParameter<float?>("radius") == 4.0f}");
+        Console.WriteLine($"Clone is independent: {clone.Parameters != config.Parameters}");
+    }
+}
+```
+
+## FilterConfigurationTests
+
+The `FilterConfigurationTests` class contains unit tests for the `FilterConfiguration` class. It verifies the constructor, cloning, parameter setting and getting, validation logic, and convolution kernel validation.
+
+### Key Features
+
+- Tests constructor initializes properties with defaults
+- Verifies cloning creates an independent copy
+- Ensures SetParameter adds parameters and types correctly
+- Validates GetParameter returns correct types
+- Checks validation for invalid names, filter types, thread counts, missing parameter types
+- Validates filter type parameters (blur, sharpen, rotation, scaling, color correction, threshold)
+- Tests convolution kernel validation (valid, invalid, size, range)
+- Confirms validation passes when all required parameters are valid
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Domain;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        // Create a new filter configuration with default values
+        var config = new FilterConfiguration();
+        Console.WriteLine($"Filter ID: {config.Id}");
+        Console.WriteLine($"Filter Type: {config.FilterType}");
+        Console.WriteLine($"Is Active: {config.IsActive}");
+
+        // Set parameters for a blur filter
+        config.SetParameter("radius", 4.0f, "float");
+        config.FilterType = FilterType.Blur;
+
+        // Validate the configuration
+        bool isValid = config.Validate();
+        Console.WriteLine($"Configuration valid: {isValid}");
+
+        // Create an independent copy
+        var clone = config.Clone();
+        Console.WriteLine($"Clone has same radius: {clone.GetParameter<float?>("radius") == 4.0f}");
+        Console.WriteLine($"Clone is independent: {clone.Parameters != config.Parameters}");
+    }
+}
+```
