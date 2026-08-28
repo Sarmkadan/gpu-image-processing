@@ -6474,3 +6474,60 @@ class Program
     }
 }
 ```
+
+
+
+
+
+## EventAggregatorTests
+
+The `EventAggregatorTests` class verifies the behavior of the `EventAggregator` class, which implements a publish-subscribe pattern for domain events. It ensures events are delivered to subscribers, unsubscribing stops delivery, multiple subscribers receive events, and publishing with no subscribers does not throw.
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Events;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var aggregator = new EventAggregator();
+        string? received1 = null;
+        string? received2 = null;
+
+        // Subscribe two handlers to events of type TestEvent
+        var subscription1 = aggregator.Subscribe<TestEvent>(e => received1 = e.Message);
+        var subscription2 = aggregator.Subscribe<TestEvent>(e => received2 = e.Message);
+
+        // Publish an event
+        var testEvent = new TestEvent { Message = "hello" };
+        aggregator.Publish(testEvent);
+
+        Console.WriteLine($"Received1: {received1}"); // Output: Received1: hello
+        Console.WriteLine($"Received2: {received2}"); // Output: Received2: hello
+
+        // Unsubscribe first handler to stop receiving events
+        subscription1.Dispose();
+
+        // Publish again - only received2 should update
+        aggregator.Publish(new TestEvent { Message = "goodbye" });
+        Console.WriteLine($"Received1 after unsubscribe: {received1}"); // Still hello
+        Console.WriteLine($"Received2 after unsubscribe: {received2}"); // Now goodbye
+
+        // Clean up
+        subscription2.Dispose();
+
+        // Publish with no subscribers - does not throw
+        aggregator.Publish(new TestEvent { Message: "final" });
+        Console.WriteLine("Published with no subscribers - no exception");
+    }
+
+    // Example event class (must inherit from DomainEvent)
+    private class TestEvent : DomainEvent
+    {
+        public string Message { get; set; } = string.Empty;
+    }
+}
+```
