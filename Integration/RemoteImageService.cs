@@ -10,6 +10,8 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using GpuImageProcessing.Exceptions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace GpuImageProcessing.Integration
 {
@@ -23,6 +25,7 @@ namespace GpuImageProcessing.Integration
         private readonly int _maxRetries;
         private readonly TimeSpan _timeout;
         private readonly List<RemoteImageSource> _trustedSources;
+        private readonly ILogger<RemoteImageService> _logger;
 
         public string Url { get; set; }
         public string ApiKey { get; set; }
@@ -34,13 +37,15 @@ namespace GpuImageProcessing.Integration
         public RemoteImageService(
             HttpClient httpClient = null,
             int maxRetries = 3,
-            int timeoutSeconds = 30)
+            int timeoutSeconds = 30,
+            ILogger<RemoteImageService>? logger = null)
         {
             _httpClient = httpClient ?? new HttpClient();
             _maxRetries = maxRetries;
             _timeout = TimeSpan.FromSeconds(timeoutSeconds);
             _httpClient.Timeout = _timeout;
             _trustedSources = new List<RemoteImageSource>();
+            _logger = logger ?? NullLogger<RemoteImageService>.Instance;
         }
 
         public override string ToString() => $"RemoteImageService {{ Url = {Url}, ApiKey = {ApiKey}, RegisteredAt = {RegisteredAt}, ImageData = {ImageData}, ContentType = {ContentType}, SizeBytes = {SizeBytes} }}";
@@ -50,6 +55,7 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public void RegisterTrustedSource(string url, string? apiKey = null)
         {
+            _logger.LogInformation("Registering trusted source: {Url}", url);
             ArgumentNullException.ThrowIfNull(url);
             if (string.IsNullOrWhiteSpace(url))
             {
@@ -62,6 +68,7 @@ namespace GpuImageProcessing.Integration
                 ApiKey = apiKey,
                 RegisteredAt = DateTime.UtcNow
             });
+            _logger.LogInformation("Successfully registered trusted source: {Url}", url);
         }
 
         /// <summary>
@@ -80,10 +87,12 @@ namespace GpuImageProcessing.Integration
 
             if (!IsValidUrl(imageUrl))
             {
+                _logger.LogWarning("Invalid image URL format: {Url}", imageUrl);
                 return RemoteImageResult.Failure("Invalid image URL format");
             }
 
             var trustSource = FindTrustedSource(imageUrl);
+            _logger.LogInformation("Starting download of image from {Url} (attempts: {MaxRetries})", imageUrl, _maxRetries);
 
             for (int attempt = 1; attempt <= _maxRetries; attempt++)
             {
@@ -111,10 +120,12 @@ namespace GpuImageProcessing.Integration
                         if (attempt == _maxRetries)
                         {
                             var errorContent = await response.Content.ReadAsStringAsync();
+                            _logger.LogError("Failed to download image after {MaxRetries} attempts. HTTP {StatusCode}: {ErrorContent}", _maxRetries, (int)response.StatusCode, errorContent);
                             return RemoteImageResult.Failure(
                                 $"Failed to download image: HTTP {(int)response.StatusCode} {response.StatusCode}\n{errorContent}");
                         }
 
+                        _logger.LogWarning("Attempt {Attempt}/{MaxRetries} failed with HTTP {StatusCode}. Retrying...", attempt, _maxRetries, (int)response.StatusCode);
                         await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt - 1)));
                         continue;
                     }
@@ -125,9 +136,11 @@ namespace GpuImageProcessing.Integration
 
                     if (!ValidateImageData(imageData, contentType))
                     {
+                        _logger.LogError("Downloaded data is not a valid image from {Url}", imageUrl);
                         return RemoteImageResult.Failure("Downloaded data is not a valid image");
                     }
 
+                    _logger.LogInformation("Successfully downloaded image from {Url} (Size: {Size} bytes, Type: {ContentType})", imageUrl, size, contentType);
                     return RemoteImageResult.Success(new RemoteImageData
                     {
                         ImageData = imageData,
@@ -139,20 +152,24 @@ namespace GpuImageProcessing.Integration
                 }
                 catch (HttpRequestException ex) when (attempt == _maxRetries)
                 {
+                    _logger.LogError(ex, "Network error after {MaxRetries} attempts while downloading from {Url}", _maxRetries, imageUrl);
                     return RemoteImageResult.Failure(
                         $"Network error after {_maxRetries} attempts: {ex.Message}");
                 }
                 catch (TaskCanceledException ex) when (attempt == _maxRetries)
                 {
+                    _logger.LogError(ex, "Download timeout after {MaxRetries} attempts while downloading from {Url}", _maxRetries, imageUrl);
                     return RemoteImageResult.Failure(
                         $"Download timeout: {ex.Message}");
                 }
                 catch (Exception ex) when (attempt < _maxRetries)
                 {
+                    _logger.LogWarning(ex, "Attempt {Attempt}/{MaxRetries} failed. Retrying...", attempt, _maxRetries);
                     await Task.Delay(TimeSpan.FromSeconds(Math.Pow(2, attempt - 1)));
                 }
             }
 
+            _logger.LogError("Download failed after all {MaxRetries} attempts for {Url}", _maxRetries, imageUrl);
             return RemoteImageResult.Failure("Download failed after all retries");
         }
 
@@ -163,6 +180,9 @@ namespace GpuImageProcessing.Integration
             List<string>? imageUrls,
             int maxConcurrentDownloads = 3)
         {
+            _logger.LogInformation("Starting concurrent download of {Count} images with max concurrency of {MaxConcurrent}",
+                imageUrls?.Count ?? 0, maxConcurrentDownloads);
+
             ArgumentNullException.ThrowIfNull(imageUrls);
             if (imageUrls.Count == 0)
             {
@@ -196,7 +216,12 @@ namespace GpuImageProcessing.Integration
                 }
             });
 
-            results.AddRange(await Task.WhenAll(tasks));
+            var downloadResults = await Task.WhenAll(tasks);
+            results.AddRange(downloadResults);
+
+            var successfulCount = results.Count(r => r.IsSuccess);
+            _logger.LogInformation("Completed concurrent download. Successful: {Successful}/{Total}", successfulCount, results.Count);
+
             return results;
         }
 
@@ -205,32 +230,53 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public bool ValidateImageData(byte[]? imageData, string? expectedContentType = null)
         {
-            ArgumentNullException.ThrowIfNull(imageData);
+            if (imageData == null)
+            {
+                _logger.LogWarning("ValidateImageData called with null imageData");
+                throw new ArgumentNullException(nameof(imageData));
+            }
+
             if (imageData.Length == 0)
+            {
+                _logger.LogWarning("ValidateImageData called with empty image data");
                 return false;
+            }
 
             // Check common image magic numbers
             if (imageData.Length >= 3)
             {
                 // JPEG: FF D8 FF
                 if (imageData[0] == 0xFF && imageData[1] == 0xD8 && imageData[2] == 0xFF)
+                {
+                    _logger.LogDebug("Image validated as JPEG");
                     return true;
+                }
 
                 // PNG: 89 50 4E 47
                 if (imageData.Length >= 4 &&
                     imageData[0] == 0x89 && imageData[1] == 0x50 &&
                     imageData[2] == 0x4E && imageData[3] == 0x47)
+                {
+                    _logger.LogDebug("Image validated as PNG");
                     return true;
+                }
 
                 // GIF: 47 49 46
                 if (imageData[0] == 0x47 && imageData[1] == 0x49 && imageData[2] == 0x46)
+                {
+                    _logger.LogDebug("Image validated as GIF");
                     return true;
+                }
 
                 // BMP: 42 4D
                 if (imageData[0] == 0x42 && imageData[1] == 0x4D)
+                {
+                    _logger.LogDebug("Image validated as BMP");
                     return true;
+                }
             }
 
+            _logger.LogDebug("Image validation assumed valid (could not verify magic numbers)");
             return true; // Assume valid if can't verify
         }
 
