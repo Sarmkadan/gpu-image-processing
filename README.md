@@ -638,6 +638,48 @@ class Program
 
 ```
 
+## CpuImageProcessorEdgeCaseTests
+
+The `CpuImageProcessorEdgeCaseTests` class tests edge cases and boundary conditions for the CPU image processor, including resize operations with extreme dimensions, filter applications with extreme parameter values, and null argument handling. These tests ensure the CPU fallback path handles unusual inputs gracefully and throws appropriate exceptions when needed.
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Fallback;
+using GpuImageProcessing.Domain;
+using Microsoft.Extensions.Logging.Abstractions;
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        // Test 1x1 image resize preserves dimensions
+        var processor = new CpuImageProcessor(NullLogger<CpuImageProcessor>.Instance);
+        var image = new Image { Width = 1, Height = 1, Channels = 3, BitsPerPixel = 24, PixelData = new byte[3] };
+        Array.Fill(image.PixelData, 255);
+        
+        var resized = processor.Resize(image, 1, 1);
+        Console.WriteLine($"1x1 to 1x1: {resized.Width}x{resized.Height}"); // Output: 1x1
+        
+        // Test resize with zero width throws exception
+        try
+        {
+            processor.Resize(image, 0, 10);
+            Console.WriteLine("ERROR: Should have thrown");
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            Console.WriteLine("Correctly threw ArgumentOutOfRangeException for zero width");
+        }
+        
+        // Test blur with large radius
+        var blurImage = processor.Blur(image, 100);
+        Console.WriteLine($"Blur with radius 100 completed: {blurImage.PixelData != null}");
+    }
+}
+```
+
 ## FilterChainBuilderTestsExtensions
 
 The `FilterChainBuilderTestsExtensions` class provides extension methods for the `FilterChainBuilderTests` class that simplify running groups of test methods programmatically. It includes utilities for executing successful build tests, validating parameter validation tests, and retrieving all test method names, making it easier to automate test execution and validation.
