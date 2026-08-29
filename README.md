@@ -63,6 +63,95 @@ class Program
 
 ```
 
+
+## PortablePixmapTests
+
+The `PortablePixmapTests` class verifies the correctness of the `PortablePixmap` class for handling Netpbm image formats (PPM/PGM). It tests round-trip preservation of pixel data, proper parsing of various header configurations including different max values and whitespace handling, appropriate error handling for truncated or malformed files, and correct processing of edge cases like zero-dimension images.
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Imaging;
+using System;
+using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        // Test P6 format round-trip (similar to P6_RoundTrip_Succeeds)
+        var ppmImage = new Image
+        {
+            Width = 2,
+            Height = 2,
+            Channels = 3,
+            BitsPerPixel = 24,
+            PixelData = new byte[] { 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255 }
+        };
+        
+        PortablePixmap.Save(ppmImage, "test.ppm");
+        var loadedPpm = PortablePixmap.Load("test.ppm");
+        Console.WriteLine($"PPM round-trip successful: {loadedPpm.Width}x{loadedPpm.Height}");
+        
+        // Test handling of truncated header (similar to Decode_TruncatedHeader_ThrowsEndOfStreamException)
+        var truncatedHeader = System.Text.Encoding.ASCII.GetBytes("P6\n2 2\n255\n");
+        var incompleteData = new byte[] { 255, 0, 0 }; // Missing 9 bytes for 2x2x3 image
+        var truncatedStream = new System.IO.MemoryStream();
+        truncatedStream.Write(truncatedHeader, 0, truncatedHeader.Length);
+        truncatedStream.Write(incompleteData, 0, incompleteData.Length);
+        truncatedStream.Position = 0;
+        
+        try
+        {
+            PortablePixmap.Decode(truncatedStream);
+            Console.WriteLine("ERROR: Should have thrown EndOfStreamException");
+        }
+        catch (System.IO.EndOfStreamException)
+        {
+            Console.WriteLine("Correctly caught EndOfStreamException for truncated header");
+        }
+        
+        // Test wrong magic number (similar to Decode_WrongMagicNumber_ThrowsNotSupportedException)
+        var wrongMagic = System.Text.Encoding.ASCII.GetBytes("P7\n1 1\n255\n");
+        var wrongMagicStream = new System.IO.MemoryStream(wrongMagic);
+        
+        try
+        {
+            PortablePixmap.Decode(wrongMagicStream);
+            Console.WriteLine("ERROR: Should have thrown NotSupportedException");
+        }
+        catch (System.NotSupportedException)
+        {
+            Console.WriteLine("Correctly caught NotSupportedException for wrong magic number");
+        }
+        
+        // Test zero dimensions (similar to Decode_ZeroDimensions_ReturnsImageWithZeroSize)
+        var zeroDimHeader = System.Text.Encoding.ASCII.GetBytes("P6\n0 0\n255\n");
+        var zeroDimStream = new System.IO.MemoryStream(zeroDimHeader);
+        var zeroDimImage = PortablePixmap.Decode(zeroDimStream);
+        Console.WriteLine($"Zero dimension image: {zeroDimImage.Width}x{zeroDimImage.Height}");
+        
+        // Test max value not 255 (similar to Decode_MaxValueNot255_ThrowsNotSupportedException)
+        var invalidMaxVal = System.Text.Encoding.ASCII.GetBytes("P6\n1 1\n256\n"); // Invalid maxval
+        var invalidMaxValStream = new System.IO.MemoryStream(invalidMaxVal);
+        
+        try
+        {
+            PortablePixmap.Decode(invalidMaxValStream);
+            Console.WriteLine("ERROR: Should have thrown NotSupportedException for maxval != 255");
+        }
+        catch (System.NotSupportedException)
+        {
+            Console.WriteLine("Correctly caught NotSupportedException for invalid max value");
+        }
+        
+        // Clean up
+        File.Delete("test.ppm");
+    }
+}
+```
+
+
 ## PerformanceUtilities
 
 The `PerformanceUtilities` class provides high-resolution timing and performance measurement utilities for GPU-accelerated image processing operations. It includes stopwatch-based timing, frame rate calculation, and performance statistics collection.
