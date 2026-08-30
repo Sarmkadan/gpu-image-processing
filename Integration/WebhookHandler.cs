@@ -44,8 +44,20 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public string RegisterWebhook(string webhookUrl, string eventType, WebhookRetryPolicy retryPolicy = null)
         {
-            if (string.IsNullOrWhiteSpace(webhookUrl) || string.IsNullOrWhiteSpace(eventType))
-                throw new ArgumentException("Webhook URL and event type cannot be empty");
+            ArgumentException.ThrowIfNullOrEmpty(webhookUrl);
+            ArgumentException.ThrowIfNullOrEmpty(eventType);
+
+            if (string.IsNullOrWhiteSpace(webhookUrl))
+                throw new ArgumentException("Webhook URL cannot be empty", nameof(webhookUrl));
+
+            if (string.IsNullOrWhiteSpace(eventType))
+                throw new ArgumentException("Event type cannot be empty", nameof(eventType));
+
+            if (!Uri.TryCreate(webhookUrl, UriKind.Absolute, out var webhookUri) ||
+                (webhookUri.Scheme != Uri.UriSchemeHttp && webhookUri.Scheme != Uri.UriSchemeHttps))
+            {
+                throw new ArgumentException("Webhook URL must be an absolute HTTP or HTTPS URI", nameof(webhookUrl));
+            }
 
             lock (_lockObject)
             {
@@ -76,6 +88,8 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public bool UnregisterWebhook(string webhookId)
         {
+            ArgumentException.ThrowIfNullOrEmpty(webhookId);
+
             if (string.IsNullOrWhiteSpace(webhookId))
                 return false;
 
@@ -99,8 +113,7 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         public async Task DispatchEventAsync<T>(T @event) where T : ProcessingEvent
         {
-            if (@event == null)
-                return;
+            ArgumentNullException.ThrowIfNull(@event);
 
             List<WebhookSubscription> applicableSubscriptions;
 
@@ -148,6 +161,9 @@ namespace GpuImageProcessing.Integration
         /// <param name="payload">The JSON payload to send.</param>
         public async Task SendWithRetryAsync(WebhookSubscription subscription, string payload)
         {
+            ArgumentNullException.ThrowIfNull(subscription);
+            ArgumentNullException.ThrowIfNull(payload);
+
             int attempt = 0;
             Exception? lastException = null;
 
