@@ -21,6 +21,12 @@ namespace GpuImageProcessing.Integration
     /// </summary>
     public class WebhookHandler : IDisposable
     {
+        private const int HttpClientTimeoutSeconds = 10;
+        private const int FixedRetryMaxAttempts = 3;
+        private const int FixedRetryInitialDelayMs = 250;
+        private const int FixedRetryBackoffMultiplier = 2;
+        private const int MaxFailureCountBeforeDisabling = 10;
+
         private readonly ILogger<WebhookHandler> _logger;
         private readonly HttpClient _httpClient;
         private readonly List<WebhookSubscription> _subscriptions;
@@ -29,7 +35,7 @@ namespace GpuImageProcessing.Integration
         public WebhookHandler(ILogger<WebhookHandler> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(10) };
+            _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(HttpClientTimeoutSeconds) };
             _subscriptions = new List<WebhookSubscription>();
         }
 
@@ -142,13 +148,10 @@ namespace GpuImageProcessing.Integration
         /// <param name="payload">The JSON payload to send.</param>
         public async Task SendWithRetryAsync(WebhookSubscription subscription, string payload)
         {
-            const int maxAttempts = 3;
-            const int baseDelayMs = 250;
-
             int attempt = 0;
             Exception? lastException = null;
 
-            while (attempt < maxAttempts)
+            while (attempt < FixedRetryMaxAttempts)
             {
                 try
                 {
@@ -201,9 +204,9 @@ namespace GpuImageProcessing.Integration
 
                 attempt++;
 
-                if (attempt < maxAttempts)
+                if (attempt < FixedRetryMaxAttempts)
                 {
-                    int delay = baseDelayMs * (int)Math.Pow(2, attempt - 1);
+                    int delay = FixedRetryInitialDelayMs * (int)Math.Pow(FixedRetryBackoffMultiplier, attempt - 1);
                     await Task.Delay(delay);
                 }
             }
@@ -212,7 +215,7 @@ namespace GpuImageProcessing.Integration
             _logger.LogWarning(
                 lastException,
                 "Webhook delivery failed after {MaxRetries} attempts (SendWithRetry) - Id: {WebhookId}, Url: {Url}",
-                maxAttempts,
+                FixedRetryMaxAttempts,
                 subscription.Id,
                 subscription.WebhookUrl);
         }
@@ -280,7 +283,7 @@ namespace GpuImageProcessing.Integration
                 if (sub != null)
                 {
                     sub.FailureCount++;
-                    if (sub.FailureCount > 10)
+                    if (sub.FailureCount > MaxFailureCountBeforeDisabling)
                     {
                         sub.IsActive = false;
                         _logger.LogWarning(
@@ -338,9 +341,14 @@ namespace GpuImageProcessing.Integration
     /// </summary>
     public class WebhookRetryPolicy
     {
-        public int MaxRetries { get; set; } = 5;
-        public int InitialDelayMs { get; set; } = 1000;
-        public int MaxDelayMs { get; set; } = 30000;
-        public double BackoffMultiplier { get; set; } = 2.0;
+        public const int DefaultMaxRetries = 5;
+        public const int DefaultInitialDelayMs = 1000;
+        public const int DefaultMaxDelayMs = 30000;
+        public const double DefaultBackoffMultiplier = 2.0;
+
+        public int MaxRetries { get; set; } = DefaultMaxRetries;
+        public int InitialDelayMs { get; set; } = DefaultInitialDelayMs;
+        public int MaxDelayMs { get; set; } = DefaultMaxDelayMs;
+        public double BackoffMultiplier { get; set; } = DefaultBackoffMultiplier;
     }
 }
