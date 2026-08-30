@@ -72,6 +72,88 @@ namespace GpuImageProcessing.Api
             double maximum)
         {
             ArgumentException.ThrowIfNullOrEmpty(fieldName);
+            if (minimum > maximum)
+                throw new ArgumentException($"Minimum value {minimum} cannot be greater than maximum value {maximum}", nameof(minimum));
+            _rules.Add(new ValidationRule
+            {
+                FieldName = fieldName,
+                Validator = v =>
+                {
+                    // Fix: Explicitly handle null values.
+                    // If the field is not required, null values should pass this range validation.
+                    if (v == null)
+                        return true;
+
+                    if (double.TryParse(v.ToString(), out var d))
+                        return d >= minimum && d <= maximum;
+                    return false;
+                },
+                ErrorMessage = $"{fieldName} must be between {minimum} and {maximum}"
+            });
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a validation rule for regex pattern
+        /// </summary>
+        public RequestValidator ValidatePattern(
+            string fieldName,
+            string regexPattern)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(fieldName);
+            ArgumentException.ThrowIfNullOrEmpty(regexPattern);
+            _rules.Add(new ValidationRule
+            {
+                FieldName = fieldName,
+                Validator = v =>
+                {
+                    // Fix: Explicitly handle null or non-string values.
+                    // If the field is not required, null or non-string values should pass this pattern validation.
+                    if (v == null || v is not string str)
+                        return true;
+                    var regex = new Regex(regexPattern, RegexOptions.None, TimeSpan.FromSeconds(1));
+                    return regex.IsMatch(str);
+                },
+                ErrorMessage = $"{fieldName} must match the pattern {regexPattern}"
+            });
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a validation rule to check if value is one of the allowed values
+        /// </summary>
+        public RequestValidator ValidateOneOf(
+            string fieldName,
+            params object[] allowedValues)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(fieldName);
+            if (allowedValues == null || allowedValues.Length == 0)
+                throw new ArgumentException("Allowed values array must not be null or empty", nameof(allowedValues));
+            _rules.Add(new ValidationRule
+            {
+                FieldName = fieldName,
+                Validator = v =>
+                {
+                    // Fix: Explicitly handle null values.
+                    // If the field is not required, null values should pass this validation.
+                    if (v == null)
+                        return true;
+                    return allowedValues.Contains(v);
+                },
+                ErrorMessage = $"{fieldName} must be one of the allowed values: {string.Join(", ", allowedValues)}"
+            });
+            return this;
+        }
+
+        /// <summary>
+        /// Adds a validation rule for numeric range
+        /// </summary>
+        public RequestValidator ValidateRange(
+            string fieldName,
+            double minimum,
+            double maximum)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(fieldName);
             _rules.Add(new ValidationRule
             {
                 FieldName = fieldName,
