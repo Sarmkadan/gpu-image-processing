@@ -25,11 +25,12 @@ namespace GpuImageProcessing.Caching
 
         public ProcessingCache(ILogger<ProcessingCache> logger, int maxEntries = 1000, TimeSpan? defaultTtl = null)
         {
-            _logger.LogInformation("ProcessingCache initialized with MaxEntries: {MaxEntries}, DefaultTTL: {DefaultTtl}", maxEntries, defaultTtl ?? TimeSpan.FromHours(1));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _maxEntries = maxEntries;
             _defaultTtl = defaultTtl ?? TimeSpan.FromHours(1);
             _cache = new Dictionary<string, CacheEntry>();
+
+            _logger.LogInformation("ProcessingCache initialized with MaxEntries: {MaxEntries}, DefaultTTL: {DefaultTtl}", _maxEntries, _defaultTtl);
         }
 
         /// <summary>
@@ -50,13 +51,7 @@ namespace GpuImageProcessing.Caching
         {
             lock (_lockObject)
             {
-                if (_cache.Count == 0)
-                {
-                    return $"ProcessingCache {{ Value = null, CreatedAt = {DateTime.MinValue}, LastAccessedAt = {DateTime.MinValue}, Ttl = {_defaultTtl}, EntryCount = 0, MaxEntries = {_maxEntries} }}";
-                }
-
-                var firstEntry = _cache.First().Value;
-                return $"ProcessingCache {{ Value = {firstEntry.Value}, CreatedAt = {firstEntry.CreatedAt}, LastAccessedAt = {firstEntry.LastAccessedAt}, Ttl = {firstEntry.Ttl}, EntryCount = {_cache.Count}, MaxEntries = {_maxEntries} }}";
+                return $"ProcessingCache {{ EntryCount = {_cache.Count}, MaxEntries = {_maxEntries}, DefaultTtl = {_defaultTtl} }}";
             }
         }
 
