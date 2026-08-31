@@ -34,8 +34,6 @@ namespace GpuImageProcessing.Integration
             int maxPoolSize = 20,
             int timeoutSeconds = 30)
         {
-            ArgumentException.ThrowIfNullOrEmpty(connectionString);
-
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new ValidationException(
