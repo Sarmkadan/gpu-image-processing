@@ -102,6 +102,9 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public float GetOptimizationSetting(string key, float defaultValue = 1.0f)
         {
+            if (string.IsNullOrWhiteSpace(key))
+                throw new ArgumentException("Setting key cannot be empty", nameof(key));
+
             return OptimizationSettings.TryGetValue(key, out var value) ? value : defaultValue;
         }
 
