@@ -26,18 +26,26 @@ namespace GpuImageProcessing.Core.Exceptions
         public ImageProcessingException(string message)
             : base(message)
         {
+            if (message == null)
+                throw new ArgumentNullException(nameof(message));
             OccurredAt = DateTime.UtcNow;
         }
 
         public ImageProcessingException(string message, Exception innerException)
             : base(message, innerException)
         {
+            if (message == null)
+                throw new ArgumentNullException(nameof(message));
             OccurredAt = DateTime.UtcNow;
         }
 
         public ImageProcessingException(string message, string errorCode)
             : base(message)
         {
+            if (message == null)
+                throw new ArgumentNullException(nameof(message));
+            if (errorCode == null)
+                throw new ArgumentNullException(nameof(errorCode));
             ErrorCode = errorCode;
             OccurredAt = DateTime.UtcNow;
         }
@@ -45,6 +53,10 @@ namespace GpuImageProcessing.Core.Exceptions
         public ImageProcessingException(string message, string errorCode, Exception innerException)
             : base(message, innerException)
         {
+            if (message == null)
+                throw new ArgumentNullException(nameof(message));
+            if (errorCode == null)
+                throw new ArgumentNullException(nameof(errorCode));
             ErrorCode = errorCode;
             OccurredAt = DateTime.UtcNow;
         }
@@ -67,12 +79,16 @@ namespace GpuImageProcessing.Core.Exceptions
         public ImageFileException(string message, string filePath)
             : base(message, "FILE_ERROR")
         {
+            if (filePath == null)
+                throw new ArgumentNullException(nameof(filePath));
             FilePath = filePath;
         }
 
         public ImageFileException(string message, string filePath, Exception innerException)
             : base(message, "FILE_ERROR", innerException)
         {
+            if (filePath == null)
+                throw new ArgumentNullException(nameof(filePath));
             FilePath = filePath;
         }
     }
@@ -85,6 +101,8 @@ namespace GpuImageProcessing.Core.Exceptions
         public InvalidImageException(string message)
             : base(message, "INVALID_IMAGE")
         {
+            if (message == null)
+                throw new ArgumentNullException(nameof(message));
         }
 
         public InvalidImageException(string message, Exception innerException)
