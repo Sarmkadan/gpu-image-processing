@@ -19,7 +19,7 @@ namespace GpuImageProcessing.Cli
         private readonly DeviceService _deviceService;
 
         public DeviceCommand(IServiceProvider serviceProvider)
-            : base(serviceProvider, "device")
+            : base(serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider)), "device")
         {
             _deviceService = GetService<DeviceService>();
         }
