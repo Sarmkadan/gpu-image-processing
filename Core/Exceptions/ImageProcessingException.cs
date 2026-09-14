@@ -108,6 +108,8 @@ namespace GpuImageProcessing.Core.Exceptions
         public InvalidImageException(string message, Exception innerException)
             : base(message, "INVALID_IMAGE", innerException)
         {
+            if (message == null)
+                throw new ArgumentNullException(nameof(message));
         }
     }
 }
