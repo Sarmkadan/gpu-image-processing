@@ -1,5 +1,8 @@
 namespace GpuImageProcessing.Events;
 
+/// <summary>
+/// Provides extension methods for the <see cref="EventPublisher"/> class.
+/// </summary>
 public static class EventPublisherExtensions
 {
     /// <summary>
