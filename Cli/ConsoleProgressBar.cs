@@ -58,7 +58,7 @@ namespace GpuImageProcessing.Cli
             sb.Append('/');
             sb.Append(_total);
             sb.Append(')');
-            if (!string.IsNullOrEmpty(label))
+            if (label != null && label.Length > 0)
             {
                 sb.Append("  ");
                 sb.Append(label);
