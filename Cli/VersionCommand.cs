@@ -19,6 +19,8 @@ namespace GpuImageProcessing.Cli
         public VersionCommand(IServiceProvider serviceProvider)
             : base(serviceProvider, "version")
         {
+            if (serviceProvider == null)
+                throw new ArgumentNullException(nameof(serviceProvider));
         }
 
         public override string GetDescription()
