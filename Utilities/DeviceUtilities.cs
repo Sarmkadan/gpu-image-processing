@@ -177,6 +177,23 @@ namespace GpuImageProcessing.Utilities
                    $"CC {computeCapability}, " +
                    $"Peak: {peakPerf:F1} GFLOPS)";
         }
+
+        /// <summary>
+        /// Converts bytes to appropriate memory unit with formatting
+        /// </summary>
+        public static string FormatMemorySize(long bytes)
+        {
+            if (bytes == 0)
+                return "0 B";
+
+            var absBytes = Math.Abs(bytes);
+            var suffixes = new[] { "B", "KB", "MB", "GB", "TB" };
+            var i = (int)Math.Floor(Math.Log(absBytes, 1024));
+            i = Math.Min(i, suffixes.Length - 1);
+
+            var value = bytes / Math.Pow(1024, i);
+            return $"{value:F1} {suffixes[i]}";
+        }
     }
 
     public enum MemoryPressureLevel
