@@ -19,6 +19,7 @@ namespace GpuImageProcessing.Middleware
     {
         private readonly List<ApiKey> _validKeys;
         private readonly Dictionary<string, UserRole> _userRoles;
+        private const int KeyPreviewLength = 8;
 
         public AuthorizationMiddleware()
         {
@@ -118,7 +119,7 @@ namespace GpuImageProcessing.Middleware
                     UserId = k.UserId,
                     CreatedAt = k.CreatedAt,
                     Scopes = k.Scopes?.ToList() ?? new List<string>(),
-                    KeyPreview = k.Key?.Length > 8 ? k.Key.Substring(0, 8) + "..." : k.Key
+                    KeyPreview = k.Key?.Length > KeyPreviewLength ? k.Key.Substring(0, KeyPreviewLength) + "..." : k.Key
                 })
                 .ToList();
         }
