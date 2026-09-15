@@ -20,14 +20,17 @@ namespace GpuImageProcessing.BackgroundWorkers
         private readonly DistributedCache _cache;
         private readonly TimeSpan _cleanupInterval;
         private readonly float _memoryWarningThreshold;
+        private static readonly TimeSpan DefaultCleanupInterval = TimeSpan.FromMinutes(5);
+        private const float DefaultMemoryWarningThreshold = 80f;
+        private static readonly TimeSpan ErrorDelay = TimeSpan.FromSeconds(5);
 
         public CacheMaintenanceWorker(
             DistributedCache cache,
             TimeSpan? cleanupInterval = null,
-            float memoryWarningThreshold = 80)
+            float memoryWarningThreshold = DefaultMemoryWarningThreshold)
         {
             _cache = cache ?? throw new ArgumentNullException(nameof(cache));
-            _cleanupInterval = cleanupInterval ?? TimeSpan.FromMinutes(5);
+            _cleanupInterval = cleanupInterval ?? DefaultCleanupInterval;
             _memoryWarningThreshold = memoryWarningThreshold;
         }
 
@@ -63,7 +66,7 @@ namespace GpuImageProcessing.BackgroundWorkers
                 catch (Exception ex)
                 {
                     OnError($"Cache maintenance error: {ex.Message}");
-                    await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+                    await Task.Delay(ErrorDelay, cancellationToken);
                 }
             }
         }
