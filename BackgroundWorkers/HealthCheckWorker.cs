@@ -28,6 +28,11 @@ namespace GpuImageProcessing.BackgroundWorkers
         private Task _workerTask;
         private bool _isRunning;
 
+        // Default values for health check worker
+        private static readonly TimeSpan DefaultCheckInterval = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan DefaultStopTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan ErrorRetryDelay = TimeSpan.FromSeconds(10);
+
         public HealthCheckWorker(
             ILogger<HealthCheckWorker> logger,
             DeviceService deviceService,
@@ -37,7 +42,7 @@ namespace GpuImageProcessing.BackgroundWorkers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _deviceService = deviceService ?? throw new ArgumentNullException(nameof(deviceService));
             _eventPublisher = eventPublisher ?? throw new ArgumentNullException(nameof(eventPublisher));
-            _checkInterval = checkInterval ?? TimeSpan.FromMinutes(5);
+            _checkInterval = checkInterval ?? DefaultCheckInterval;
         }
 
         /// <summary>
@@ -86,7 +91,7 @@ namespace GpuImageProcessing.BackgroundWorkers
             _cancellationTokenSource?.Cancel();
 
             if (timeout == default)
-                timeout = TimeSpan.FromSeconds(30);
+                timeout = DefaultStopTimeout;
 
             try
             {
@@ -134,7 +139,7 @@ namespace GpuImageProcessing.BackgroundWorkers
                     _logger.LogError(ex, "Error during health check");
 
                     // Wait before retrying on error
-                    await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+                    await Task.Delay(ErrorRetryDelay, cancellationToken);
                 }
             }
 
