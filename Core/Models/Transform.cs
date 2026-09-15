@@ -149,5 +149,13 @@ namespace GpuImageProcessing.Core.Models
                 ProcessingTimeMs = this.ProcessingTimeMs
             };
         }
+
+        /// <summary>
+        /// Returns a concise string representation of the transform
+        /// </summary>
+        public override string ToString()
+        {
+            return $"Transform: {Name} ({Type}) - {(IsActive ? "Active" : "Inactive")}";
+        }
     }
 }
