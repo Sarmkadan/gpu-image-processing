@@ -29,6 +29,11 @@ namespace GpuImageProcessing.BackgroundWorkers
         private Task _workerTask;
         private bool _isRunning;
 
+        // Constants for configuration values
+        private const int JobPollIntervalMilliseconds = 1000;
+        private const int ImageProcessingSimulationDelayMilliseconds = 100;
+        private const int WorkerStopTimeoutSeconds = 30;
+
         public JobProcessingWorker(
             ILogger<JobProcessingWorker> logger,
             BatchProcessingService batchProcessingService,
@@ -84,7 +89,7 @@ namespace GpuImageProcessing.BackgroundWorkers
             _cancellationTokenSource?.Cancel();
 
             if (timeout == default)
-                timeout = TimeSpan.FromSeconds(30);
+                timeout = TimeSpan.FromSeconds(WorkerStopTimeoutSeconds);
 
             try
             {
@@ -116,7 +121,7 @@ namespace GpuImageProcessing.BackgroundWorkers
                 try
                 {
                     // Simulate dequeue operation
-                    await Task.Delay(1000, cancellationToken);
+                    await Task.Delay(JobPollIntervalMilliseconds, cancellationToken);
 
                     // In real implementation, would dequeue from job queue
                     // For demo purposes, logging only
@@ -154,7 +159,7 @@ namespace GpuImageProcessing.BackgroundWorkers
                 await _eventPublisher.PublishAsync(startedEvent);
 
                 // Simulate image processing
-                await Task.Delay(100, cancellationToken);
+                await Task.Delay(ImageProcessingSimulationDelayMilliseconds, cancellationToken);
 
                 stopwatch.Stop();
 
