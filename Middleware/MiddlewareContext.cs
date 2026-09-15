@@ -61,11 +61,17 @@ namespace GpuImageProcessing.Middleware
         public string Message { get; set; }
         public object Data { get; set; }
 
-        public static RequestMiddlewareResult Success(object data = null, string message = "OK") =>
-            new() { IsSuccessful = true, Data = data, Message = message };
+        public static RequestMiddlewareResult Success(object data = null, string message = "OK")
+        {
+            ArgumentException.ThrowIfNullOrEmpty(message);
+            return new() { IsSuccessful = true, Data = data, Message = message };
+        }
 
-        public static RequestMiddlewareResult Failure(string message, object data = null) =>
-            new() { IsSuccessful = false, Message = message, Data = data };
+        public static RequestMiddlewareResult Failure(string message, object data = null)
+        {
+            ArgumentException.ThrowIfNullOrEmpty(message);
+            return new() { IsSuccessful = false, Message = message, Data = data };
+        }
     }
 
     /// <summary>
@@ -85,6 +91,7 @@ namespace GpuImageProcessing.Middleware
         /// </summary>
         public void Use(IRequestMiddleware middleware)
         {
+            ArgumentNullException.ThrowIfNull(middleware);
             _middleware.Add(middleware);
             _middleware.Sort((a, b) => a.Order.CompareTo(b.Order));
         }
@@ -94,6 +101,8 @@ namespace GpuImageProcessing.Middleware
         /// </summary>
         public async Task<RequestMiddlewareResult> ExecuteAsync(RequestMiddlewareContext context)
         {
+            ArgumentNullException.ThrowIfNull(context);
+
             foreach (var middleware in _middleware)
             {
                 var result = await middleware.ProcessAsync(context);
@@ -135,6 +144,7 @@ namespace GpuImageProcessing.Middleware
 
         public async Task<RequestMiddlewareResult> ProcessAsync(RequestMiddlewareContext context)
         {
+            ArgumentNullException.ThrowIfNull(context);
             return await Task.FromResult(RequestMiddlewareResult.Success());
         }
     }
@@ -148,6 +158,7 @@ namespace GpuImageProcessing.Middleware
 
         public async Task<RequestMiddlewareResult> ProcessAsync(RequestMiddlewareContext context)
         {
+            ArgumentNullException.ThrowIfNull(context);
             var validationResult = await ValidateAsync(context);
 
             if (!validationResult.IsValid)
@@ -174,6 +185,7 @@ namespace GpuImageProcessing.Middleware
 
         public async Task<RequestMiddlewareResult> ProcessAsync(RequestMiddlewareContext context)
         {
+            ArgumentNullException.ThrowIfNull(context);
             Console.WriteLine($"[{context.StartTime:O}] {context.Operation} (RequestId: {context.RequestId})");
 
             if (!string.IsNullOrEmpty(context.UserId))
