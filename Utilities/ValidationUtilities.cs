@@ -162,6 +162,20 @@ namespace GpuImageProcessing.Utilities
             return ValidationResult.Success();
         }
 
+        /// <summary>
+        /// Validates a color channel value is within the valid 0-255 range.
+        /// </summary>
+        public static ValidationResult ValidateColorChannel(int channelValue, string channelName)
+        {
+            const int minChannel = 0;
+            const int maxChannel = 255;
+
+            if (channelValue < minChannel || channelValue > maxChannel)
+                return ValidationResult.Failure($"{channelName} must be between {minChannel} and {maxChannel}");
+
+            return ValidationResult.Success();
+        }
+
         private static ValidationResult ValidateGaussianParameters(Dictionary<string, object> parameters)
         {
             if (parameters.TryGetValue("sigma", out var sigmaObj) && sigmaObj is float sigma)
