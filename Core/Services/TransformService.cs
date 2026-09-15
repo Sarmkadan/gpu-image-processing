@@ -25,6 +25,10 @@ namespace GpuImageProcessing.Core.Services
         private readonly GenericRepository<Transform> _transformRepository;
         private readonly ConcurrentDictionary<TransformType, string> _kernelCache = new();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TransformService"/> class.
+        /// </summary>
+        /// <param name="transformRepository">The repository used to store and retrieve transforms.</param>
         public TransformService(GenericRepository<Transform> transformRepository)
         {
             _transformRepository = transformRepository ?? throw new ArgumentNullException(nameof(transformRepository));
@@ -33,6 +37,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Returns a concise representation of the service's transform statistics
         /// </summary>
+        /// <returns>A string containing the current transform statistics.</returns>
         public override string ToString()
         {
             var stats = GetStatisticsAsync().GetAwaiter().GetResult();
@@ -43,6 +48,10 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Creates a new transformation
         /// </summary>
+        /// <param name="type">The type of transformation to create.</param>
+        /// <param name="name">The name of the transformation.</param>
+        /// <param name="description">The description of the transformation.</param>
+        /// <returns>The newly created transformation.</returns>
         public async Task<Transform> CreateTransformAsync(TransformType type, string name, string description = "")
         {
             var transform = Transform.CreatePredefined(type);
@@ -55,6 +64,8 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets a transform by ID
         /// </summary>
+        /// <param name="transformId">The identifier of the transform to retrieve.</param>
+        /// <returns>The transform if found; otherwise, <see langword="null"/>.</returns>
         public async Task<Transform?> GetTransformAsync(Guid transformId)
         {
             return await _transformRepository.GetByIdAsync(transformId);
@@ -63,6 +74,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets all transforms
         /// </summary>
+        /// <returns>All stored transforms.</returns>
         public async Task<IEnumerable<Transform>> GetAllTransformsAsync()
         {
             return await _transformRepository.GetAllAsync();
@@ -71,6 +83,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets all active transforms
         /// </summary>
+        /// <returns>All active transforms ordered by execution order.</returns>
         public async Task<IEnumerable<Transform>> GetActiveTransformsAsync()
         {
             var transforms = await _transformRepository.GetAllAsync();
@@ -81,6 +94,10 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Sets a transform parameter
         /// </summary>
+        /// <param name="transformId">The identifier of the transform to update.</param>
+        /// <param name="parameterName">The name of the parameter to set.</param>
+        /// <param name="value">The parameter value.</param>
+        /// <returns><see langword="true"/> if the transform was found and updated; otherwise, <see langword="false"/>.</returns>
         public async Task<bool> SetParameterAsync(Guid transformId, string parameterName, float value)
         {
             var transform = await _transformRepository.GetByIdAsync(transformId);
@@ -95,6 +112,9 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Sets multiple parameters at once
         /// </summary>
+        /// <param name="transformId">The identifier of the transform to update.</param>
+        /// <param name="parameters">The parameter names and values to set.</param>
+        /// <returns><see langword="true"/> if the transform was found and updated; otherwise, <see langword="false"/>.</returns>
         public async Task<bool> SetParametersAsync(Guid transformId, Dictionary<string, float> parameters)
         {
             var transform = await _transformRepository.GetByIdAsync(transformId);
@@ -113,6 +133,10 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets a parameter value
         /// </summary>
+        /// <param name="transformId">The identifier of the transform.</param>
+        /// <param name="parameterName">The name of the parameter to retrieve.</param>
+        /// <param name="defaultValue">The value to return when the transform or parameter is not found.</param>
+        /// <returns>The parameter value, or <paramref name="defaultValue"/> when it is not found.</returns>
         public async Task<float> GetParameterAsync(Guid transformId, string parameterName, float defaultValue = 0f)
         {
             var transform = await _transformRepository.GetByIdAsync(transformId);
@@ -125,6 +149,8 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Chains multiple transforms for sequential execution
         /// </summary>
+        /// <param name="transformIds">The identifiers of the transforms to chain.</param>
+        /// <returns>The transforms that were found, ordered for sequential execution.</returns>
         public async Task<List<Transform>> ChainTransformsAsync(List<Guid> transformIds)
         {
             var transforms = new List<Transform>();
@@ -147,6 +173,8 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Activates a transform
         /// </summary>
+        /// <param name="transformId">The identifier of the transform to activate.</param>
+        /// <returns><see langword="true"/> if the transform was found and activated; otherwise, <see langword="false"/>.</returns>
         public async Task<bool> ActivateTransformAsync(Guid transformId)
         {
             var transform = await _transformRepository.GetByIdAsync(transformId);
@@ -161,6 +189,8 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Deactivates a transform
         /// </summary>
+        /// <param name="transformId">The identifier of the transform to deactivate.</param>
+        /// <returns><see langword="true"/> if the transform was found and deactivated; otherwise, <see langword="false"/>.</returns>
         public async Task<bool> DeactivateTransformAsync(Guid transformId)
         {
             var transform = await _transformRepository.GetByIdAsync(transformId);
@@ -175,6 +205,8 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Deletes a transform
         /// </summary>
+        /// <param name="transformId">The identifier of the transform to delete.</param>
+        /// <returns><see langword="true"/> if the transform was deleted; otherwise, <see langword="false"/>.</returns>
         public async Task<bool> DeleteTransformAsync(Guid transformId)
         {
             return await _transformRepository.DeleteAsync(transformId);
@@ -183,6 +215,8 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Clones a transform
         /// </summary>
+        /// <param name="transformId">The identifier of the transform to clone.</param>
+        /// <returns>The newly created clone.</returns>
         public async Task<Transform> CloneTransformAsync(Guid transformId)
         {
             var transform = await _transformRepository.GetByIdAsync(transformId);
@@ -197,6 +231,8 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets transform configuration for export
         /// </summary>
+        /// <param name="transformId">The identifier of the transform to export.</param>
+        /// <returns>The transform configuration, or an empty string if the transform is not found.</returns>
         public async Task<string> ExportConfigurationAsync(Guid transformId)
         {
             var transform = await _transformRepository.GetByIdAsync(transformId);
@@ -209,6 +245,8 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets transform pipeline as a string
         /// </summary>
+        /// <param name="transformIds">The identifiers of the transforms in the pipeline.</param>
+        /// <returns>A description of the transform pipeline.</returns>
         public async Task<string> GetPipelineDescriptionAsync(List<Guid> transformIds)
         {
             var description = "Transform Pipeline:\n";
@@ -230,6 +268,8 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets the OpenCL kernel code for a transform type
         /// </summary>
+        /// <param name="type">The transform type for which to retrieve kernel code.</param>
+        /// <returns>The OpenCL kernel code for the specified transform type.</returns>
         public async Task<string> GetKernelCodeAsync(TransformType type)
         {
             if (_kernelCache.TryGetValue(type, out var cachedCode))
@@ -334,6 +374,7 @@ __kernel void basic_transform(__global uchar* input, __global uchar* output, int
         /// <summary>
         /// Gets transform statistics
         /// </summary>
+        /// <returns>Statistics describing the stored transforms.</returns>
         public async Task<TransformStatistics> GetStatisticsAsync()
         {
             var allTransforms = await _transformRepository.GetAllAsync();
@@ -356,6 +397,8 @@ __kernel void basic_transform(__global uchar* input, __global uchar* output, int
         /// <summary>
         /// Gets transforms by type
         /// </summary>
+        /// <param name="type">The transform type to match.</param>
+        /// <returns>All transforms of the specified type.</returns>
         public async Task<IEnumerable<Transform>> GetByTypeAsync(TransformType type)
         {
             var transforms = await _transformRepository.GetAllAsync();
@@ -368,10 +411,29 @@ __kernel void basic_transform(__global uchar* input, __global uchar* output, int
     /// </summary>
     public class TransformStatistics
     {
+        /// <summary>
+        /// Gets or sets the total number of transforms.
+        /// </summary>
         public int TotalTransforms { get; set; }
+
+        /// <summary>
+        /// Gets or sets the number of active transforms.
+        /// </summary>
         public int ActiveTransforms { get; set; }
+
+        /// <summary>
+        /// Gets or sets the number of distinct transform types.
+        /// </summary>
         public int TransformTypes { get; set; }
+
+        /// <summary>
+        /// Gets or sets the average number of parameters per transform.
+        /// </summary>
         public double AverageParametersPerTransform { get; set; }
+
+        /// <summary>
+        /// Gets or sets the total transform execution time in milliseconds.
+        /// </summary>
         public float TotalExecutionTime { get; set; }
     }
 }
