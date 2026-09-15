@@ -37,6 +37,18 @@ namespace GpuImageProcessing.Core.Services
         private readonly Dictionary<Guid, List<ProcessingResult>> _resultsHistory = new();
         private readonly object _resultsHistoryLock = new();
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ImageProcessingService"/> class.
+        /// </summary>
+        /// <param name="imageRepository">The repository used to manage images.</param>
+        /// <param name="filterRepository">The repository used to manage filters.</param>
+        /// <param name="transformRepository">The repository used to manage transforms.</param>
+        /// <param name="profileRepository">The repository used to manage processing profiles.</param>
+        /// <param name="deviceService">The service used to select compute devices.</param>
+        /// <param name="computeShaderPipeline">The pipeline used to execute compute shader passes.</param>
+        /// <param name="logger">The logger used to record processing activity.</param>
+        /// <param name="filterService">The service used to retrieve filter kernels.</param>
+        /// <param name="transformService">The service used to retrieve transform kernels.</param>
         public ImageProcessingService(
             ImageRepository imageRepository,
             GenericRepository<Filter> filterRepository,
@@ -62,6 +74,9 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Registers a new image for processing
         /// </summary>
+        /// <param name="filePath">The path to the image file.</param>
+        /// <param name="name">The name to assign to the image.</param>
+        /// <returns>The registered image.</returns>
         public async Task<Image> RegisterImageAsync(string filePath, string name)
         {
             if (string.IsNullOrWhiteSpace(filePath))
@@ -74,6 +89,8 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets an image by ID
         /// </summary>
+        /// <param name="imageId">The identifier of the image to retrieve.</param>
+        /// <returns>The image, or <see langword="null"/> if it does not exist.</returns>
         public async Task<Image?> GetImageAsync(Guid imageId)
         {
             return await _imageRepository.GetByIdAsync(imageId);
@@ -82,6 +99,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets all registered images
         /// </summary>
+        /// <returns>All registered images.</returns>
         public async Task<IEnumerable<Image>> GetAllImagesAsync()
         {
             return await _imageRepository.GetAllAsync();
@@ -245,6 +263,9 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Applies a single filter to an image and returns the processing result.
         /// </summary>
+        /// <param name="imageId">The identifier of the image to process.</param>
+        /// <param name="filterId">The identifier of the filter to apply.</param>
+        /// <returns>The result of the processing operation.</returns>
         public Task<ProcessingResult> ApplyFilterAsync(Guid imageId, Guid filterId)
         {
             return ProcessImageAsync(imageId, new List<Guid> { filterId }, new List<Guid>(), null);
@@ -253,6 +274,9 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Applies a single transform to an image and returns the processing result.
         /// </summary>
+        /// <param name="imageId">The identifier of the image to process.</param>
+        /// <param name="transformId">The identifier of the transform to apply.</param>
+        /// <returns>The result of the processing operation.</returns>
         public Task<ProcessingResult> ApplyTransformAsync(Guid imageId, Guid transformId)
         {
             return ProcessImageAsync(imageId, new List<Guid>(), new List<Guid> { transformId }, null);
@@ -261,6 +285,8 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets the history of processing results recorded for an image.
         /// </summary>
+        /// <param name="imageId">The identifier of the image whose results to retrieve.</param>
+        /// <returns>The processing results recorded for the image.</returns>
         public Task<List<ProcessingResult>> GetProcessingResultsAsync(Guid imageId)
         {
             lock (_resultsHistoryLock)
@@ -289,6 +315,11 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Processes multiple images in batch
         /// </summary>
+        /// <param name="imageIds">The identifiers of the images to process.</param>
+        /// <param name="filterIds">The identifiers of the filters to apply.</param>
+        /// <param name="transformIds">The identifiers of the transforms to apply.</param>
+        /// <param name="profileId">The identifier of the processing profile to use.</param>
+        /// <returns>The results of the batch processing operations.</returns>
         public async Task<List<ProcessingResult>> ProcessBatchAsync(List<Guid> imageIds, List<Guid> filterIds,
             List<Guid> transformIds, Guid profileId)
         {
@@ -337,6 +368,8 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets processing statistics for an image
         /// </summary>
+        /// <param name="imageId">The identifier of the image.</param>
+        /// <returns>The processing statistics for the image.</returns>
         public async Task<ImageProcessingStats> GetImageStatsAsync(Guid imageId)
         {
             var image = await _imageRepository.GetByIdAsync(imageId);
@@ -367,6 +400,9 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Validates if processing is possible with given resources
         /// </summary>
+        /// <param name="imageIds">The identifiers of the images to evaluate.</param>
+        /// <param name="profileId">The identifier of the processing profile to use.</param>
+        /// <returns><see langword="true"/> if the selected device has sufficient resources; otherwise, <see langword="false"/>.</returns>
         public async Task<bool> CanProcessAsync(List<Guid> imageIds, Guid profileId)
         {
             var profile = await _profileRepository.GetByIdAsync(profileId) ?? ProcessingProfile.CreateBalanced();
@@ -392,6 +428,8 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets processing profile for optimization
         /// </summary>
+        /// <param name="profileId">The identifier of the processing profile.</param>
+        /// <returns>The processing profile, or <see langword="null"/> if it does not exist.</returns>
         public async Task<ProcessingProfile?> GetProfileAsync(Guid profileId)
         {
             return await _profileRepository.GetByIdAsync(profileId);
@@ -400,6 +438,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets all available profiles
         /// </summary>
+        /// <returns>All available processing profiles.</returns>
         public async Task<IEnumerable<ProcessingProfile>> GetAllProfilesAsync()
         {
             return await _profileRepository.GetAllAsync();
@@ -408,6 +447,9 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Creates a new processing profile
         /// </summary>
+        /// <param name="name">The name of the processing profile.</param>
+        /// <param name="description">The description of the processing profile.</param>
+        /// <returns>The created processing profile.</returns>
         public async Task<ProcessingProfile> CreateProfileAsync(string name, string description)
         {
             var profile = new ProcessingProfile
@@ -438,16 +480,59 @@ namespace GpuImageProcessing.Core.Services
     /// </summary>
     public class ImageProcessingStats
     {
+        /// <summary>
+        /// Gets or sets the identifier of the image.
+        /// </summary>
         public Guid ImageId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the name of the image.
+        /// </summary>
         public string ImageName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the path to the image file.
+        /// </summary>
         public string FilePath { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Gets or sets the image file size in bytes.
+        /// </summary>
         public long FileSizeBytes { get; set; }
+
+        /// <summary>
+        /// Gets or sets the image width in pixels.
+        /// </summary>
         public int Width { get; set; }
+
+        /// <summary>
+        /// Gets or sets the image height in pixels.
+        /// </summary>
         public int Height { get; set; }
+
+        /// <summary>
+        /// Gets or sets the total number of pixels in the image.
+        /// </summary>
         public long PixelCount { get; set; }
+
+        /// <summary>
+        /// Gets or sets the image aspect ratio.
+        /// </summary>
         public double AspectRatio { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether the image has been processed.
+        /// </summary>
         public bool IsProcessed { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date and time when the image was created.
+        /// </summary>
         public DateTime CreatedAt { get; set; }
+
+        /// <summary>
+        /// Gets or sets the date and time when the image was last modified.
+        /// </summary>
         public DateTime ModifiedAt { get; set; }
     }
 }
