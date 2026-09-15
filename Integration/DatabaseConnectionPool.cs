@@ -25,14 +25,20 @@ namespace GpuImageProcessing.Integration
         private readonly int _maxPoolSize;
         private readonly TimeSpan _connectionTimeout;
         private readonly object _lockObject = new();
+    private const int MinAllowedPoolSize = 1;
+    private const int MinAllowedTimeoutSeconds = 1;
+    private const int DefaultMinPoolSize = 5;
+    private const int DefaultMaxPoolSize = 20;
+    private const int DefaultTimeoutSeconds = 30;
+    private const int ConnectionCheckIntervalMillis = 100;
 
         public event EventHandler<ConnectionPoolEventArgs> PoolEvent;
 
         public DatabaseConnectionPool(
             string connectionString,
-            int minPoolSize = 5,
-            int maxPoolSize = 20,
-            int timeoutSeconds = 30)
+            int minPoolSize = DefaultMinPoolSize,
+            int maxPoolSize = DefaultMaxPoolSize,
+            int timeoutSeconds = DefaultTimeoutSeconds)
         {
             if (string.IsNullOrWhiteSpace(connectionString))
             {
@@ -41,7 +47,7 @@ namespace GpuImageProcessing.Integration
                     nameof(connectionString));
             }
 
-            if (minPoolSize < 1)
+            if (minPoolSize < MinAllowedPoolSize)
             {
                 throw new ValidationException(
                     "minPoolSize must be at least 1",
@@ -63,7 +69,7 @@ namespace GpuImageProcessing.Integration
                     });
             }
 
-            if (timeoutSeconds < 1)
+            if (timeoutSeconds < MinAllowedTimeoutSeconds)
             {
                 throw new ValidationException(
                     "timeoutSeconds must be at least 1",
@@ -161,7 +167,7 @@ namespace GpuImageProcessing.Integration
                     }
 
                     // Wait and retry
-                    await Task.Delay(100);
+                    await Task.Delay(ConnectionCheckIntervalMillis);
                 }
                 catch (Exception ex)
                 {
