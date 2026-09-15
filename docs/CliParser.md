@@ -1,186 +1,94 @@
 # CliParser
 
-The `CliParser` class provides a fluent interface for defining, registering, and parsing command-line arguments within the `gpu-image-processing` application. It supports the registration of global options and specific subcommands, each with their own set of named options and positional arguments. The parser generates standardized help text and returns a structured `ParsedCommand` object containing the resolved command name, options, and arguments after processing the input string array.
+The `CliParser` class defines and parses a command-line interface made up of subcommands, command-specific options, global options, and positional arguments. It validates known commands and options, enforces required options, and can generate help text for the complete CLI or an individual command.
 
 ## API
 
-### Constructors
+### `CliParser()`
 
-#### `public CliParser()`
-Initializes a new instance of the `CliParser` class. This constructor creates an empty parser ready to accept command and option registrations.
+Creates an empty parser to which commands and global options can be registered.
 
-### Registration Methods
+### `RegisterCommand(string? name, string description, Action<CommandBuilder> builder)`
 
-#### `public void RegisterCommand(CommandBuilder command)`
-Registers a subcommand definition with the parser.
-*   **Parameters**:
-    *   `command`: An instance of `CommandBuilder` containing the command name, description, options, and positional argument definitions.
-*   **Returns**: `void`.
-*   **Throws**: May throw an exception if a command with the same `CommandName` has already been registered.
+Registers a command. The `builder` callback configures the options accepted by that command. Registering the same command name again replaces its previous definition; command names are matched without regard to case.
 
-#### `public void RegisterGlobalOption(OptionDefinition option)`
-Registers an option that applies globally to the parser, regardless of the specific subcommand invoked.
-*   **Parameters**:
-    *   `option`: An `OptionDefinition` specifying the long form, short form, description, value requirements, and mandatory status of the option.
-*   **Returns**: `void`.
-*   **Throws**: May throw an exception if an option with the same `LongForm` or `ShortForm` is already registered.
+- `name`: The command name. It cannot be null or empty.
+- `description`: The description displayed in help text. It cannot be null or empty.
+- `builder`: A callback that receives the command's `CommandBuilder`. It cannot be null.
 
-### Parsing and Help Generation
+### `RegisterGlobalOption(string name, string shortForm, string description, bool requiresValue = false)`
 
-#### `public ParsedCommand Parse(string[] args)`
-Processes the provided command-line arguments and returns the resulting command structure.
-*   **Parameters**:
-    *   `args`: The array of command-line arguments (typically `Environment.GetCommandLineArgs()` excluding the executable path).
-*   **Returns**: A `ParsedCommand` object containing the matched `CommandName`, a dictionary of parsed `Options`, and a list of `PositionalArguments`. If no command is matched or args are empty, it may return `ParsedCommand.Empty`.
-*   **Throws**: Throws an exception if the input arguments do not match any registered command schema, if a required option is missing, or if an option requiring a value does not receive one.
+Registers an option that is available to every command.
 
-#### `public string GenerateHelpText()`
-Generates a comprehensive help message displaying all registered commands and global options.
-*   **Parameters**: None.
-*   **Returns**: A formatted string containing usage instructions, command lists, and global option details.
-*   **Throws**: None.
+- `name`: The long option name without the leading `--`.
+- `shortForm`: The short option name without the leading `-`.
+- `description`: The text displayed in generated help.
+- `requiresValue`: Whether the next argument is consumed as the option's value. Flags store the string `"true"`.
 
-#### `public string GenerateCommandHelp(string commandName)`
-Generates a detailed help message for a specific subcommand.
-*   **Parameters**:
-    *   `commandName`: The name of the command for which to generate help.
-*   **Returns**: A formatted string detailing the specific command's usage, options, and positional arguments.
-*   **Throws**: Throws an exception if `commandName` does not match any registered command.
+### `Parse(string[] args)`
 
-### Nested Types and Properties
+Parses a command name followed by options and positional arguments. Long options use `--name`; short options use a single character such as `-n`. The returned `ParsedCommand` contains the command name, an option dictionary keyed by long option name, and positional arguments in input order. An empty array returns `ParsedCommand.Empty()`.
 
-#### `public class CommandBuilder`
-A helper class used to construct command definitions before registration.
+`Parse` throws `CliParsingException` for an unknown command or option, a missing option value, or a missing required command option. It throws `ArgumentNullException` when `args` is null.
 
-*   **`public string Name`**: Gets or sets the unique identifier for the command.
-*   **`public string Description`**: Gets or sets the human-readable description of the command's purpose.
-*   **`public List<OptionDefinition> Options`**: Gets the list of options specific to this command.
-*   **`public CommandBuilder AddOption(OptionDefinition option)`**: Adds an option to this command's definition. Returns the current `CommandBuilder` instance to allow fluent chaining.
+### `GenerateHelpText()`
 
-#### `public class OptionDefinition`
-Defines the schema for a single command-line option.
+Returns formatted help text listing every registered command and global option.
 
-*   **`public string LongForm`**: The long-form name of the option (e.g., `--input`).
-*   **`public string ShortForm`**: The short-form alias of the option (e.g., `-i`).
-*   **`public string Description`**: The description displayed in help text.
-*   **`public bool RequiresValue`**: Indicates whether the option expects an accompanying value.
-*   **`public bool IsRequired`**: Indicates whether the option must be present for the command to execute.
+### `GenerateCommandHelp(string commandName)`
 
-#### `public class ParsedCommand`
-Represents the result of a successful parse operation.
+Returns formatted help for a registered command, including its options and required markers. For an unknown command, it returns `Unknown command: <name>`.
 
-*   **`public string CommandName`**: The name of the matched command.
-*   **`public Dictionary<string, string> Options`**: A dictionary mapping option names to their provided values.
-*   **`public List<string> PositionalArguments`**: A list of arguments provided that were not matched to named options.
-*   **`public static ParsedCommand Empty`**: A static readonly instance representing a null or empty parse result, used when no command is specified.
+### `CommandBuilder`
+
+The public nested builder used by `RegisterCommand` exposes:
+
+- `CommandBuilder(string name, string description)`: Creates a builder for a command.
+- `AddOption(string longForm, string shortForm, string description, bool requiresValue = false, bool isRequired = false)`: Adds a command-specific option and returns the same builder for chaining. Names are supplied without `--` or `-` prefixes.
+
+### `ParsedCommand`
+
+Represents parsed input through these public members:
+
+- `CommandName`: The matched command name, or an empty string for `Empty()`.
+- `Options`: Long option names mapped to their values. Flag options have the value `"true"`.
+- `PositionalArguments`: Unnamed arguments in their original order.
+- `Empty()`: Creates an empty parsed command.
+- `GetOption(string name, string defaultValue = null)`: Gets an option value or returns the supplied default.
+- `HasOption(string name)`: Returns `true` only when the option exists with the value `"true"`.
+
+### `CliParsingException`
+
+Represents invalid command-line input. Its public constructor accepts the error message.
 
 ## Usage
 
-### Example 1: Defining and Parsing a Subcommand
-This example demonstrates how to register a command with specific options and parse user input.
-
 ```csharp
+using GpuImageProcessing.Cli;
+
 var parser = new CliParser();
 
-// Define a 'convert' command
-var convertCommand = new CommandBuilder
+parser.RegisterGlobalOption("verbose", "v", "Enable verbose output");
+parser.RegisterCommand("resize", "Resize an image", command =>
 {
-    Name = "convert",
-    Description = "Converts an image from one format to another."
-};
-
-convertCommand.AddOption(new OptionDefinition
-{
-    LongForm = "--input",
-    ShortForm = "-i",
-    Description = "Path to the source image file.",
-    RequiresValue = true,
-    IsRequired = true
+    command
+        .AddOption("input", "i", "Source image", requiresValue: true, isRequired: true)
+        .AddOption("width", "w", "Output width", requiresValue: true);
 });
 
-convertCommand.AddOption(new OptionDefinition
-{
-    LongForm = "--output",
-    ShortForm = "-o",
-    Description = "Path to the destination file.",
-    RequiresValue = true,
-    IsRequired = false
-});
+var parsed = parser.Parse(
+    new[] { "resize", "--input", "photo.png", "-w", "800", "--verbose", "thumbnail" });
 
-parser.RegisterCommand(convertCommand);
-
-// Register a global verbose flag
-parser.RegisterGlobalOption(new OptionDefinition
-{
-    LongForm = "--verbose",
-    ShortForm = "-v",
-    Description = "Enable detailed logging.",
-    RequiresValue = false,
-    IsRequired = false
-});
-
-string[] args = { "convert", "-i", "source.png", "-o", "dest.jpg", "-v" };
-
-try
-{
-    ParsedCommand result = parser.Parse(args);
-    
-    if (result.CommandName == "convert")
-    {
-        string inputPath = result.Options["--input"];
-        bool isVerbose = result.Options.ContainsKey("--verbose");
-        
-        // Proceed with processing logic
-        Console.WriteLine($"Processing {inputPath}...");
-    }
-}
-catch (Exception ex)
-{
-    Console.Error.WriteLine($"Parse error: {ex.Message}");
-    Console.WriteLine(parser.GenerateCommandHelp("convert"));
-}
-```
-
-### Example 2: Generating Help Text
-This example shows how to trigger help output when invalid arguments are provided or when explicitly requested.
-
-```csharp
-var parser = new CliParser();
-
-// Register commands...
-// (Assume 'filter' and 'resize' commands are registered here)
-
-string[] args = { "--help" };
-
-// Simple heuristic to detect help request
-if (args.Length == 0 || args.Contains("--help") || args.Contains("-h"))
-{
-    Console.WriteLine(parser.GenerateHelpText());
-    return;
-}
-
-try
-{
-    var result = parser.Parse(args);
-    if (result == ParsedCommand.Empty)
-    {
-        Console.WriteLine("No valid command specified.");
-        Console.WriteLine(parser.GenerateHelpText());
-    }
-}
-catch (Exception ex)
-{
-    Console.Error.WriteLine(ex.Message);
-    // Attempt to show specific command help if a command name was partially recognized
-    // Otherwise show global help
-    Console.WriteLine(parser.GenerateHelpText());
-}
+Console.WriteLine(parsed.CommandName);                  // resize
+Console.WriteLine(parsed.GetOption("input"));          // photo.png
+Console.WriteLine(parsed.GetOption("width"));          // 800
+Console.WriteLine(parsed.HasOption("verbose"));        // True
+Console.WriteLine(parsed.PositionalArguments[0]);       // thumbnail
 ```
 
 ## Notes
 
-*   **Thread Safety**: The `CliParser` instance is not thread-safe during the configuration phase. Calls to `RegisterCommand` and `RegisterGlobalOption` should be completed on a single thread before invoking `Parse`. Once configuration is complete, `Parse`, `GenerateHelpText`, and `GenerateCommandHelp` are generally safe for concurrent read-only access, provided the underlying collections are not modified.
-*   **Option Precedence**: If an option is defined both as a global option and within a specific `CommandBuilder`, the behavior depends on the internal implementation order. Typically, command-specific options override or shadow global options of the same name within the scope of that command.
-*   **Empty Results**: The `ParsedCommand.Empty` static member should be checked explicitly when `Parse` is called with an empty argument array or when the input does not match any registered command pattern, rather than relying solely on exception handling.
-*   **Value Parsing**: The `Options` dictionary in `ParsedCommand` stores values as strings. Consumers are responsible for converting these strings to appropriate types (e.g., `int`, `bool`, `float`) and validating formats (e.g., file paths, numeric ranges).
-*   **Positional Arguments**: Positional arguments are collected in the order they appear after all named options have been processed. Care should be taken when mixing optional named arguments with positional arguments to avoid ambiguity.
+- Configure the parser before parsing. Its mutable command and option collections are not designed for concurrent registration.
+- Command lookup and parsed option lookup are case-insensitive. Long-option matching against registered definitions is case-sensitive.
+- A value-taking option consumes the next argument even if that argument begins with `-`.
+- Required validation applies to command-specific options marked with `isRequired`; global options cannot be marked as required through the public API.
