@@ -26,11 +26,16 @@ namespace GpuImageProcessing.Integration
         private readonly int _maxRetries;
         private readonly TimeSpan _timeout;
 
+        // Constants
+        private const int DefaultTimeoutSeconds = 30;
+        private const int FileCopyBufferSize = 8192;
+        private const int BackoffBaseDelayMilliseconds = 100;
+
         public HttpImageClient(ILogger<HttpImageClient> logger, int maxRetries = 3, TimeSpan? timeout = null)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _maxRetries = maxRetries;
-            _timeout = timeout ?? TimeSpan.FromSeconds(30);
+            _timeout = timeout ?? TimeSpan.FromSeconds(DefaultTimeoutSeconds);
 
             _httpClient = new HttpClient
             {
@@ -114,7 +119,7 @@ namespace GpuImageProcessing.Integration
                         {
                             using (var fileStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))
                             {
-                                await stream.CopyToAsync(fileStream, 8192, cancellationToken);
+                                await stream.CopyToAsync(fileStream, FileCopyBufferSize, cancellationToken);
                             }
                         }
 
@@ -317,7 +322,7 @@ namespace GpuImageProcessing.Integration
         private TimeSpan GetBackoffDelay(int attemptNumber)
         {
             // Exponential backoff: 100ms, 200ms, 400ms, ...
-            int delayMs = 100 * (int)Math.Pow(2, attemptNumber);
+            int delayMs = BackoffBaseDelayMilliseconds * (int)Math.Pow(2, attemptNumber);
             return TimeSpan.FromMilliseconds(delayMs);
         }
 
