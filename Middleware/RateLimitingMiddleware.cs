@@ -24,6 +24,11 @@ namespace GpuImageProcessing.Middleware
         private readonly TokenBucket _tokenBucket;
         private readonly SemaphoreSlim _semaphore;
 
+        private const int ExecutionPriority = 10;
+        private const int SemaphoreWaitTimeout = 0;
+        private const double FullBucketRatio = 1.0;
+        private const double UtilizationPercentScale = 100;
+
     /// <summary>
     /// Gets the rate limit configuration.
     /// </summary>
@@ -63,7 +68,7 @@ namespace GpuImageProcessing.Middleware
         /// </summary>
         public int GetPriority()
         {
-            return 10;
+            return ExecutionPriority;
         }
 
         /// <summary>
@@ -76,7 +81,7 @@ namespace GpuImageProcessing.Middleware
                 throw new ArgumentNullException(nameof(context));
 
             // Check concurrency limit
-            if (!_semaphore.Wait(0))
+            if (!_semaphore.Wait(SemaphoreWaitTimeout))
             {
                 _logger.LogWarning(
                     "Rate limit exceeded - Max concurrent operations ({MaxConcurrent}) reached",
@@ -119,11 +124,12 @@ namespace GpuImageProcessing.Middleware
         /// </summary>
         public RateLimitStatus GetStatus()
         {
+            double utilizationRatio = FullBucketRatio - (_tokenBucket.AvailableTokens / (double)_tokenBucket.Capacity);
             return new RateLimitStatus
             {
                 AvailableTokens = _tokenBucket.AvailableTokens,
                 MaxTokens = _tokenBucket.Capacity,
-                UtilizationPercent = (1.0 - (_tokenBucket.AvailableTokens / (double)_tokenBucket.Capacity)) * 100,
+                UtilizationPercent = utilizationRatio * UtilizationPercentScale,
                 ActiveOperations = _config.MaxConcurrentOperations - _semaphore.CurrentCount,
                 MaxConcurrentOperations = _config.MaxConcurrentOperations
             };
