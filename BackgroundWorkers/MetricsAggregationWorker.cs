@@ -18,6 +18,10 @@ namespace GpuImageProcessing.BackgroundWorkers
     /// </summary>
     public class MetricsAggregationWorker : BackgroundWorkerBase
     {
+        private const int DefaultAggregationIntervalMinutes = 1;
+        private const int MaxSnapshotsToKeep = 60;
+        private const int DefaultMetricsSummaryPeriodMinutes = 10;
+
         private readonly TelemetryService _telemetryService;
         private readonly TimeSpan _aggregationInterval;
         private List<MetricsSnapshot> _snapshots;
@@ -28,7 +32,7 @@ namespace GpuImageProcessing.BackgroundWorkers
             TimeSpan? aggregationInterval = null)
         {
             _telemetryService = telemetryService ?? throw new ArgumentNullException(nameof(telemetryService));
-            _aggregationInterval = aggregationInterval ?? TimeSpan.FromMinutes(1);
+            _aggregationInterval = aggregationInterval ?? TimeSpan.FromMinutes(DefaultAggregationIntervalMinutes);
             _snapshots = new List<MetricsSnapshot>();
         }
 
@@ -67,8 +71,8 @@ namespace GpuImageProcessing.BackgroundWorkers
                     {
                         _snapshots.Add(snapshot);
 
-                        // Keep last 60 snapshots
-                        if (_snapshots.Count > 60)
+                        // Keep last MaxSnapshotsToKeep snapshots
+                        if (_snapshots.Count > MaxSnapshotsToKeep)
                             _snapshots.RemoveAt(0);
                     }
 
@@ -93,7 +97,7 @@ namespace GpuImageProcessing.BackgroundWorkers
         /// <summary>
         /// Gets metrics summary for a time period
         /// </summary>
-        public MetricsSummary GetMetricsSummary(int lastMinutes = 10)
+        public MetricsSummary GetMetricsSummary(int lastMinutes = DefaultMetricsSummaryPeriodMinutes)
         {
             lock (_lockObject)
             {
