@@ -67,6 +67,37 @@ namespace GpuImageProcessing.Utilities
         }
 
         /// <summary>
+        /// Executes an async operation with timeout protection, returning whether it completed successfully
+        /// </summary>
+        public static async Task<bool> TryExecuteWithTimeoutAsync(
+            Func<CancellationToken, Task> operation,
+            TimeSpan timeout,
+            string operationName = "Operation")
+        {
+            ArgumentNullException.ThrowIfNull(operation);
+            ArgumentException.ThrowIfNullOrEmpty(operationName);
+
+            using (var cts = new CancellationTokenSource(timeout))
+            {
+                try
+                {
+                    await operation(cts.Token);
+                    return true; // Completed successfully
+                }
+                catch (OperationCanceledException) when (cts.Token.IsCancellationRequested)
+                {
+                    // Timeout occurred
+                    return false;
+                }
+                catch
+                {
+                    // Operation failed for other reasons
+                    return false;
+                }
+            }
+        }
+
+        /// <summary>
         /// Retries an operation with exponential backoff until timeout
         /// </summary>
         public static async Task<T> RetryWithTimeoutAsync<T>(
