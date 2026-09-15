@@ -12,9 +12,6 @@ using GpuImageProcessing.Core.Models;
 
 namespace GpuImageProcessing.Core.Repository
 {
-    /// <summary>
-    /// Repository for processing result data access operations
-    /// </summary>
     public class ResultRepository : GenericRepository<ProcessingResult>
     {
         /// <summary>
