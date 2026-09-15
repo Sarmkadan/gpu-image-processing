@@ -14,6 +14,7 @@ namespace GpuImageProcessing.Integration
         /// <param name="publisher">The publisher instance.</param>
         /// <param name="name">The name of the metric. Must not be null or empty.</param>
         /// <param name="value">The value of the metric.</param>
+        /// <returns>No value is returned.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="publisher"/> is null.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="name"/> is null or empty.</exception>
         public static void RecordMetric(this MetricsPublisher publisher, string name, double value)
@@ -31,6 +32,7 @@ namespace GpuImageProcessing.Integration
         /// <param name="publisher">The publisher instance.</param>
         /// <param name="operation">The operation name. Must not be null or empty.</param>
         /// <param name="message">The error message, or null if not applicable.</param>
+        /// <returns>No value is returned.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="publisher"/> is null.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="operation"/> is null or empty.</exception>
         public static void RecordError(this MetricsPublisher publisher, string operation, string message = null)
@@ -54,6 +56,7 @@ namespace GpuImageProcessing.Integration
         /// </summary>
         /// <param name="publisher">The publisher instance.</param>
         /// <param name="operation">The operation name. Must not be null or empty.</param>
+        /// <returns>No value is returned.</returns>
         /// <exception cref="ArgumentNullException">Thrown when <paramref name="publisher"/> is null.</exception>
         /// <exception cref="ArgumentException">Thrown when <paramref name="operation"/> is null or empty.</exception>
         public static void RecordSuccess(this MetricsPublisher publisher, string operation)
