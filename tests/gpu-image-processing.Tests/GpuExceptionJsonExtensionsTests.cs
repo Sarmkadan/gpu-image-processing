@@ -18,7 +18,7 @@ namespace GpuImageProcessing.Tests
 
             // Assert
             Assert.NotNull(json);
-            Assert.StartsWith("{\"Message\":\"", json);
+            Assert.StartsWith("{\"message\":\"", json);
         }
 
         [Fact]
@@ -32,7 +32,7 @@ namespace GpuImageProcessing.Tests
         public void FromJson_HappyPath_ReturnsGpuException()
         {
             // Arrange
-            var json = "{\"Message\":\"Test message\"}";
+            var json = "{\"message\":\"Test message\"}";
 
             // Act
             var gpuException = GpuExceptionJsonExtensions.FromJson(json);
@@ -66,7 +66,7 @@ namespace GpuImageProcessing.Tests
         public void TryFromJson_HappyPath_ReturnsTrue()
         {
             // Arrange
-            var json = "{\"Message\":\"Test message\"}";
+            var json = "{\"message\":\"Test message\"}";
 
             // Act
             var success = GpuExceptionJsonExtensions.TryFromJson(json, out var gpuException);
