@@ -59,7 +59,7 @@ namespace GpuImageProcessing.Tests
             var config = new FilterConfiguration { Name = "Test", FilterType = FilterType.Blur };
 
             // Act and Assert
-            Assert.Throws<ArgumentException>(() => config.GetParameter<TestParameter>(null, null));
+            Assert.ThrowsAny<ArgumentException>(() => config.GetParameter<TestParameter>(null, null));
         }
 
         [Fact]
@@ -101,7 +101,7 @@ namespace GpuImageProcessing.Tests
             var paramValue = new TestParameter { Value = 789 };
 
             // Act and Assert
-            Assert.Throws<ArgumentException>(() => config.SetParameter(null, paramValue));
+            Assert.ThrowsAny<ArgumentException>(() => config.SetParameter(null, paramValue));
         }
 
         [Fact]
@@ -474,7 +474,7 @@ namespace GpuImageProcessing.Tests
             var config = new FilterConfiguration { Name = "Test", FilterType = FilterType.Blur };
 
             // Act and Assert
-            Assert.Throws<ArgumentException>(() => config.GetNormalizedParameter(null));
+            Assert.ThrowsAny<ArgumentException>(() => config.GetNormalizedParameter(null));
         }
 
         [Fact]

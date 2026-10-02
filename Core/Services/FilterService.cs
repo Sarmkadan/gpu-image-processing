@@ -26,6 +26,8 @@ namespace GpuImageProcessing.Core.Services
         private readonly GenericRepository<Filter> _filterRepository;
         private readonly ConcurrentDictionary<FilterType, string> _kernelCache = new();
 
+        protected FilterService() { _filterRepository = null!; }
+
         public FilterService(GenericRepository<Filter> filterRepository)
         {
             _filterRepository = filterRepository ?? throw new ArgumentNullException(nameof(filterRepository));
@@ -50,7 +52,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Creates and stores a new filter
         /// </summary>
-        public async Task<Filter> CreateFilterAsync(FilterType type, string name, string description = "")
+        public virtual async Task<Filter> CreateFilterAsync(FilterType type, string name, string description = "")
         {
             var filter = Filter.CreatePredefined(type);
             // Fix: Only update name and description if provided and not empty, preserving predefined defaults.
@@ -69,7 +71,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets a filter by ID
         /// </summary>
-        public async Task<Filter?> GetFilterAsync(Guid filterId)
+        public virtual async Task<Filter?> GetFilterAsync(Guid filterId)
         {
             return await _filterRepository.GetByIdAsync(filterId);
         }
@@ -77,7 +79,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets all available filters
         /// </summary>
-        public async Task<IEnumerable<Filter>> GetAllFiltersAsync()
+        public virtual async Task<IEnumerable<Filter>> GetAllFiltersAsync()
         {
             return await _filterRepository.GetAllAsync();
         }
@@ -88,7 +90,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets all active filters
         /// </summary>
-        public async Task<IEnumerable<Filter>> GetActiveFiltersAsync()
+        public virtual async Task<IEnumerable<Filter>> GetActiveFiltersAsync()
         {
             var filters = await _filterRepository.GetAllAsync();
             return filters.Where(f => f.IsActive).ToList();
@@ -97,7 +99,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Applies a filter to an image (configuration only - actual processing in ImageProcessingService)
         /// </summary>
-        public async Task<bool> ApplyFilterAsync(Guid filterId, Dictionary<string, float> parameterValues)
+        public virtual async Task<bool> ApplyFilterAsync(Guid filterId, Dictionary<string, float> parameterValues)
         {
             var filter = await _filterRepository.GetByIdAsync(filterId);
             if (filter == null)
@@ -119,7 +121,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Updates filter parameters
         /// </summary>
-        public async Task<bool> UpdateFilterParametersAsync(Guid filterId, Dictionary<string, float> parameters)
+        public virtual async Task<bool> UpdateFilterParametersAsync(Guid filterId, Dictionary<string, float> parameters)
         {
             var filter = await _filterRepository.GetByIdAsync(filterId);
             if (filter == null)
@@ -138,7 +140,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Deletes a filter
         /// </summary>
-        public async Task<bool> DeleteFilterAsync(Guid filterId)
+        public virtual async Task<bool> DeleteFilterAsync(Guid filterId)
         {
             return await _filterRepository.DeleteAsync(filterId);
         }
@@ -146,7 +148,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets the OpenCL kernel code for a filter type
         /// </summary>
-        public async Task<string> GetKernelCodeAsync(FilterType type)
+        public virtual async Task<string> GetKernelCodeAsync(FilterType type)
         {
             if (_kernelCache.TryGetValue(type, out var cachedCode))
                 return await Task.FromResult(cachedCode);
@@ -306,7 +308,7 @@ __kernel void basic_operation(__global uchar* input, __global uchar* output, int
         /// <summary>
         /// Gets filter statistics
         /// </summary>
-        public async Task<FilterStatistics> GetStatisticsAsync()
+        public virtual async Task<FilterStatistics> GetStatisticsAsync()
         {
             var allFilters = await _filterRepository.GetAllAsync();
             var filters = allFilters.ToList();

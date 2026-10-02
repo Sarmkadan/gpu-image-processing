@@ -21,6 +21,13 @@ public class FilterService
     private readonly ILogger<FilterService> _logger;
     private readonly FrozenDictionary<FilterType, Func<Image, FilterConfiguration, ValueTask<Image>>> _filterHandlers;
 
+    protected FilterService()
+    {
+        _repository = null!;
+        _logger = null!;
+        _filterHandlers = FrozenDictionary<FilterType, Func<Image, FilterConfiguration, ValueTask<Image>>>.Empty;
+    }
+
     public FilterService(FilterConfigurationRepository repository, ILogger<FilterService> logger)
     {
         _repository = repository ?? throw new ArgumentNullException(nameof(repository));
@@ -31,7 +38,7 @@ public class FilterService
     /// <summary>
     /// Applies a filter to an image.
     /// </summary>
-    public async Task<Image> ApplyFilterAsync(Image image, Guid filterId, CancellationToken cancellationToken = default)
+    public virtual async Task<Image> ApplyFilterAsync(Image image, Guid filterId, CancellationToken cancellationToken = default)
     {
         if (image == null)
             throw new ArgumentNullException(nameof(image));
@@ -63,7 +70,7 @@ public class FilterService
     /// <summary>
     /// Creates a new filter configuration.
     /// </summary>
-    public async Task<FilterConfiguration> CreateFilterAsync(FilterConfiguration config, CancellationToken cancellationToken = default)
+    public virtual async Task<FilterConfiguration> CreateFilterAsync(FilterConfiguration config, CancellationToken cancellationToken = default)
     {
         if (config == null)
             throw new ArgumentNullException(nameof(config));
@@ -82,7 +89,7 @@ public class FilterService
     /// <summary>
     /// Gets a filter configuration by ID.
     /// </summary>
-    public async Task<FilterConfiguration?> GetFilterAsync(Guid filterId, CancellationToken cancellationToken = default)
+    public virtual async Task<FilterConfiguration?> GetFilterAsync(Guid filterId, CancellationToken cancellationToken = default)
     {
         return await _repository.GetByIdAsync(filterId, cancellationToken);
     }
@@ -90,7 +97,7 @@ public class FilterService
     /// <summary>
     /// Gets all filters of a specific type.
     /// </summary>
-    public async Task<IEnumerable<FilterConfiguration>> GetFiltersByTypeAsync(FilterType type, CancellationToken cancellationToken = default)
+    public virtual async Task<IEnumerable<FilterConfiguration>> GetFiltersByTypeAsync(FilterType type, CancellationToken cancellationToken = default)
     {
         return await _repository.GetByTypeAsync(type, cancellationToken);
     }
@@ -98,7 +105,7 @@ public class FilterService
     /// <summary>
     /// Updates a filter configuration.
     /// </summary>
-    public async Task<FilterConfiguration> UpdateFilterAsync(FilterConfiguration config, CancellationToken cancellationToken = default)
+    public virtual async Task<FilterConfiguration> UpdateFilterAsync(FilterConfiguration config, CancellationToken cancellationToken = default)
     {
         if (config == null)
             throw new ArgumentNullException(nameof(config));
@@ -114,7 +121,7 @@ public class FilterService
     /// <summary>
     /// Deletes a filter configuration.
     /// </summary>
-    public async Task<bool> DeleteFilterAsync(Guid filterId, CancellationToken cancellationToken = default)
+    public virtual async Task<bool> DeleteFilterAsync(Guid filterId, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Deleting filter {FilterId}", filterId);
         return await _repository.DeleteAsync(filterId, cancellationToken);
@@ -123,7 +130,7 @@ public class FilterService
     /// <summary>
     /// Gets active filters sorted by priority.
     /// </summary>
-    public async Task<IEnumerable<FilterConfiguration>> GetActiveFiltersAsync(CancellationToken cancellationToken = default)
+    public virtual async Task<IEnumerable<FilterConfiguration>> GetActiveFiltersAsync(CancellationToken cancellationToken = default)
     {
         return await _repository.GetActiveFiltersAsync(cancellationToken);
     }

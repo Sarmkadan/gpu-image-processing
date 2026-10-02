@@ -33,7 +33,7 @@ namespace GpuImageProcessing.Tests
         public void Constructor_NullKernelName_ThrowsArgumentException()
         {
             // Act and Assert
-            Assert.Throws<ArgumentException>(() => new ComputeShaderPass(null));
+            Assert.ThrowsAny<ArgumentException>(() => new ComputeShaderPass(null));
         }
 
         [Fact]

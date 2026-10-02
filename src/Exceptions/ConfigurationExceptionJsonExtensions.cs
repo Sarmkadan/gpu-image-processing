@@ -61,10 +61,9 @@ public static class ConfigurationExceptionJsonExtensions
     public static ConfigurationException? FromJson(string json)
     {
         ArgumentNullException.ThrowIfNull(json);
-
-        return string.IsNullOrWhiteSpace(json)
-            ? null
-            : JsonSerializer.Deserialize<ConfigurationException>(json, _jsonOptions);
+        if (string.IsNullOrWhiteSpace(json))
+            throw new ArgumentException("JSON string cannot be empty or whitespace.", nameof(json));
+        return JsonSerializer.Deserialize<ConfigurationException>(json, _jsonOptions);
     }
 
     /// <summary>
@@ -80,7 +79,7 @@ public static class ConfigurationExceptionJsonExtensions
 
         if (string.IsNullOrWhiteSpace(json))
         {
-            return true;
+            return false;
         }
 
         try

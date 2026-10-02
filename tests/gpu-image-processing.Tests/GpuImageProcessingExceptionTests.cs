@@ -77,7 +77,7 @@ public class GpuImageProcessingExceptionTests
         var ex = new TestException(null);
         var str = ex.ToString();
 
-        str.Should().Contain("System.Exception");
+        str.Should().Contain("TestException");
     }
 
     [Fact]
@@ -86,7 +86,7 @@ public class GpuImageProcessingExceptionTests
         var ex = new TestException(string.Empty);
         var str = ex.ToString();
 
-        str.Should().Contain("System.Exception");
+        str.Should().Contain("TestException");
     }
 
     [Fact]

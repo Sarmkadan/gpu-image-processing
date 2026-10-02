@@ -4,6 +4,8 @@
 // CTO & Software Architect
 // =============================================================================
 
+using System.Text.Json.Serialization;
+
 namespace GpuImageProcessing.Exceptions;
 
 /// <summary>
@@ -21,6 +23,7 @@ public class ConfigurationException : GpuImageProcessingException
     /// </summary>
     public string? ConfigurationValue { get; }
 
+    [JsonConstructor]
     public ConfigurationException(string message, string? configurationKey = null, string? configurationValue = null, int? errorCode = null)
         : base(message, errorCode)
     {

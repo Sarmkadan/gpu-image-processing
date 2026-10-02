@@ -49,6 +49,8 @@ namespace GpuImageProcessing.Core.Services
         /// <param name="logger">The logger used to record processing activity.</param>
         /// <param name="filterService">The service used to retrieve filter kernels.</param>
         /// <param name="transformService">The service used to retrieve transform kernels.</param>
+        protected ImageProcessingService() { _imageRepository = null!; _filterRepository = null!; _transformRepository = null!; _profileRepository = null!; _deviceService = null!; _computeShaderPipeline = null!; _logger = null!; _filterService = null!; _transformService = null!; }
+
         public ImageProcessingService(
             ImageRepository imageRepository,
             GenericRepository<Filter> filterRepository,
@@ -77,7 +79,7 @@ namespace GpuImageProcessing.Core.Services
         /// <param name="filePath">The path to the image file.</param>
         /// <param name="name">The name to assign to the image.</param>
         /// <returns>The registered image.</returns>
-        public async Task<Image> RegisterImageAsync(string filePath, string name)
+        public virtual async Task<Image> RegisterImageAsync(string filePath, string name)
         {
             if (string.IsNullOrWhiteSpace(filePath))
                 throw new ArgumentException("File path cannot be empty", nameof(filePath));
@@ -91,7 +93,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         /// <param name="imageId">The identifier of the image to retrieve.</param>
         /// <returns>The image, or <see langword="null"/> if it does not exist.</returns>
-        public async Task<Image?> GetImageAsync(Guid imageId)
+        public virtual async Task<Image?> GetImageAsync(Guid imageId)
         {
             return await _imageRepository.GetByIdAsync(imageId);
         }
@@ -100,7 +102,7 @@ namespace GpuImageProcessing.Core.Services
         /// Gets all registered images
         /// </summary>
         /// <returns>All registered images.</returns>
-        public async Task<IEnumerable<Image>> GetAllImagesAsync()
+        public virtual async Task<IEnumerable<Image>> GetAllImagesAsync()
         {
             return await _imageRepository.GetAllAsync();
         }
@@ -113,7 +115,7 @@ namespace GpuImageProcessing.Core.Services
         /// <param name="transformIds">The list of transform identifiers to apply.</param>
         /// <param name="profileId">The optional identifier of the processing profile to use.</param>
         /// <returns>The result of the processing operation.</returns>
-        public async Task<ProcessingResult> ProcessImageAsync(Guid imageId, List<Guid> filterIds, List<Guid> transformIds, Guid? profileId)
+        public virtual async Task<ProcessingResult> ProcessImageAsync(Guid imageId, List<Guid> filterIds, List<Guid> transformIds, Guid? profileId)
         {
             filterIds ??= new List<Guid>();
             transformIds ??= new List<Guid>();
@@ -320,7 +322,7 @@ namespace GpuImageProcessing.Core.Services
         /// <param name="transformIds">The identifiers of the transforms to apply.</param>
         /// <param name="profileId">The identifier of the processing profile to use.</param>
         /// <returns>The results of the batch processing operations.</returns>
-        public async Task<List<ProcessingResult>> ProcessBatchAsync(List<Guid> imageIds, List<Guid> filterIds,
+        public virtual async Task<List<ProcessingResult>> ProcessBatchAsync(List<Guid> imageIds, List<Guid> filterIds,
             List<Guid> transformIds, Guid profileId)
         {
             if (imageIds == null)
@@ -370,7 +372,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         /// <param name="imageId">The identifier of the image.</param>
         /// <returns>The processing statistics for the image.</returns>
-        public async Task<ImageProcessingStats> GetImageStatsAsync(Guid imageId)
+        public virtual async Task<ImageProcessingStats> GetImageStatsAsync(Guid imageId)
         {
             var image = await _imageRepository.GetByIdAsync(imageId);
             if (image == null)
@@ -403,7 +405,7 @@ namespace GpuImageProcessing.Core.Services
         /// <param name="imageIds">The identifiers of the images to evaluate.</param>
         /// <param name="profileId">The identifier of the processing profile to use.</param>
         /// <returns><see langword="true"/> if the selected device has sufficient resources; otherwise, <see langword="false"/>.</returns>
-        public async Task<bool> CanProcessAsync(List<Guid> imageIds, Guid profileId)
+        public virtual async Task<bool> CanProcessAsync(List<Guid> imageIds, Guid profileId)
         {
             var profile = await _profileRepository.GetByIdAsync(profileId) ?? ProcessingProfile.CreateBalanced();
             var device = _deviceService.GetSelectedDevice();
@@ -430,7 +432,7 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         /// <param name="profileId">The identifier of the processing profile.</param>
         /// <returns>The processing profile, or <see langword="null"/> if it does not exist.</returns>
-        public async Task<ProcessingProfile?> GetProfileAsync(Guid profileId)
+        public virtual async Task<ProcessingProfile?> GetProfileAsync(Guid profileId)
         {
             return await _profileRepository.GetByIdAsync(profileId);
         }
@@ -439,7 +441,7 @@ namespace GpuImageProcessing.Core.Services
         /// Gets all available profiles
         /// </summary>
         /// <returns>All available processing profiles.</returns>
-        public async Task<IEnumerable<ProcessingProfile>> GetAllProfilesAsync()
+        public virtual async Task<IEnumerable<ProcessingProfile>> GetAllProfilesAsync()
         {
             return await _profileRepository.GetAllAsync();
         }
@@ -450,7 +452,7 @@ namespace GpuImageProcessing.Core.Services
         /// <param name="name">The name of the processing profile.</param>
         /// <param name="description">The description of the processing profile.</param>
         /// <returns>The created processing profile.</returns>
-        public async Task<ProcessingProfile> CreateProfileAsync(string name, string description)
+        public virtual async Task<ProcessingProfile> CreateProfileAsync(string name, string description)
         {
             var profile = new ProcessingProfile
             {

@@ -5,6 +5,7 @@
 // =============================================================================
 
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
 using GpuImageProcessing.Core;
 using GpuImageProcessing.Domain;
@@ -22,6 +23,9 @@ public class PerformanceMonitoringService
     private readonly object _lockObject = new();
     private DateTime _lastCleanupTime = DateTime.UtcNow;
 
+    [JsonConstructor]
+    public PerformanceMonitoringService() { _logger = null!; _currentMetrics = new PerformanceMetrics(); }
+
     public PerformanceMonitoringService(ILogger<PerformanceMonitoringService> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -32,7 +36,7 @@ public class PerformanceMonitoringService
     /// <summary>
     /// Records an operation execution time and status.
     /// </summary>
-    public void RecordOperation(double executionTimeMs, bool success = true)
+    public virtual void RecordOperation(double executionTimeMs, bool success = true)
     {
         lock (_lockObject)
         {
@@ -52,7 +56,7 @@ public class PerformanceMonitoringService
     /// <summary>
     /// Updates GPU and system metrics.
     /// </summary>
-    public void UpdateSystemMetrics(double cpuPercent, long memoryBytes, long gpuMemoryBytes, double gpuUtilization)
+    public virtual void UpdateSystemMetrics(double cpuPercent, long memoryBytes, long gpuMemoryBytes, double gpuUtilization)
     {
         lock (_lockObject)
         {
@@ -67,7 +71,7 @@ public class PerformanceMonitoringService
     /// <summary>
     /// Updates throughput metrics.
     /// </summary>
-    public void UpdateThroughput(long pixelsPerSecond, double megabytesPerSecond)
+    public virtual void UpdateThroughput(long pixelsPerSecond, double megabytesPerSecond)
     {
         lock (_lockObject)
         {
@@ -80,7 +84,7 @@ public class PerformanceMonitoringService
     /// <summary>
     /// Gets current performance metrics.
     /// </summary>
-    public PerformanceMetrics GetCurrentMetrics()
+    public virtual PerformanceMetrics GetCurrentMetrics()
     {
         lock (_lockObject)
         {
@@ -104,7 +108,7 @@ public class PerformanceMonitoringService
     /// <summary>
     /// Snapshots current metrics and starts new measurement period.
     /// </summary>
-    public PerformanceMetrics SnapshotAndReset()
+    public virtual PerformanceMetrics SnapshotAndReset()
     {
         lock (_lockObject)
         {
@@ -136,7 +140,7 @@ public class PerformanceMonitoringService
     /// <summary>
     /// Gets historical metrics.
     /// </summary>
-    public IEnumerable<PerformanceMetrics> GetMetricsHistory(int? limit = null)
+    public virtual IEnumerable<PerformanceMetrics> GetMetricsHistory(int? limit = null)
     {
         lock (_lockObject)
         {
@@ -148,7 +152,7 @@ public class PerformanceMonitoringService
     /// <summary>
     /// Gets average metrics over a time period.
     /// </summary>
-    public Dictionary<string, double> GetAverageMetrics(int lastMinutes = 60)
+    public virtual Dictionary<string, double> GetAverageMetrics(int lastMinutes = 60)
     {
         lock (_lockObject)
         {
@@ -175,7 +179,7 @@ public class PerformanceMonitoringService
     /// <summary>
     /// Gets performance report.
     /// </summary>
-    public string GetPerformanceReport()
+    public virtual string GetPerformanceReport()
     {
         var current = GetCurrentMetrics();
         var report = new StringBuilder();

@@ -25,7 +25,7 @@ public class ProcessingException : GpuImageProcessing.Exceptions.GpuImageProcess
     /// <param name="errorCode">Application error code from <see cref="AppConstants.ErrorCodes"/>.</param>
     /// <exception cref="ArgumentNullException">Thrown when message is null.</exception>
     public ProcessingException(string message, string? imagePath = null, string? filterName = null, int? attemptNumber = null, int? errorCode = null)
-    : base(message, errorCode)
+    : base(message ?? throw new ArgumentNullException(nameof(message)), errorCode)
     {
         ImagePath = imagePath;
         FilterName = filterName;

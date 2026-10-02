@@ -26,6 +26,8 @@ namespace GpuImageProcessing.Core.Services
         private List<DeviceInfo> _devices = new();
         private DeviceInfo? _selectedDevice;
 
+        protected DeviceService() { _gpuManagementService = null!; _logger = null!; }
+
         public DeviceService(GpuManagementService gpuManagementService, ILogger<DeviceService> logger)
         {
             _gpuManagementService = gpuManagementService ?? throw new ArgumentNullException(nameof(gpuManagementService));
@@ -35,7 +37,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Initializes the device service and detects available devices
         /// </summary>
-        public async Task InitializeAsync()
+        public virtual async Task InitializeAsync()
         {
             try
             {
@@ -117,7 +119,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets all available devices
         /// </summary>
-        public async Task<IEnumerable<DeviceInfo>> GetAllDevicesAsync()
+        public virtual async Task<IEnumerable<DeviceInfo>> GetAllDevicesAsync()
         {
             return await Task.FromResult(_devices);
         }
@@ -125,7 +127,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets a device by name
         /// </summary>
-        public async Task<DeviceInfo?> GetDeviceByNameAsync(string deviceName)
+        public virtual async Task<DeviceInfo?> GetDeviceByNameAsync(string deviceName)
         {
             return await Task.FromResult(
                 _devices.FirstOrDefault(d => d.Name.Equals(deviceName, StringComparison.OrdinalIgnoreCase))
@@ -135,7 +137,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets the currently selected device for processing
         /// </summary>
-        public DeviceInfo? GetSelectedDevice()
+        public virtual DeviceInfo? GetSelectedDevice()
         {
             return _selectedDevice;
         }
@@ -143,7 +145,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Selects a device for processing
         /// </summary>
-        public async Task<bool> SelectDeviceAsync(Guid deviceId)
+        public virtual async Task<bool> SelectDeviceAsync(Guid deviceId)
         {
             var device = _devices.FirstOrDefault(d => d.Id == deviceId);
             if (device == null)
@@ -160,7 +162,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets all GPU devices
         /// </summary>
-        public async Task<IEnumerable<DeviceInfo>> GetGpuDevicesAsync()
+        public virtual async Task<IEnumerable<DeviceInfo>> GetGpuDevicesAsync()
         {
             return await Task.FromResult(
                 _devices.Where(d => d.DeviceType == GpuDeviceType.Gpu.ToString() && d.IsAvailable).ToList()
@@ -170,7 +172,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets all CPU devices
         /// </summary>
-        public async Task<IEnumerable<DeviceInfo>> GetCpuDevicesAsync()
+        public virtual async Task<IEnumerable<DeviceInfo>> GetCpuDevicesAsync()
         {
             return await Task.FromResult(
                 _devices.Where(d => d.DeviceType == GpuDeviceType.Cpu.ToString() && d.IsAvailable).ToList()
@@ -180,7 +182,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets the most capable device
         /// </summary>
-        public async Task<DeviceInfo?> GetMostCapableDeviceAsync()
+        public virtual async Task<DeviceInfo?> GetMostCapableDeviceAsync()
         {
             return await Task.FromResult(
                 _devices.Where(d => d.IsAvailable)
@@ -192,7 +194,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Checks if a device has sufficient memory
         /// </summary>
-        public async Task<bool> HasSufficientMemoryAsync(Guid deviceId, long requiredBytes)
+        public virtual async Task<bool> HasSufficientMemoryAsync(Guid deviceId, long requiredBytes)
         {
             var device = _devices.FirstOrDefault(d => d.Id == deviceId);
             return await Task.FromResult(device?.HasSufficientMemory(requiredBytes) ?? false);
@@ -201,7 +203,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets device statistics
         /// </summary>
-        public async Task<DeviceStatistics> GetStatisticsAsync()
+        public virtual async Task<DeviceStatistics> GetStatisticsAsync()
         {
             var availableDevices = _devices.Where(d => d.IsAvailable).ToList();
             var gpuDevices = availableDevices.Where(d => d.DeviceType == GpuDeviceType.Gpu.ToString()).ToList();
@@ -226,7 +228,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Refreshes device information
         /// </summary>
-        public async Task RefreshDevicesAsync()
+        public virtual async Task RefreshDevicesAsync()
         {
             await DetectDevicesAsync();
         }
@@ -234,7 +236,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets device capabilities summary
         /// </summary>
-        public async Task<string> GetCapabilitiesSummaryAsync()
+        public virtual async Task<string> GetCapabilitiesSummaryAsync()
         {
             var summary = "Available Compute Devices:\n";
             foreach (var device in _devices)

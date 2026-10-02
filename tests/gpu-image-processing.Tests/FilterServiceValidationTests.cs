@@ -1,4 +1,5 @@
 // tests/gpu-image-processing.Tests/FilterServiceValidationTests.cs
+using Moq;
 using Xunit;
 using GpuImageProcessing.Services;
 
@@ -10,7 +11,7 @@ public class FilterServiceValidationTests
     public void Validate_HappyPath_ReturnsEmptyList()
     {
         // Arrange
-        var filterService = new FilterService(null, null); // assuming FilterService has a constructor with two parameters
+        var filterService = new Mock<FilterService>().Object
 
         // Act
         var result = FilterServiceValidation.Validate(filterService);
@@ -23,7 +24,7 @@ public class FilterServiceValidationTests
     public void IsValid_HappyPath_ReturnsTrue()
     {
         // Arrange
-        var filterService = new FilterService(null, null); // assuming FilterService has a constructor with two parameters
+        var filterService = new Mock<FilterService>().Object
 
         // Act
         var result = FilterServiceValidation.IsValid(filterService);
@@ -46,7 +47,7 @@ public class FilterServiceValidationTests
     public void EnsureValid_HappyPath_DoesNotThrow()
     {
         // Arrange
-        var filterService = new FilterService(null, null); // assuming FilterService has a constructor with two parameters
+        var filterService = new Mock<FilterService>().Object
 
         // Act and Assert
         FilterServiceValidation.EnsureValid(filterService);

@@ -32,6 +32,8 @@ public class GpuManagementService
     /// </summary>
     public bool UseFallback => _useFallback;
 
+    protected GpuManagementService() { _logger = null!; }
+
     public GpuManagementService(ILogger<GpuManagementService> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -41,7 +43,7 @@ public class GpuManagementService
     /// <summary>
     /// Gets all available GPU devices.
     /// </summary>
-    public IEnumerable<GpuDevice> GetAvailableDevices()
+    public virtual IEnumerable<GpuDevice> GetAvailableDevices()
     {
         lock (_lockObject)
         {
@@ -52,7 +54,7 @@ public class GpuManagementService
     /// <summary>
     /// Gets a specific GPU device by ID.
     /// </summary>
-    public GpuDevice? GetDeviceById(Guid deviceId)
+    public virtual GpuDevice? GetDeviceById(Guid deviceId)
     {
         lock (_lockObject)
         {
@@ -63,7 +65,7 @@ public class GpuManagementService
     /// <summary>
     /// Gets the best device based on performance score.
     /// </summary>
-    public GpuDevice? GetBestDevice()
+    public virtual GpuDevice? GetBestDevice()
     {
         lock (_lockObject)
         {
@@ -77,7 +79,7 @@ public class GpuManagementService
     /// <summary>
     /// Gets device with most available memory.
     /// </summary>
-    public GpuDevice? GetDeviceWithMostMemory()
+    public virtual GpuDevice? GetDeviceWithMostMemory()
     {
         lock (_lockObject)
         {
@@ -91,7 +93,7 @@ public class GpuManagementService
     /// <summary>
     /// Allocates GPU memory for an operation.
     /// </summary>
-    public bool AllocateMemory(long bytes, Guid deviceId)
+    public virtual bool AllocateMemory(long bytes, Guid deviceId)
     {
         if (bytes <= 0)
             return false;
@@ -126,7 +128,7 @@ public class GpuManagementService
     /// <summary>
     /// Deallocates GPU memory.
     /// </summary>
-    public void DeallocateMemory(long bytes, Guid deviceId)
+    public virtual void DeallocateMemory(long bytes, Guid deviceId)
     {
         if (bytes <= 0)
             return;
@@ -146,7 +148,7 @@ public class GpuManagementService
     /// <summary>
     /// Gets total allocated memory across all devices.
     /// </summary>
-    public long GetTotalAllocatedMemory()
+    public virtual long GetTotalAllocatedMemory()
     {
         lock (_lockObject)
         {
@@ -157,7 +159,7 @@ public class GpuManagementService
     /// <summary>
     /// Validates if a device meets requirements for operation.
     /// </summary>
-    public bool ValidateDevice(Guid deviceId, long requiredMemory, int requiredComputeUnits = 1)
+    public virtual bool ValidateDevice(Guid deviceId, long requiredMemory, int requiredComputeUnits = 1)
     {
         var device = GetDeviceById(deviceId);
         if (device == null || !device.Validate())
@@ -175,7 +177,7 @@ public class GpuManagementService
     /// <summary>
     /// Gets memory usage statistics.
     /// </summary>
-    public Dictionary<string, object> GetMemoryStatistics()
+    public virtual Dictionary<string, object> GetMemoryStatistics()
     {
         lock (_lockObject)
         {
