@@ -11,7 +11,7 @@ public class FilterServiceValidationTests
     public void Validate_HappyPath_ReturnsEmptyList()
     {
         // Arrange
-        var filterService = new Mock<FilterService>().Object
+        var filterService = new Mock<FilterService>().Object;
 
         // Act
         var result = FilterServiceValidation.Validate(filterService);
@@ -24,7 +24,7 @@ public class FilterServiceValidationTests
     public void IsValid_HappyPath_ReturnsTrue()
     {
         // Arrange
-        var filterService = new Mock<FilterService>().Object
+        var filterService = new Mock<FilterService>().Object;
 
         // Act
         var result = FilterServiceValidation.IsValid(filterService);
@@ -47,7 +47,7 @@ public class FilterServiceValidationTests
     public void EnsureValid_HappyPath_DoesNotThrow()
     {
         // Arrange
-        var filterService = new Mock<FilterService>().Object
+        var filterService = new Mock<FilterService>().Object;
 
         // Act and Assert
         FilterServiceValidation.EnsureValid(filterService);
