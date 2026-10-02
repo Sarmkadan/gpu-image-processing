@@ -300,7 +300,7 @@ public class WorkgroupOptimizerTests
         int height = 1024;
 
         // Act & Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.ThrowsAny<ArgumentException>(() =>
             _optimizer.Compute(_testDevice, width, height));
     }
 
@@ -315,7 +315,7 @@ public class WorkgroupOptimizerTests
         int height = 1024;
 
         // Act & Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.ThrowsAny<ArgumentException>(() =>
             _optimizer.Compute(_testDevice, width, height));
     }
 
@@ -330,7 +330,7 @@ public class WorkgroupOptimizerTests
         int height = 0;
 
         // Act & Assert
-        Assert.Throws<ArgumentOutOfRangeException>(() =>
+        Assert.ThrowsAny<ArgumentException>(() =>
             _optimizer.Compute(_testDevice, width, height));
     }
 

@@ -214,7 +214,7 @@ public class BatchProcessingService
     /// <summary>
     /// Gets batch processing progress.
     /// </summary>
-    public Dictionary<string, object> GetBatchProgress(Guid batchId)
+    public virtual Dictionary<string, object> GetBatchProgress(Guid batchId)
     {
         var batch = GetBatchStatus(batchId);
         if (batch == null)
