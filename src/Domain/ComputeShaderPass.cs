@@ -103,7 +103,7 @@ public sealed class ComputeShaderPass
         ShaderPassType passType = ShaderPassType.ImageFilter,
         int priority = 0)
     {
-        ArgumentException.ThrowIfNullOrEmpty(kernelName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(kernelName);
         ArgumentNullException.ThrowIfNull(kernelSource);
 
         Id = Guid.NewGuid();
