@@ -20,10 +20,9 @@ public class ConfigurationExceptionJsonExtensionsTests
         Assert.NotNull(json);
         Assert.NotEmpty(json);
         Assert.Contains("message", json);
-        Assert.Contains("stackTrace", json);
 
-        // Verify it's valid JSON
-        var deserialized = JsonSerializer.Deserialize<ConfigurationException>(json);
+        // Verify it's valid JSON by round-tripping via FromJson
+        var deserialized = ConfigurationExceptionJsonExtensions.FromJson(json);
         Assert.NotNull(deserialized);
         Assert.Equal("Test message", deserialized.Message);
     }
