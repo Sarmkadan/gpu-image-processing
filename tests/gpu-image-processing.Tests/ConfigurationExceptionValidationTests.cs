@@ -23,7 +23,7 @@ public class ConfigurationExceptionValidationTests
     public void Validate_ValidConfigurationExceptionWithErrorCode_ReturnsEmptyList()
     {
         // Arrange
-        var exception = new ConfigurationException("Test message", "ValidKey", "ValidValue", 50);
+        var exception = new ConfigurationException("Test message", "ValidKey", "ValidValue", 1001);
 
         // Act
         var result = exception.Validate();
@@ -133,7 +133,7 @@ public class ConfigurationExceptionValidationTests
         // Assert
         Assert.NotNull(result);
         Assert.Single(result);
-        Assert.Contains("ErrorCode is out of range (0-100).", result);
+        Assert.Contains("ErrorCode is out of range. Expected 1000 or greater.", result);
     }
 
     [Fact]
@@ -148,7 +148,7 @@ public class ConfigurationExceptionValidationTests
         // Assert
         Assert.NotNull(result);
         Assert.Single(result);
-        Assert.Contains("ErrorCode is out of range (0-100).", result);
+        Assert.Contains("ErrorCode is out of range. Expected 1000 or greater.", result);
     }
 
     [Fact]
@@ -165,7 +165,7 @@ public class ConfigurationExceptionValidationTests
         Assert.Equal(3, result.Count);
         Assert.Contains("ConfigurationKey is null or empty.", result);
         Assert.Contains("ConfigurationValue is null or empty.", result);
-        Assert.Contains("ErrorCode is out of range (0-100).", result);
+        Assert.Contains("ErrorCode is out of range. Expected 1000 or greater.", result);
     }
 
     [Fact]
@@ -185,7 +185,7 @@ public class ConfigurationExceptionValidationTests
     public void IsValid_ValidConfigurationExceptionWithErrorCode_ReturnsTrue()
     {
         // Arrange
-        var exception = new ConfigurationException("Test message", "ValidKey", "ValidValue", 75);
+        var exception = new ConfigurationException("Test message", "ValidKey", "ValidValue", 1001);
 
         // Act
         var result = exception.IsValid();
@@ -234,7 +234,7 @@ public class ConfigurationExceptionValidationTests
     public void EnsureValid_ValidConfigurationExceptionWithErrorCode_DoesNotThrow()
     {
         // Arrange
-        var exception = new ConfigurationException("Test message", "ValidKey", "ValidValue", 25);
+        var exception = new ConfigurationException("Test message", "ValidKey", "ValidValue", 1001);
 
         // Act
         var act = () => exception.EnsureValid();

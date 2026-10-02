@@ -51,16 +51,9 @@ public static class PerformanceMonitoringServiceExtensionsJsonExtensions
     /// <exception cref="JsonException">Thrown when the JSON is invalid or cannot be deserialized.</exception>
     public static PerformanceMonitoringService? FromJson(string json)
     {
-        ArgumentException.ThrowIfNullOrEmpty(json);
-
-        try
-        {
-            return JsonSerializer.Deserialize<PerformanceMonitoringService>(json, _jsonSerializerOptions);
-        }
-        catch (JsonException)
-        {
+        if (string.IsNullOrEmpty(json))
             return null;
-        }
+        return JsonSerializer.Deserialize<PerformanceMonitoringService>(json, _jsonSerializerOptions);
     }
 
     /// <summary>

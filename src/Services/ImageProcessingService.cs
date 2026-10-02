@@ -24,6 +24,8 @@ public class ImageProcessingService
     private readonly PerformanceMonitoringService _performanceService;
     private readonly ILogger<ImageProcessingService> _logger;
 
+    protected ImageProcessingService() { _imageRepository = null!; _filterRepository = null!; _resultRepository = null!; _filterService = null!; _gpuService = null!; _performanceService = null!; _logger = null!; }
+
     public ImageProcessingService(
         ImageRepository imageRepository,
         FilterConfigurationRepository filterRepository,
@@ -55,7 +57,7 @@ public class ImageProcessingService
     /// <exception cref="InvalidImageException">Thrown when the image is not found or fails validation.</exception>
     /// <exception cref="GpuException">Thrown when no GPU device is available.</exception>
     /// <exception cref="ProcessingException">Thrown when any filter application or I/O step fails.</exception>
-    public async Task<ProcessingResult> ProcessImageAsync(Guid imageId, List<Guid> filterIds, CancellationToken cancellationToken = default)
+    public virtual async Task<ProcessingResult> ProcessImageAsync(Guid imageId, List<Guid> filterIds, CancellationToken cancellationToken = default)
     {
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
 
@@ -143,7 +145,7 @@ public class ImageProcessingService
     /// <param name="imageId">The image identifier to look up results for.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>The latest <see cref="ProcessingResult"/>, or <c>null</c> if the image has not been processed.</returns>
-    public async Task<ProcessingResult?> GetProcessingResultAsync(Guid imageId, CancellationToken cancellationToken = default)
+    public virtual async Task<ProcessingResult?> GetProcessingResultAsync(Guid imageId, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Retrieving processing result for image {ImageId}", imageId);
         var results = await _resultRepository.GetByImageIdAsync(imageId, cancellationToken);
@@ -161,7 +163,7 @@ public class ImageProcessingService
     /// A dictionary with keys: TotalImages, ProcessedImages, SuccessfulProcessing,
     /// FailedProcessing, SuccessRate, AverageProcessingTime, TotalProcessingTime.
     /// </returns>
-    public async Task<Dictionary<string, object>> GetStatisticsAsync(CancellationToken cancellationToken = default)
+    public virtual async Task<Dictionary<string, object>> GetStatisticsAsync(CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Retrieving statistics");
         var totalImages = await _imageRepository.CountAsync(cancellationToken);

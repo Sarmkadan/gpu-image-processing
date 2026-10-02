@@ -17,7 +17,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
     private readonly List<ProcessingResult> _storage = [];
     private readonly object _lockObject = new();
 
-    public Task<ProcessingResult?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual Task<ProcessingResult?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -26,7 +26,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
         }
     }
 
-    public Task<IEnumerable<ProcessingResult>> GetAllAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<ProcessingResult>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -34,7 +34,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
         }
     }
 
-    public Task<IEnumerable<ProcessingResult>> GetByCriteriaAsync(Func<ProcessingResult, bool> predicate, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<ProcessingResult>> GetByCriteriaAsync(Func<ProcessingResult, bool> predicate, CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -43,7 +43,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
         }
     }
 
-    public Task<ProcessingResult> CreateAsync(ProcessingResult entity, CancellationToken cancellationToken = default)
+    public virtual Task<ProcessingResult> CreateAsync(ProcessingResult entity, CancellationToken cancellationToken = default)
     {
         if (entity == null)
             throw new ArgumentNullException(nameof(entity));
@@ -56,7 +56,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
         }
     }
 
-    public Task<ProcessingResult> UpdateAsync(ProcessingResult entity, CancellationToken cancellationToken = default)
+    public virtual Task<ProcessingResult> UpdateAsync(ProcessingResult entity, CancellationToken cancellationToken = default)
     {
         if (entity == null)
             throw new ArgumentNullException(nameof(entity));
@@ -73,7 +73,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
         }
     }
 
-    public Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -85,7 +85,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
         }
     }
 
-    public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -94,7 +94,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
         }
     }
 
-    public Task<int> CountAsync(CancellationToken cancellationToken = default)
+    public virtual Task<int> CountAsync(CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -102,7 +102,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
         }
     }
 
-    public Task<IEnumerable<ProcessingResult>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<ProcessingResult>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         if (pageNumber < 1 || pageSize < 1)
             throw new ArgumentException("Page number and size must be greater than 0");
@@ -120,7 +120,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
     /// <summary>
     /// Gets results by image ID.
     /// </summary>
-    public Task<IEnumerable<ProcessingResult>> GetByImageIdAsync(Guid imageId, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<ProcessingResult>> GetByImageIdAsync(Guid imageId, CancellationToken cancellationToken = default)
     {
         return GetByCriteriaAsync(r => r.ImageId == imageId, cancellationToken);
     }
@@ -128,7 +128,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
     /// <summary>
     /// Gets results by processing status.
     /// </summary>
-    public Task<IEnumerable<ProcessingResult>> GetByStatusAsync(ProcessingStatus status, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<ProcessingResult>> GetByStatusAsync(ProcessingStatus status, CancellationToken cancellationToken = default)
     {
         return GetByCriteriaAsync(r => r.Status == status, cancellationToken);
     }
@@ -136,7 +136,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
     /// <summary>
     /// Gets successful processing results.
     /// </summary>
-    public Task<IEnumerable<ProcessingResult>> GetSuccessfulResultsAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<ProcessingResult>> GetSuccessfulResultsAsync(CancellationToken cancellationToken = default)
     {
         return GetByCriteriaAsync(r => r.IsSuccessful, cancellationToken);
     }
@@ -144,7 +144,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
     /// <summary>
     /// Gets failed processing results with error details.
     /// </summary>
-    public Task<IEnumerable<ProcessingResult>> GetFailedResultsAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<ProcessingResult>> GetFailedResultsAsync(CancellationToken cancellationToken = default)
     {
         return GetByCriteriaAsync(r => !r.IsSuccessful, cancellationToken);
     }
@@ -152,7 +152,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
     /// <summary>
     /// Gets results completed within a date range.
     /// </summary>
-    public Task<IEnumerable<ProcessingResult>> GetCompletedBetweenAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<ProcessingResult>> GetCompletedBetweenAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default)
     {
         return GetByCriteriaAsync(r =>
             r.CompletedAt >= startDate && r.CompletedAt <= endDate && r.IsSuccessful,
@@ -162,7 +162,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
     /// <summary>
     /// Gets processing results sorted by execution time.
     /// </summary>
-    public Task<IEnumerable<ProcessingResult>> GetSlowestResultsAsync(int count = 10, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<ProcessingResult>> GetSlowestResultsAsync(int count = 10, CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -177,7 +177,7 @@ public class ProcessingResultRepository : IRepository<ProcessingResult>
     /// <summary>
     /// Gets average processing time for successful operations.
     /// </summary>
-    public Task<double> GetAverageProcessingTimeAsync(CancellationToken cancellationToken = default)
+    public virtual Task<double> GetAverageProcessingTimeAsync(CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {

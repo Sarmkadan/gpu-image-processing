@@ -11,6 +11,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Text.Json.Serialization;
 using GpuImageProcessing.Domain;
 using Microsoft.Extensions.Logging;
 
@@ -50,10 +51,17 @@ public sealed class WorkgroupOptimizer : IWorkgroupOptimizer
     /// </summary>
     /// <param name="logger">Logger for diagnostic output.</param>
     /// <param name="enableCache">Whether to enable caching (enabled by default).</param>
+    [JsonConstructor]
+    public WorkgroupOptimizer()
+    {
+        _logger = Microsoft.Extensions.Logging.Abstractions.NullLogger<WorkgroupOptimizer>.Instance;
+        _cache = new WorkgroupOptimizationCache(Microsoft.Extensions.Logging.Abstractions.NullLogger<WorkgroupOptimizationCache>.Instance);
+    }
+
     public WorkgroupOptimizer(ILogger<WorkgroupOptimizer> logger, bool enableCache = true)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _cache = new WorkgroupOptimizationCache(logger as ILogger<WorkgroupOptimizationCache> ?? throw new ArgumentNullException(nameof(logger)));
+            _cache = new WorkgroupOptimizationCache(logger as ILogger<WorkgroupOptimizationCache> ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<WorkgroupOptimizationCache>.Instance);
             _logger.LogInformation("Initializing {WorkgroupOptimizer}", nameof(WorkgroupOptimizer));
         }
 

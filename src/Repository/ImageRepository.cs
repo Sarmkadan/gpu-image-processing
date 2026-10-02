@@ -17,7 +17,7 @@ public class ImageRepository : IRepository<Image>
     private readonly List<Image> _storage = [];
     private readonly object _lockObject = new();
 
-    public Task<Image?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual Task<Image?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -26,7 +26,7 @@ public class ImageRepository : IRepository<Image>
         }
     }
 
-    public Task<IEnumerable<Image>> GetAllAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<Image>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -34,7 +34,7 @@ public class ImageRepository : IRepository<Image>
         }
     }
 
-    public Task<IEnumerable<Image>> GetByCriteriaAsync(Func<Image, bool> predicate, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<Image>> GetByCriteriaAsync(Func<Image, bool> predicate, CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -43,7 +43,7 @@ public class ImageRepository : IRepository<Image>
         }
     }
 
-    public Task<Image> CreateAsync(Image entity, CancellationToken cancellationToken = default)
+    public virtual Task<Image> CreateAsync(Image entity, CancellationToken cancellationToken = default)
     {
         if (entity == null)
             throw new ArgumentNullException(nameof(entity));
@@ -61,7 +61,7 @@ public class ImageRepository : IRepository<Image>
         }
     }
 
-    public Task<Image> UpdateAsync(Image entity, CancellationToken cancellationToken = default)
+    public virtual Task<Image> UpdateAsync(Image entity, CancellationToken cancellationToken = default)
     {
         if (entity == null)
             throw new ArgumentNullException(nameof(entity));
@@ -79,7 +79,7 @@ public class ImageRepository : IRepository<Image>
         }
     }
 
-    public Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -93,7 +93,7 @@ public class ImageRepository : IRepository<Image>
         }
     }
 
-    public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -102,7 +102,7 @@ public class ImageRepository : IRepository<Image>
         }
     }
 
-    public Task<int> CountAsync(CancellationToken cancellationToken = default)
+    public virtual Task<int> CountAsync(CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -110,7 +110,7 @@ public class ImageRepository : IRepository<Image>
         }
     }
 
-    public Task<IEnumerable<Image>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<Image>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         if (pageNumber < 1 || pageSize < 1)
             throw new ArgumentException("Page number and size must be greater than 0");
@@ -128,7 +128,7 @@ public class ImageRepository : IRepository<Image>
     /// <summary>
     /// Gets images by processing status.
     /// </summary>
-    public Task<IEnumerable<Image>> GetByStatusAsync(ProcessingStatus status, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<Image>> GetByStatusAsync(ProcessingStatus status, CancellationToken cancellationToken = default)
     {
         return GetByCriteriaAsync(i => i.Status == status, cancellationToken);
     }
@@ -136,7 +136,7 @@ public class ImageRepository : IRepository<Image>
     /// <summary>
     /// Gets images by file format.
     /// </summary>
-    public Task<IEnumerable<Image>> GetByFormatAsync(ImageFormat format, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<Image>> GetByFormatAsync(ImageFormat format, CancellationToken cancellationToken = default)
     {
         return GetByCriteriaAsync(i => i.Format == format, cancellationToken);
     }
@@ -144,7 +144,7 @@ public class ImageRepository : IRepository<Image>
     /// <summary>
     /// Gets images within a size range.
     /// </summary>
-    public Task<IEnumerable<Image>> GetBySizeRangeAsync(int minWidth, int maxWidth, int minHeight, int maxHeight, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<Image>> GetBySizeRangeAsync(int minWidth, int maxWidth, int minHeight, int maxHeight, CancellationToken cancellationToken = default)
     {
         return GetByCriteriaAsync(i =>
             i.Width >= minWidth && i.Width <= maxWidth &&
@@ -155,7 +155,7 @@ public class ImageRepository : IRepository<Image>
     /// <summary>
     /// Gets images created within a date range.
     /// </summary>
-    public Task<IEnumerable<Image>> GetByDateRangeAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<Image>> GetByDateRangeAsync(DateTime startDate, DateTime endDate, CancellationToken cancellationToken = default)
     {
         return GetByCriteriaAsync(i =>
             i.CreatedAt >= startDate && i.CreatedAt <= endDate,
@@ -165,7 +165,7 @@ public class ImageRepository : IRepository<Image>
     /// <summary>
     /// Gets failed images with their error messages.
     /// </summary>
-    public Task<IEnumerable<Image>> GetFailedImagesAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<Image>> GetFailedImagesAsync(CancellationToken cancellationToken = default)
     {
         return GetByStatusAsync(ProcessingStatus.Failed, cancellationToken);
     }
@@ -173,7 +173,7 @@ public class ImageRepository : IRepository<Image>
     /// <summary>
     /// Gets images that need reprocessing.
     /// </summary>
-    public Task<IEnumerable<Image>> GetPendingImagesAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<Image>> GetPendingImagesAsync(CancellationToken cancellationToken = default)
     {
         return GetByStatusAsync(ProcessingStatus.Pending, cancellationToken);
     }

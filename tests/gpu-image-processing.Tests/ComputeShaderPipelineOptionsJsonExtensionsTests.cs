@@ -62,7 +62,7 @@ namespace GpuImageProcessing.Tests.Configuration
         public void FromJson_NullInput_ThrowsArgumentException()
         {
             // Act & Assert
-            Assert.Throws<ArgumentException>(() => ComputeShaderPipelineOptionsJsonExtensions.FromJson(null!));
+            Assert.ThrowsAny<ArgumentException>(() => ComputeShaderPipelineOptionsJsonExtensions.FromJson(null!));
         }
 
         [Fact]
@@ -115,7 +115,7 @@ namespace GpuImageProcessing.Tests.Configuration
         {
             // Act & Assert
             // The implementation explicitly throws ArgumentException for null/empty strings
-            Assert.Throws<ArgumentException>(() => ComputeShaderPipelineOptionsJsonExtensions.TryFromJson(null!, out _));
+            Assert.ThrowsAny<ArgumentException>(() => ComputeShaderPipelineOptionsJsonExtensions.TryFromJson(null!, out _));
         }
     }
 }

@@ -4,6 +4,8 @@
 // CTO & Software Architect
 // =====================================================================
 
+using System.Text.Json.Serialization;
+
 namespace GpuImageProcessing.Core;
 
 /// <summary>
@@ -23,8 +25,9 @@ public class GpuException : GpuImageProcessing.Exceptions.GpuImageProcessingExce
     /// <param name="deviceName">Name of the GPU device.</param>
     /// <param name="errorCode">GPU-specific error code.</param>
     /// <exception cref="ArgumentNullException">Thrown when message is null.</exception>
+    [JsonConstructor]
     public GpuException(string message, string? deviceName = null, int? errorCode = null)
-    : base(message, errorCode)
+    : base(message ?? throw new ArgumentNullException(nameof(message)), errorCode)
     {
         DeviceName = deviceName;
     }

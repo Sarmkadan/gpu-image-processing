@@ -68,7 +68,7 @@ public static class GpuExceptionExtensionsJsonExtensions
     /// <exception cref="JsonException">Thrown if the JSON is invalid or cannot be deserialized.</exception>
     public static GpuExceptionExtensionsConfig? FromJson(string json)
     {
-        if (string.IsNullOrEmpty(json))
+        if (string.IsNullOrWhiteSpace(json))
         {
             return null;
         }
@@ -93,7 +93,7 @@ public static class GpuExceptionExtensionsJsonExtensions
     {
         config = null;
 
-        if (string.IsNullOrEmpty(json))
+        if (string.IsNullOrWhiteSpace(json))
         {
             return true;
         }

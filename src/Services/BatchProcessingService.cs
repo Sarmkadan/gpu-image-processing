@@ -22,6 +22,8 @@ public class BatchProcessingService
     private readonly System.Collections.Concurrent.ConcurrentDictionary<Guid, ImageBatch> _activeBatches = new();
     private readonly SemaphoreSlim _concurrencySemaphore;
 
+    protected BatchProcessingService() { _processingService = null!; _imageRepository = null!; _logger = null!; _concurrencySemaphore = new SemaphoreSlim(1); }
+
     public BatchProcessingService(
         ImageProcessingService processingService,
         ImageRepository imageRepository,
@@ -36,7 +38,7 @@ public class BatchProcessingService
     /// <summary>
     /// Processes a batch of images.
     /// </summary>
-    public async Task<ImageBatch> ProcessBatchAsync(ImageBatch batch, CancellationToken cancellationToken = default)
+    public virtual async Task<ImageBatch> ProcessBatchAsync(ImageBatch batch, CancellationToken cancellationToken = default)
     {
         if (batch == null)
             throw new ArgumentNullException(nameof(batch));
@@ -105,7 +107,7 @@ public class BatchProcessingService
     /// <summary>
     /// Gets the status of an active batch.
     /// </summary>
-    public ImageBatch? GetBatchStatus(Guid batchId)
+    public virtual ImageBatch? GetBatchStatus(Guid batchId)
     {
         _activeBatches.TryGetValue(batchId, out var batch);
         return batch;
@@ -114,7 +116,7 @@ public class BatchProcessingService
     /// <summary>
     /// Cancels a batch processing operation.
     /// </summary>
-    public bool CancelBatch(Guid batchId)
+    public virtual bool CancelBatch(Guid batchId)
     {
         if (!_activeBatches.TryGetValue(batchId, out var batch))
             return false;
@@ -175,7 +177,7 @@ public class BatchProcessingService
     /// <summary>
     /// Creates a batch from multiple images and filters.
     /// </summary>
-    public async Task<ImageBatch> CreateBatchAsync(
+    public virtual async Task<ImageBatch> CreateBatchAsync(
         List<Guid> imageIds,
         List<Guid> filterIds,
         string batchName,
@@ -243,7 +245,7 @@ public class BatchProcessingService
     /// <summary>
     /// Gets all active batches.
     /// </summary>
-    public IEnumerable<ImageBatch> GetActiveBatches()
+    public virtual IEnumerable<ImageBatch> GetActiveBatches()
     {
         return _activeBatches.Values.ToList();
     }

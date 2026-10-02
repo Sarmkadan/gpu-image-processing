@@ -17,7 +17,7 @@ public class FilterConfigurationRepository : IRepository<FilterConfiguration>
     private readonly List<FilterConfiguration> _storage = [];
     private readonly object _lockObject = new();
 
-    public Task<FilterConfiguration?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual Task<FilterConfiguration?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -26,7 +26,7 @@ public class FilterConfigurationRepository : IRepository<FilterConfiguration>
         }
     }
 
-    public Task<IEnumerable<FilterConfiguration>> GetAllAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<FilterConfiguration>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -34,7 +34,7 @@ public class FilterConfigurationRepository : IRepository<FilterConfiguration>
         }
     }
 
-    public Task<IEnumerable<FilterConfiguration>> GetByCriteriaAsync(Func<FilterConfiguration, bool> predicate, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<FilterConfiguration>> GetByCriteriaAsync(Func<FilterConfiguration, bool> predicate, CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -43,7 +43,7 @@ public class FilterConfigurationRepository : IRepository<FilterConfiguration>
         }
     }
 
-    public Task<FilterConfiguration> CreateAsync(FilterConfiguration entity, CancellationToken cancellationToken = default)
+    public virtual Task<FilterConfiguration> CreateAsync(FilterConfiguration entity, CancellationToken cancellationToken = default)
     {
         if (entity == null)
             throw new ArgumentNullException(nameof(entity));
@@ -61,7 +61,7 @@ public class FilterConfigurationRepository : IRepository<FilterConfiguration>
         }
     }
 
-    public Task<FilterConfiguration> UpdateAsync(FilterConfiguration entity, CancellationToken cancellationToken = default)
+    public virtual Task<FilterConfiguration> UpdateAsync(FilterConfiguration entity, CancellationToken cancellationToken = default)
     {
         if (entity == null)
             throw new ArgumentNullException(nameof(entity));
@@ -79,7 +79,7 @@ public class FilterConfigurationRepository : IRepository<FilterConfiguration>
         }
     }
 
-    public Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -91,7 +91,7 @@ public class FilterConfigurationRepository : IRepository<FilterConfiguration>
         }
     }
 
-    public Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
+    public virtual Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -100,7 +100,7 @@ public class FilterConfigurationRepository : IRepository<FilterConfiguration>
         }
     }
 
-    public Task<int> CountAsync(CancellationToken cancellationToken = default)
+    public virtual Task<int> CountAsync(CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -108,7 +108,7 @@ public class FilterConfigurationRepository : IRepository<FilterConfiguration>
         }
     }
 
-    public Task<IEnumerable<FilterConfiguration>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<FilterConfiguration>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         if (pageNumber < 1 || pageSize < 1)
             throw new ArgumentException("Page number and size must be greater than 0");
@@ -126,7 +126,7 @@ public class FilterConfigurationRepository : IRepository<FilterConfiguration>
     /// <summary>
     /// Gets filters by type.
     /// </summary>
-    public Task<IEnumerable<FilterConfiguration>> GetByTypeAsync(FilterType type, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<FilterConfiguration>> GetByTypeAsync(FilterType type, CancellationToken cancellationToken = default)
     {
         return GetByCriteriaAsync(f => f.FilterType == type, cancellationToken);
     }
@@ -134,7 +134,7 @@ public class FilterConfigurationRepository : IRepository<FilterConfiguration>
     /// <summary>
     /// Gets active filters sorted by priority.
     /// </summary>
-    public Task<IEnumerable<FilterConfiguration>> GetActiveFiltersAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<FilterConfiguration>> GetActiveFiltersAsync(CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -149,7 +149,7 @@ public class FilterConfigurationRepository : IRepository<FilterConfiguration>
     /// <summary>
     /// Gets filter by name.
     /// </summary>
-    public Task<FilterConfiguration?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
+    public virtual Task<FilterConfiguration?> GetByNameAsync(string name, CancellationToken cancellationToken = default)
     {
         lock (_lockObject)
         {
@@ -161,7 +161,7 @@ public class FilterConfigurationRepository : IRepository<FilterConfiguration>
     /// <summary>
     /// Gets filters that support specific parameter.
     /// </summary>
-    public Task<IEnumerable<FilterConfiguration>> GetByParameterAsync(string parameterKey, CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<FilterConfiguration>> GetByParameterAsync(string parameterKey, CancellationToken cancellationToken = default)
     {
         return GetByCriteriaAsync(f => f.ParameterTypes.ContainsKey(parameterKey), cancellationToken);
     }
@@ -169,7 +169,7 @@ public class FilterConfigurationRepository : IRepository<FilterConfiguration>
     /// <summary>
     /// Gets filters with complex kernels.
     /// </summary>
-    public Task<IEnumerable<FilterConfiguration>> GetFiltersWithKernelAsync(CancellationToken cancellationToken = default)
+    public virtual Task<IEnumerable<FilterConfiguration>> GetFiltersWithKernelAsync(CancellationToken cancellationToken = default)
     {
         return GetByCriteriaAsync(f => !string.IsNullOrEmpty(f.KernelCode), cancellationToken);
     }

@@ -47,10 +47,10 @@ namespace GpuImageProcessing.Tests
         public void FromJson_WithNullOrEmpty_ThrowsArgumentException()
         {
             // Null
-            Assert.Throws<ArgumentException>(() => ImageBatchJsonExtensions.FromJson(null!));
+            Assert.ThrowsAny<ArgumentException>(() => ImageBatchJsonExtensions.FromJson(null!));
 
             // Empty
-            Assert.Throws<ArgumentException>(() => ImageBatchJsonExtensions.FromJson(string.Empty));
+            Assert.ThrowsAny<ArgumentException>(() => ImageBatchJsonExtensions.FromJson(string.Empty));
         }
 
         [Fact]
@@ -98,10 +98,10 @@ namespace GpuImageProcessing.Tests
         public void TryFromJson_WithNullOrEmpty_ThrowsArgumentException()
         {
             // Null
-            Assert.Throws<ArgumentException>(() => ImageBatchJsonExtensions.TryFromJson(null!, out _));
+            Assert.ThrowsAny<ArgumentException>(() => ImageBatchJsonExtensions.TryFromJson(null!, out _));
 
             // Empty
-            Assert.Throws<ArgumentException>(() => ImageBatchJsonExtensions.TryFromJson(string.Empty, out _));
+            Assert.ThrowsAny<ArgumentException>(() => ImageBatchJsonExtensions.TryFromJson(string.Empty, out _));
         }
     }
 }

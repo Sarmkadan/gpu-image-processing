@@ -28,6 +28,8 @@ namespace GpuImageProcessing.Core.Services
         private readonly ImageProcessingService _processingService;
         private readonly ImageRepository _imageRepository;
 
+        protected BatchProcessingService() { _jobRepository = null!; _resultRepository = null!; _processingService = null!; _imageRepository = null!; }
+
         public BatchProcessingService(
             JobRepository jobRepository,
             ResultRepository resultRepository,
@@ -43,7 +45,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Creates and starts a new batch processing job
         /// </summary>
-        public async Task<ProcessingJob> CreateJobAsync(string jobName, List<Guid> imageIds,
+        public virtual async Task<ProcessingJob> CreateJobAsync(string jobName, List<Guid> imageIds,
             List<Guid> filterIds, List<Guid> transformIds, Guid profileId)
         {
             var job = new ProcessingJob
@@ -67,7 +69,7 @@ namespace GpuImageProcessing.Core.Services
         /// <param name="profileId">The identifier of the processing profile to use.</param>
         /// <param name="cancellationToken">Optional cancellation token.</param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        public async Task ExecuteJobAsync(Guid jobId, Guid profileId, CancellationToken cancellationToken = default)
+        public virtual async Task ExecuteJobAsync(Guid jobId, Guid profileId, CancellationToken cancellationToken = default)
         {
             var job = await _jobRepository.GetByIdAsync(jobId);
             if (job == null)
@@ -124,7 +126,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets a job by ID
         /// </summary>
-        public async Task<ProcessingJob?> GetJobAsync(Guid jobId)
+        public virtual async Task<ProcessingJob?> GetJobAsync(Guid jobId)
         {
             return await _jobRepository.GetByIdAsync(jobId);
         }
@@ -132,7 +134,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets all jobs with a specific status
         /// </summary>
-        public async Task<IEnumerable<ProcessingJob>> GetJobsByStatusAsync(ProcessingStatus status)
+        public virtual async Task<IEnumerable<ProcessingJob>> GetJobsByStatusAsync(ProcessingStatus status)
         {
             return await _jobRepository.GetByStatusAsync(status);
         }
@@ -140,7 +142,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets results for a specific job
         /// </summary>
-        public async Task<IEnumerable<ProcessingResult>> GetJobResultsAsync(Guid jobId)
+        public virtual async Task<IEnumerable<ProcessingResult>> GetJobResultsAsync(Guid jobId)
         {
             return await _resultRepository.GetByJobAsync(jobId);
         }
@@ -148,7 +150,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Updates job progress
         /// </summary>
-        public async Task UpdateJobProgressAsync(Guid jobId, int processedCount, int failedCount)
+        public virtual async Task UpdateJobProgressAsync(Guid jobId, int processedCount, int failedCount)
         {
             var job = await _jobRepository.GetByIdAsync(jobId);
             if (job != null)
@@ -161,7 +163,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Cancels a running job
         /// </summary>
-        public async Task<bool> CancelJobAsync(Guid jobId)
+        public virtual async Task<bool> CancelJobAsync(Guid jobId)
         {
             var job = await _jobRepository.GetByIdAsync(jobId);
             if (job == null)
@@ -178,7 +180,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Pauses a running job
         /// </summary>
-        public async Task<bool> PauseJobAsync(Guid jobId)
+        public virtual async Task<bool> PauseJobAsync(Guid jobId)
         {
             var job = await _jobRepository.GetByIdAsync(jobId);
             if (job == null || job.Status != ProcessingStatus.Running)
@@ -192,7 +194,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Resumes a paused job
         /// </summary>
-        public async Task<bool> ResumeJobAsync(Guid jobId, Guid profileId)
+        public virtual async Task<bool> ResumeJobAsync(Guid jobId, Guid profileId)
         {
             var job = await _jobRepository.GetByIdAsync(jobId);
             if (job == null || job.Status != ProcessingStatus.Paused)
@@ -207,7 +209,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets comprehensive job statistics
         /// </summary>
-        public async Task<JobExecutionStats> GetJobStatsAsync(Guid jobId)
+        public virtual async Task<JobExecutionStats> GetJobStatsAsync(Guid jobId)
         {
             var job = await _jobRepository.GetByIdAsync(jobId);
             if (job == null)
@@ -244,7 +246,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets a lightweight progress snapshot for a job
         /// </summary>
-        public async Task<JobProgressInfo> GetJobProgressAsync(Guid jobId)
+        public virtual async Task<JobProgressInfo> GetJobProgressAsync(Guid jobId)
         {
             var job = await _jobRepository.GetByIdAsync(jobId);
             if (job == null)
@@ -274,7 +276,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets all pending jobs
         /// </summary>
-        public async Task<IEnumerable<ProcessingJob>> GetPendingJobsAsync()
+        public virtual async Task<IEnumerable<ProcessingJob>> GetPendingJobsAsync()
         {
             return await _jobRepository.GetPendingAsync();
         }
@@ -282,7 +284,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets all running jobs
         /// </summary>
-        public async Task<IEnumerable<ProcessingJob>> GetRunningJobsAsync()
+        public virtual async Task<IEnumerable<ProcessingJob>> GetRunningJobsAsync()
         {
             return await _jobRepository.GetRunningAsync();
         }
@@ -290,7 +292,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Cleans up old completed jobs
         /// </summary>
-        public async Task<int> CleanupOldJobsAsync(int daysOld = 30)
+        public virtual async Task<int> CleanupOldJobsAsync(int daysOld = 30)
         {
             var cutoffDate = DateTime.UtcNow.AddDays(-daysOld);
             return await _jobRepository.ClearOldFailedJobsAsync(cutoffDate);
@@ -299,7 +301,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Gets queue depth (number of pending jobs)
         /// </summary>
-        public async Task<int> GetQueueDepthAsync()
+        public virtual async Task<int> GetQueueDepthAsync()
         {
             var pending = await _jobRepository.GetPendingAsync();
             return pending.Count();
@@ -308,7 +310,7 @@ namespace GpuImageProcessing.Core.Services
         /// <summary>
         /// Prioritizes a pending job to move it to the front of the queue
         /// </summary>
-        public async Task<bool> PrioritizeJobAsync(Guid jobId)
+        public virtual async Task<bool> PrioritizeJobAsync(Guid jobId)
         {
             var job = await _jobRepository.GetByIdAsync(jobId);
             if (job == null || job.Status != ProcessingStatus.Pending)

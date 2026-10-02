@@ -33,7 +33,7 @@ namespace GpuImageProcessing.Domain;
 /// </remarks>
 public sealed class FilterChainBuilder
 {
-    private readonly string _name;
+    private string _name;
     private string _description = string.Empty;
     private bool _allowParallel;
     private int _maxParallelSteps = AppConstants.Processing.DefaultThreadCount;
@@ -41,7 +41,12 @@ public sealed class FilterChainBuilder
     private int _executionOrder;
 
     // Ordered list of (filterId, estimatedMs) tuples that become FilterSteps.
-    private readonly List<(Guid FilterId, double EstimatedMs)> _steps = [];
+    private List<(Guid FilterId, double EstimatedMs)> _steps = [];
+
+    private FilterChainBuilder()
+    {
+        _name = string.Empty;
+    }
 
     private FilterChainBuilder(string name)
     {
