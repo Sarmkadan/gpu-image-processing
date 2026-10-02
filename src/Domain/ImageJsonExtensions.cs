@@ -46,10 +46,10 @@ public static class ImageJsonExtensions
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="json"/> is null.</exception>
     /// <exception cref="ArgumentException">Thrown when <paramref name="json"/> is empty or whitespace.</exception>
     /// <exception cref="JsonException">Thrown when JSON parsing fails.</exception>
-    public static Image? FromJson(string json)
+    public static Image? FromJson(string? json)
     {
-        ArgumentNullException.ThrowIfNull(json);
-        ArgumentException.ThrowIfNullOrEmpty(json);
+        if (string.IsNullOrWhiteSpace(json))
+            return null;
 
         return JsonSerializer.Deserialize<Image?>(json, JsonOptions);
     }
@@ -60,12 +60,15 @@ public static class ImageJsonExtensions
     /// <param name="json">The JSON string to deserialize.</param>
     /// <param name="value">The deserialized <see cref="Image"/> if successful.</param>
     /// <returns>True if deserialization succeeded; otherwise false.</returns>
-    public static bool TryFromJson(string json, out Image? value)
+    public static bool TryFromJson(string? json, out Image? value)
     {
         try
         {
-            ArgumentNullException.ThrowIfNull(json);
-            ArgumentException.ThrowIfNullOrEmpty(json);
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                value = null;
+                return false;
+            }
 
             value = JsonSerializer.Deserialize<Image?>(json, JsonOptions);
             return value is not null;

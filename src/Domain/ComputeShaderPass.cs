@@ -104,7 +104,7 @@ public sealed class ComputeShaderPass
         int priority = 0)
     {
         ArgumentException.ThrowIfNullOrEmpty(kernelName);
-        ArgumentException.ThrowIfNullOrEmpty(kernelSource);
+        ArgumentNullException.ThrowIfNull(kernelSource);
 
         Id = Guid.NewGuid();
         KernelName = kernelName;
