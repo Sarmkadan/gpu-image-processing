@@ -22,6 +22,8 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static List<List<T>> PartitionForGpu<T>(IEnumerable<T> items, int batchSize, long availableMemoryBytes)
         {
+            if (items is null)
+                throw new ArgumentNullException(nameof(items));
             if (batchSize <= 0)
                 throw new ArgumentException("Batch size must be positive", nameof(batchSize));
 
@@ -67,6 +69,11 @@ namespace GpuImageProcessing.Utilities
             IEnumerable<T> items,
             Func<T, int> prioritySelector)
         {
+            if (items is null)
+                throw new ArgumentNullException(nameof(items));
+            if (prioritySelector is null)
+                throw new ArgumentNullException(nameof(prioritySelector));
+
             var scheduled = new List<BatchItem<T>>();
             var priority = 0;
 
@@ -178,6 +185,11 @@ namespace GpuImageProcessing.Utilities
             int maxRetries = 3,
             int initialDelayMs = 100)
         {
+            if (failedItems is null)
+                throw new ArgumentNullException(nameof(failedItems));
+            if (processingFunc is null)
+                throw new ArgumentNullException(nameof(processingFunc));
+
             var retriableItems = failedItems.Where(i => i.RetryCount < maxRetries).ToList();
 
             foreach (var item in retriableItems)
