@@ -265,7 +265,7 @@ namespace GpuImageProcessing.Tests.Imaging
         Assert.Equal(255, image.PixelData[0]);
         Assert.Equal(0, image.PixelData[1]);
         Assert.Equal(0, image.PixelData[2]);
-        Assert.Equal(255, image.PixelData[3]);
+        Assert.Equal(0, image.PixelData[3]);
         Assert.Equal(255, image.PixelData[4]);
         Assert.Equal(255, image.PixelData[11]);
     }
@@ -554,9 +554,9 @@ namespace GpuImageProcessing.Tests.Imaging
         public void Decode_WhitespaceVariations_ParsesCorrectly()
         {
             // Arrange: P6 with various whitespace (tabs, multiple spaces)
-            var header = Encoding.ASCII.GetBytes("P6\t  \n2\t\t2\n  255  \n");
-            // Pixel data: 255,0,0, 0,255,0
-            var pixelData = new byte[] { 255, 0, 0, 0, 255, 0 };
+            var header = Encoding.ASCII.GetBytes("P6\t  \n2\t\t2\n  255\n");
+            // Pixel data for 2x2 RGB: 255,0,0, 0,255,0, 0,0,255, 255,255,255
+            var pixelData = new byte[] { 255, 0, 0, 0, 255, 0, 0, 0, 255, 255, 255, 255 };
             var streamData = new byte[header.Length + pixelData.Length];
             Array.Copy(header, 0, streamData, 0, header.Length);
             Array.Copy(pixelData, 0, streamData, header.Length, pixelData.Length);

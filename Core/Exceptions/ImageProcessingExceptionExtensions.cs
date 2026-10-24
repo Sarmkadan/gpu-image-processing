@@ -18,7 +18,7 @@ namespace GpuImageProcessing.Core.Exceptions
         public static IReadOnlyList<string> GetErrorCodes(this IEnumerable<ImageProcessingException> exceptions)
         {
             ArgumentNullException.ThrowIfNull(exceptions);
-            return exceptions.Select(e => e.ErrorCode).ToList();
+            return exceptions.Select(e => e.ErrorCategory).ToList();
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace GpuImageProcessing.Core.Exceptions
         {
             ArgumentNullException.ThrowIfNull(exception);
             ArgumentException.ThrowIfNullOrEmpty(errorCode);
-            return exception.ErrorCode == errorCode;
+            return exception.ErrorCategory == errorCode;
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace GpuImageProcessing.Core.Exceptions
         public static string GetDetailedMessage(this ImageProcessingException exception)
         {
             ArgumentNullException.ThrowIfNull(exception);
-            return $"Error Code: {exception.ErrorCode}, Occurred At: {exception.OccurredAt:O}";
+            return $"Error Category: {exception.ErrorCategory}, Occurred At: {exception.OccurredAt:O}";
         }
 
         /// <summary>

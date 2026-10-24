@@ -6,13 +6,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Text.Json.Serialization;
 using GpuImageProcessing.Domain;
+using GpuImageProcessing.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace GpuImageProcessing.Pipeline;

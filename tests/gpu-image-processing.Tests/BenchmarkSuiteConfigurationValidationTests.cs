@@ -30,6 +30,7 @@ namespace GpuImageProcessing.Tests
             // Arrange
             var config = new BenchmarkSuiteConfiguration
             {
+                RunName = "Run",
                 OutputDirectory = "ValidOutputDirectory"
             };
 
@@ -46,6 +47,7 @@ namespace GpuImageProcessing.Tests
             // Arrange
             var config = new BenchmarkSuiteConfiguration
             {
+                RunName = "Run",
                 AccuracyLevel = BenchmarkAccuracyLevel.Standard
             };
 

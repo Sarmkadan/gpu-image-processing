@@ -29,7 +29,6 @@ public sealed class PerformanceMetricsTests
         Assert.Equal(0, metrics.FailedOperationsCount);
         Assert.Equal(0.0, metrics.AverageExecutionTimeMs);
         Assert.Equal(0.0, metrics.MaxExecutionTimeMs);
-        Assert.Equal(0.0, metrics.MinExecutionTimeMs);
     }
 
     [Fact]

@@ -9,63 +9,49 @@ using System;
 namespace GpuImageProcessing.Core.Exceptions
 {
     /// <summary>
-    /// Base exception for image processing operations
+    /// Base exception for image processing operations.
+    /// Derives from <see cref="GpuImageProcessing.Exceptions.GpuImageProcessingException"/>; the numeric
+    /// <c>ErrorCode</c> and <c>OccurredAt</c> come from that base class, while <see cref="ErrorCategory"/>
+    /// carries the string category (for example <c>FILE_ERROR</c>).
     /// </summary>
-    public class ImageProcessingException : Exception
+    public class ImageProcessingException : GpuImageProcessing.Exceptions.GpuImageProcessingException
     {
-        public string ErrorCode { get; set; } = string.Empty;
-        public int? ErrorCode_Numeric { get; set; }
-        public DateTime OccurredAt { get; set; }
+        /// <summary>
+        /// String category of the error, for example <c>FILE_ERROR</c> or <c>INVALID_IMAGE</c>.
+        /// </summary>
+        public string ErrorCategory { get; set; } = string.Empty;
 
         public ImageProcessingException()
             : base("An image processing error occurred")
         {
-            OccurredAt = DateTime.UtcNow;
         }
 
         public ImageProcessingException(string message)
-            : base(message)
+            : base(message ?? throw new ArgumentNullException(nameof(message)))
         {
-            if (message == null)
-                throw new ArgumentNullException(nameof(message));
-            OccurredAt = DateTime.UtcNow;
         }
 
         public ImageProcessingException(string message, Exception innerException)
-            : base(message, innerException)
+            : base(message ?? throw new ArgumentNullException(nameof(message)), innerException)
         {
-            if (message == null)
-                throw new ArgumentNullException(nameof(message));
-            OccurredAt = DateTime.UtcNow;
         }
 
-        public ImageProcessingException(string message, string errorCode)
-            : base(message)
+        public ImageProcessingException(string message, string errorCategory)
+            : base(message ?? throw new ArgumentNullException(nameof(message)))
         {
-            if (message == null)
-                throw new ArgumentNullException(nameof(message));
-            if (errorCode == null)
-                throw new ArgumentNullException(nameof(errorCode));
-            ErrorCode = errorCode;
-            OccurredAt = DateTime.UtcNow;
+            ErrorCategory = errorCategory ?? throw new ArgumentNullException(nameof(errorCategory));
         }
 
-        public ImageProcessingException(string message, string errorCode, Exception innerException)
-            : base(message, innerException)
+        public ImageProcessingException(string message, string errorCategory, Exception innerException)
+            : base(message ?? throw new ArgumentNullException(nameof(message)), innerException)
         {
-            if (message == null)
-                throw new ArgumentNullException(nameof(message));
-            if (errorCode == null)
-                throw new ArgumentNullException(nameof(errorCode));
-            ErrorCode = errorCode;
-            OccurredAt = DateTime.UtcNow;
+            ErrorCategory = errorCategory ?? throw new ArgumentNullException(nameof(errorCategory));
         }
 
         public override string ToString()
         {
             var baseString = base.ToString();
-            var details = $"ErrorCode: {ErrorCode}\nOccurredAt: {OccurredAt:O}";
-            return $"{baseString}\n{details}";
+            return $"{baseString}\nErrorCategory: {ErrorCategory}";
         }
     }
 
