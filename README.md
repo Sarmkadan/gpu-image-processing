@@ -7052,3 +7052,7 @@ var customChain = FilterPresets.Vintage
 Console.WriteLine(FilterPresets.Dramatic.Description);
 // Output: Creates high-contrast dramatic visual effects
 ```
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
