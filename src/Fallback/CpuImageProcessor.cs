@@ -9,6 +9,7 @@ using System.Diagnostics;
 using GpuImageProcessing.Core;
 using GpuImageProcessing.Domain;
 using GpuImageProcessing.Exceptions;
+using GpuImageProcessing.Filters;
 using Microsoft.Extensions.Logging;
 
 namespace GpuImageProcessing.Fallback;
@@ -27,7 +28,8 @@ public sealed class CpuImageProcessor : IImageProcessor
         FilterType.GaussianBlur,
         FilterType.Sharpen,
         FilterType.EdgeDetection,
-        FilterType.Threshold
+        FilterType.Threshold,
+        FilterType.Histogram
     ];
 
     private readonly ILogger<CpuImageProcessor> _logger;
@@ -228,7 +230,8 @@ public Image Crop(Image image, int x, int y, int width, int height)
             FilterType.Sharpen                         => CpuFilters.Convolve(src, image.Width, image.Height, bpp, CpuFilters.SharpenKernel),
             FilterType.EdgeDetection                   => CpuFilters.Sobel(src, image.Width, image.Height, bpp),
             FilterType.Threshold                       => CpuFilters.Threshold(src, FloatParam(config, "thresholdValue", 0.5f)),
-            _                                          => src
+            FilterType.Histogram                       => HistogramEqualizationFilter.Equalize(src, bpp),
+            _                                         => src
         };
 
         image.ModifiedAt = DateTime.UtcNow;
