@@ -3,8 +3,45 @@
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <Deterministic>true</Deterministic>
     <Authors>Vladyslav Zaiets</Authors>
     <PackageProjectUrl>https://github.com/sarmkadan/gpu-image-processing</PackageProjectUrl>
+  </PropertyGroup>
+
+  <!--
+    Existing debt, kept as warnings so TreatWarningsAsErrors does not block the build.
+    Each group lists the codes that already fire in the tree (counts from the first strict build).
+    Remove a code from this list once its existing hits are fixed.
+  -->
+  <PropertyGroup>
+    <!-- XML docs: ~3,400 public members lack <summary>, and some cref/param tags are stale. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);CS1591;CS1572;CS1574</WarningsNotAsErrors>
+
+    <!-- Style: .editorconfig sets file_scoped namespaces to warning; ~520 hits use block namespaces.
+         Converting them is a mechanical dotnet format change, kept out of this change. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);IDE0161</WarningsNotAsErrors>
+
+    <!-- Nullable: ~650 existing reference-type nullability findings across src/, tests/ and root.
+         Fixing them is a dedicated nullability pass. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);CS8600;CS8601;CS8602;CS8603;CS8604;CS8618;CS8619;CS8625;CS8629;CS8714;CS8767</WarningsNotAsErrors>
+
+    <!-- Suspicious comparisons: always-true/false comparisons on value types or integral constants. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);CS0472;CS0652;CS8073</WarningsNotAsErrors>
+
+    <!-- Obsolete or platform-specific API use (OpenCL C version property, PerformanceCounter, Regex). -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);CS0618;CA1416;CA2264;SYSLIB1224</WarningsNotAsErrors>
+
+    <!-- Unused locals left behind in older code. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);CS0168;CS0219</WarningsNotAsErrors>
+
+    <!-- xUnit analyzers in tests/ (blocking task calls in test methods, theory-data usage). -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);xUnit1012;xUnit1031</WarningsNotAsErrors>
+
+    <!-- NU1510: System.Text.Json PackageReference is redundant on net10 (in the shared framework).
+         Removing it changes the published package dependency set, so it is tracked separately. -->
+    <WarningsNotAsErrors>$(WarningsNotAsErrors);NU1510</WarningsNotAsErrors>
   </PropertyGroup>
 </Project>
