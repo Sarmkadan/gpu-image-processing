@@ -11,6 +11,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gpu-image-processing.Tests"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "gpu-image-processing.Benchmarks", "benchmarks/gpu-image-processing.Benchmarks/gpu-image-processing.Benchmarks.csproj", "{E7A93D6C-9B28-4351-A46F-0C5E2D7B1F84}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2AE45A42-01CD-544E-8802-4C3E7678900B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "app", "app", "{43930C63-2525-5E09-B229-F8618FBB378C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{DF82829D-740E-575A-8168-65F1B76EEAE4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "benchmarks", "benchmarks", "{1F288573-9948-5214-A597-E315F49AF182}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +44,11 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B4D82C3F-6E95-4010-C37D-8F2B1E4A0D53} = {2AE45A42-01CD-544E-8802-4C3E7678900B}
+		{A3C71B2E-5D84-4F09-B26C-7E1A0D3F9C42} = {43930C63-2525-5E09-B229-F8618FBB378C}
+		{D6F84E5B-8A17-4232-B59F-0B4D3C6A2E75} = {DF82829D-740E-575A-8168-65F1B76EEAE4}
+		{E7A93D6C-9B28-4351-A46F-0C5E2D7B1F84} = {1F288573-9948-5214-A597-E315F49AF182}
 	EndGlobalSection
 EndGlobal
