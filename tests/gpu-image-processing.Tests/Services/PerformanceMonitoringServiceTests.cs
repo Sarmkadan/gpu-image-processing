@@ -395,7 +395,7 @@ public class PerformanceMonitoringServiceTests
     }
 
     [Fact]
-    public void GetPerformanceReport_ContainsValidationHelpersInformation()
+    public void GetPerformanceReport_ContainsOperationAndSystemInformation()
     {
         // Arrange
         _sut.RecordOperation(100, true);
@@ -407,6 +407,9 @@ public class PerformanceMonitoringServiceTests
         var report = _sut.GetPerformanceReport();
 
         // Assert
-        report.Should().Contain("Validation Helpers");
+        report.Should().Contain("Operations: 2 (Failed: 1)");
+        report.Should().Contain("CPU Usage: 75.00%");
+        report.Should().Contain("GPU Memory: 953 MB");
+        report.Should().Contain("Throughput: 500.00 MB/s");
     }
 }

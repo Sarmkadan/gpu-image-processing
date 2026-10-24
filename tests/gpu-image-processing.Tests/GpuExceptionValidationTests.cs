@@ -179,20 +179,24 @@ public class GpuExceptionValidationTests
     }
 
     [Fact]
-    public void Validate_InvalidGpuException_ThrowsArgumentException()
+    public void Validate_InvalidGpuException_ReturnsProblemList()
     {
         // Arrange
-        var exception = new GpuException("Test error", "GPU-012", 0);
+        var exception = new GpuException("Test error", "GPU-012", -1);
 
-        // Act & Assert
-        Assert.Throws<ArgumentException>(() => exception.Validate());
+        // Act
+        var result = exception.Validate();
+
+        // Assert
+        Assert.Single(result);
+        Assert.Contains("ErrorCode is out of range.", result);
     }
 
     [Fact]
     public void IsValid_InvalidGpuException_ReturnsFalse()
     {
         // Arrange
-        var exception = new GpuException("Test error", "GPU-013", 0);
+        var exception = new GpuException("Test error", "GPU-013", -1);
 
         // Act
         var result = exception.IsValid();
@@ -205,7 +209,7 @@ public class GpuExceptionValidationTests
     public void EnsureValid_InvalidGpuException_ThrowsArgumentException()
     {
         // Arrange
-        var exception = new GpuException("Test error", "GPU-014", 0);
+        var exception = new GpuException("Test error", "GPU-014", -1);
 
         // Act & Assert
         Assert.Throws<ArgumentException>(() => exception.EnsureValid());

@@ -75,16 +75,11 @@ namespace GpuImageProcessing.Tests.Services
         [Fact]
         public void Validate_WithNullDependency_ReturnsProblem()
         {
-            // Pass a null repository to provoke a NullReferenceException inside GetActiveBatchCount
-            var service = new BatchProcessingService(
+            // The constructor rejects null dependencies, so a service with a null repository cannot be built
+            Assert.Throws<ArgumentNullException>(() => new BatchProcessingService(
                 new Mock<ImageProcessingService>().Object,
                 null!,
-                NullLogger<BatchProcessingService>.Instance);
-
-            IReadOnlyList<string> result = service.Validate();
-
-            Assert.Single(result);
-            Assert.Contains("Service dependencies contain null references", result[0]);
+                NullLogger<BatchProcessingService>.Instance));
         }
     }
 }

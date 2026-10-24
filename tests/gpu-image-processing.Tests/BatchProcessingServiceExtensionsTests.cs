@@ -140,7 +140,7 @@ namespace GpuImageProcessing.Tests
             Assert.Contains("Status=Processing", result);
             Assert.Contains("Processed=5/10", result);
             Assert.Contains("Failed=2", result);
-            Assert.Contains("Progress=50.00%", result);
+            Assert.Contains("Progress=70.00%", result); // (Processed + Failed) / Total
         }
     }
 }

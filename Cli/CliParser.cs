@@ -276,7 +276,7 @@ namespace GpuImageProcessing.Cli
         }
     }
 
-    public class CliParsingException : Exception
+    public class CliParsingException : GpuImageProcessing.Exceptions.GpuImageProcessingException
     {
         public CliParsingException(string message) : base(message) { }
     }

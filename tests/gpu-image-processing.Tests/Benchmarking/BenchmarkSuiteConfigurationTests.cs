@@ -59,7 +59,7 @@ public class BenchmarkSuiteConfigurationTests
 
         var errors = config.Validate();
 
-        errors.Should().ContainSingle(e => e.Contains("at least one benchmark category"));
+        errors.Should().ContainSingle(e => e.Contains("at least one benchmark category", StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>

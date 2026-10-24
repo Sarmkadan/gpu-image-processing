@@ -135,6 +135,10 @@ public class ImageProcessingService
             result.Fail(ex.Message, AppConstants.ErrorCodes.ProcessingTimeout);
             await _resultRepository.CreateAsync(result, cancellationToken);
 
+            // Domain errors (missing/invalid image, no GPU) keep their type so callers can handle them specifically
+            if (ex is InvalidImageException or GpuException)
+                throw;
+
             throw new ProcessingException($"Failed to process image", ex, imageId.ToString());
         }
     }

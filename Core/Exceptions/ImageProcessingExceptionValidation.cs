@@ -27,16 +27,16 @@ namespace GpuImageProcessing.Core.Exceptions
 
             var problems = new List<string>();
 
-            // Validate ErrorCode
-            if (string.IsNullOrWhiteSpace(value.ErrorCode))
+            // Validate ErrorCategory
+            if (string.IsNullOrWhiteSpace(value.ErrorCategory))
             {
-                problems.Add("ErrorCode must not be null or whitespace");
+                problems.Add("ErrorCategory must not be null or whitespace");
             }
 
-            // Validate ErrorCode_Numeric (if set)
-            if (value.ErrorCode_Numeric is not null && value.ErrorCode_Numeric.Value < 0)
+            // Validate ErrorCode (numeric, inherited from GpuImageProcessingException) if set
+            if (value.ErrorCode is not null && value.ErrorCode.Value < 0)
             {
-                problems.Add("ErrorCode_Numeric must be a non-negative integer when set");
+                problems.Add("ErrorCode must be a non-negative integer when set");
             }
 
             // Validate OccurredAt

@@ -179,21 +179,26 @@ public class BatchProcessingServiceTests
 	/// Tests that getting the status of an active batch returns the batch information.
 	/// </summary>
 	[Fact]
-	public void GetBatchStatus_ActiveBatch_ReturnsBatch()
+	public async Task GetBatchStatus_ActiveBatch_ReturnsBatch()
 	{
 		// Arrange
 		var batch = CreateValidBatch();
+		var gate = new TaskCompletionSource<ProcessingResult>(TaskCreationOptions.RunContinuationsAsynchronously);
 		_processingServiceMock
 			.Setup(x => x.ProcessImageAsync(It.IsAny<Guid>(), It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new ProcessingResult { IsSuccessful = true });
+			.Returns(gate.Task);
 
-		_ = _sut.ProcessBatchAsync(batch).Result;
+		// Start the batch but keep it in flight: it stays registered as active until the gate opens
+		var running = _sut.ProcessBatchAsync(batch);
 
 		// Act
 		var status = _sut.GetBatchStatus(batch.Id);
 
 		// Assert
 		status.Should().NotBeNull();
+
+		gate.SetResult(new ProcessingResult { IsSuccessful = true });
+		await running;
 	}
 
 	/// <summary>
@@ -213,21 +218,27 @@ public class BatchProcessingServiceTests
 	/// Tests that cancelling an active batch returns true and marks it as cancelled.
 	/// </summary>
 	[Fact]
-	public void CancelBatch_ActiveBatch_ReturnsTrueAndMarksAsCancel()
+	public async Task CancelBatch_ActiveBatch_ReturnsTrueAndMarksAsCancel()
 	{
 		// Arrange
 		var batch = CreateValidBatch();
+		var gate = new TaskCompletionSource<ProcessingResult>(TaskCreationOptions.RunContinuationsAsynchronously);
 		_processingServiceMock
 			.Setup(x => x.ProcessImageAsync(It.IsAny<Guid>(), It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new ProcessingResult { IsSuccessful = true });
+			.Returns(gate.Task);
 
-		_ = _sut.ProcessBatchAsync(batch).Result;
+		// Start the batch but keep it in flight: it stays registered as active until the gate opens
+		var running = _sut.ProcessBatchAsync(batch);
 
 		// Act
 		var cancelled = _sut.CancelBatch(batch.Id);
 
 		// Assert
 		cancelled.Should().BeTrue();
+		batch.Status.Should().Be(ProcessingStatus.Cancelled);
+
+		gate.SetResult(new ProcessingResult { IsSuccessful = true });
+		await running;
 	}
 
 	/// <summary>
@@ -291,18 +302,17 @@ public class BatchProcessingServiceTests
 	/// Tests that getting the progress of an active batch returns a dictionary with status information.
 	/// </summary>
 	[Fact]
-	public void GetBatchProgress_ActiveBatch_ReturnsProgressDictionary()
+	public async Task GetBatchProgress_ActiveBatch_ReturnsProgressDictionary()
 	{
 		// Arrange
 		var batch = CreateValidBatch();
-		batch.MarkImageProcessed(true);
-		batch.MarkImageProcessed(false);
-
+		var gate = new TaskCompletionSource<ProcessingResult>(TaskCreationOptions.RunContinuationsAsynchronously);
 		_processingServiceMock
 			.Setup(x => x.ProcessImageAsync(It.IsAny<Guid>(), It.IsAny<List<Guid>>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new ProcessingResult { IsSuccessful = true });
+			.Returns(gate.Task);
 
-		_ = _sut.ProcessBatchAsync(batch).Result;
+		// Start the batch but keep it in flight: it stays registered as active until the gate opens
+		var running = _sut.ProcessBatchAsync(batch);
 
 		// Act
 		var progress = _sut.GetBatchProgress(batch.Id);
@@ -312,6 +322,9 @@ public class BatchProcessingServiceTests
 		progress.Should().ContainKey("ProgressPercent");
 		progress.Should().ContainKey("SuccessRate");
 		progress.Should().ContainKey("ProcessedImages");
+
+		gate.SetResult(new ProcessingResult { IsSuccessful = true });
+		await running;
 	}
 
 	/// <summary>

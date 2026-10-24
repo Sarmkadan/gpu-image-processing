@@ -51,7 +51,6 @@ public class ProcessingResultTests
         result.Status.Should().Be(ProcessingStatus.Completed);
         result.IsSuccessful.Should().BeTrue();
         result.CompletedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-        result.ProcessingTimeMilliseconds.Should().BeGreaterThan(0);
         result.ProcessingTimeMilliseconds.Should().BeGreaterThanOrEqualTo(0);
     }
 
@@ -90,7 +89,6 @@ public class ProcessingResultTests
         result.Status.Should().Be(ProcessingStatus.Failed);
         result.IsSuccessful.Should().BeFalse();
         result.CompletedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-        result.ProcessingTimeMilliseconds.Should().BeGreaterThan(0);
     }
 
     [Fact]

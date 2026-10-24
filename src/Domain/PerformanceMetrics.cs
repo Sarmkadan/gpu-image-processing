@@ -96,6 +96,12 @@ public class PerformanceMetrics
         AverageExecutionTimeMs = 0.0;
         MaxExecutionTimeMs = 0.0;
         MinExecutionTimeMs = double.MaxValue;
+        CpuUsagePercent = 0.0;
+        MemoryUsedBytes = 0;
+        GpuMemoryUsedBytes = 0;
+        GpuUtilizationPercent = 0.0;
+        ImagePixelsProcessedPerSecond = 0;
+        ThroughputMegabytesPerSecond = 0.0;
         RecordedAt = DateTime.UtcNow;
     }
 

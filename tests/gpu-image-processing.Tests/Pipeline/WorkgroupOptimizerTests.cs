@@ -2,6 +2,7 @@
 using System;
 using FluentAssertions;
 using GpuImageProcessing.Core;
+using GpuImageProcessing.Exceptions;
 using GpuImageProcessing.Domain;
 using GpuImageProcessing.Pipeline;
 using Microsoft.Extensions.Logging;
@@ -291,46 +292,46 @@ public class WorkgroupOptimizerTests
 
     [Fact]
     /// <summary>
-    /// Verifies that computing workgroup configuration with zero width throws an ArgumentOutOfRangeException.
+    /// Verifies that computing workgroup configuration with zero width throws a ValidationException.
     /// </summary>
-    public void Compute_WithZeroWidth_ThrowsArgumentOutOfRangeException()
+    public void Compute_WithZeroWidth_ThrowsValidationException()
     {
         // Arrange
         int width = 0;
         int height = 1024;
 
         // Act & Assert
-        Assert.ThrowsAny<ArgumentException>(() =>
+        Assert.Throws<ValidationException>(() =>
             _optimizer.Compute(_testDevice, width, height));
     }
 
     [Fact]
     /// <summary>
-    /// Verifies that computing workgroup configuration with negative width throws an ArgumentOutOfRangeException.
+    /// Verifies that computing workgroup configuration with negative width throws a ValidationException.
     /// </summary>
-    public void Compute_WithNegativeWidth_ThrowsArgumentOutOfRangeException()
+    public void Compute_WithNegativeWidth_ThrowsValidationException()
     {
         // Arrange
         int width = -100;
         int height = 1024;
 
         // Act & Assert
-        Assert.ThrowsAny<ArgumentException>(() =>
+        Assert.Throws<ValidationException>(() =>
             _optimizer.Compute(_testDevice, width, height));
     }
 
     [Fact]
     /// <summary>
-    /// Verifies that computing workgroup configuration with zero height throws an ArgumentOutOfRangeException.
+    /// Verifies that computing workgroup configuration with zero height throws a ValidationException.
     /// </summary>
-    public void Compute_WithZeroHeight_ThrowsArgumentOutOfRangeException()
+    public void Compute_WithZeroHeight_ThrowsValidationException()
     {
         // Arrange
         int width = 1024;
         int height = 0;
 
         // Act & Assert
-        Assert.ThrowsAny<ArgumentException>(() =>
+        Assert.Throws<ValidationException>(() =>
             _optimizer.Compute(_testDevice, width, height));
     }
 

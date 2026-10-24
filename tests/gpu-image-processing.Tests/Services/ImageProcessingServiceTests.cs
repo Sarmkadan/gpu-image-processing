@@ -346,6 +346,11 @@ public class ImageProcessingServiceTests
 
             _gpuServiceMock.Setup(x => x.GetBestDevice()).Returns(device);
             _gpuServiceMock.Setup(x => x.AllocateMemory(It.IsAny<long>(), device.Id)).Returns(true);
+            // The image instance is shared with the mock, so record its status at each save instead of verifying later
+            var savedStatuses = new List<ProcessingStatus>();
+            _imageRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<Image>(), It.IsAny<CancellationToken>()))
+                .Callback<Image, CancellationToken>((i, _) => savedStatuses.Add(i.Status))
+                .ReturnsAsync((Image i, CancellationToken _) => i);
 
             _filterServiceMock.Setup(x => x.ApplyFilterAsync(image, filterId, It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new InvalidFilterException("Filter not found"));
@@ -354,9 +359,7 @@ public class ImageProcessingServiceTests
             await _sut.Invoking(s => s.ProcessImageAsync(imageId, [filterId]))
                 .Should().ThrowAsync<ProcessingException>();
 
-            _imageRepositoryMock.Verify(
-                x => x.UpdateAsync(It.Is<Image>(i => i.Status == ProcessingStatus.Failed), It.IsAny<CancellationToken>()),
-                Times.Once);
+            savedStatuses.Should().ContainSingle(status => status == ProcessingStatus.Failed);
         }
         catch (Exception ex)
         {
@@ -400,14 +403,17 @@ public class ImageProcessingServiceTests
 
             _resultRepositoryMock.Setup(x => x.CreateAsync(It.IsAny<ProcessingResult>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new ProcessingResult { IsSuccessful = true });
+            // The image instance is shared with the mock, so record its status at each save instead of verifying later
+            var savedStatuses = new List<ProcessingStatus>();
+            _imageRepositoryMock.Setup(x => x.UpdateAsync(It.IsAny<Image>(), It.IsAny<CancellationToken>()))
+                .Callback<Image, CancellationToken>((i, _) => savedStatuses.Add(i.Status))
+                .ReturnsAsync((Image i, CancellationToken _) => i);
 
             // Act
             await _sut.ProcessImageAsync(imageId, [filterId]);
 
             // Assert
-            _imageRepositoryMock.Verify(
-                x => x.UpdateAsync(It.Is<Image>(i => i.Status == ProcessingStatus.Processing), It.IsAny<CancellationToken>()),
-                Times.Once);
+            savedStatuses.Should().ContainSingle(status => status == ProcessingStatus.Processing);
         }
         catch (Exception ex)
         {

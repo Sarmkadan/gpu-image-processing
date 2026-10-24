@@ -78,7 +78,7 @@ namespace GpuImageProcessing.Core.Exceptions
         {
             if (message == null)
                 throw new ArgumentNullException(nameof(message));
-            ErrorCode = "DEVICE_INIT_ERROR";
+            ErrorCategory = "DEVICE_INIT_ERROR";
         }
 
         public DeviceInitializationException(string message, string deviceName)
@@ -88,7 +88,7 @@ namespace GpuImageProcessing.Core.Exceptions
                 throw new ArgumentNullException(nameof(message));
             if (deviceName == null)
                 throw new ArgumentNullException(nameof(deviceName));
-            ErrorCode = "DEVICE_INIT_ERROR";
+            ErrorCategory = "DEVICE_INIT_ERROR";
             DeviceName = deviceName;
         }
     }

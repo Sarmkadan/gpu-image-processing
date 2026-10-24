@@ -57,7 +57,7 @@ public class CpuImageProcessorValidationTests
     public void EnsureValid_DoesNotThrowForValidProcessor()
     {
         // Act & Assert
-        Assert.NotNull(Record.Exception(() => _validProcessor.EnsureValid()));
+        Assert.Null(Record.Exception(() => _validProcessor.EnsureValid()));
     }
 
     [Fact]
