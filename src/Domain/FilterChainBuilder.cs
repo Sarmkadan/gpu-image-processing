@@ -165,6 +165,10 @@ public sealed class FilterChainBuilder
         return AddStep(FilterType.Threshold, estimatedMs: 2.0);
     }
 
+    /// <summary>Appends a per-channel histogram equalization step.</summary>
+    public FilterChainBuilder AddHistogramEqualization() =>
+        AddStep(FilterType.Histogram, estimatedMs: 4.0);
+
     /// <summary>Appends a rotation step.</summary>
     /// <param name="angleDegrees">Rotation angle in degrees (-360 – 360).</param>
     public FilterChainBuilder AddRotation(float angleDegrees)

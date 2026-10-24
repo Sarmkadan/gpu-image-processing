@@ -47,6 +47,7 @@ public static class FilterChainBuilderExtensions
                 FilterType.Median => builder.AddMedian(),
                 FilterType.Emboss => builder.AddEmboss(),
                 FilterType.Sobel => builder.AddSobel(),
+                FilterType.Histogram => builder.AddHistogramEqualization(),
                 _ => builder // Skip unsupported types gracefully
             };
         }
