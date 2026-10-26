@@ -189,6 +189,18 @@ namespace GpuImageProcessing.Integration
                 throw new ValidationException("Image URLs list cannot be null or empty", nameof(imageUrls));
             }
 
+            foreach (var imageUrl in imageUrls)
+            {
+                if (imageUrl == null)
+                {
+                    throw new ArgumentNullException(nameof(imageUrls), "Image URLs list cannot contain null entries");
+                }
+                if (string.IsNullOrWhiteSpace(imageUrl))
+                {
+                    throw new ValidationException("Image URLs list cannot contain null or whitespace entries", nameof(imageUrls));
+                }
+            }
+
             if (maxConcurrentDownloads < 1)
             {
                 throw new ValidationException(
