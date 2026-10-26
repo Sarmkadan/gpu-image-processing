@@ -156,6 +156,8 @@ namespace GpuImageProcessing.Middleware
         /// </summary>
         public bool RemoveMiddleware(string middlewareName)
         {
+            ArgumentException.ThrowIfNullOrWhiteSpace(middlewareName);
+
             var middleware = _middlewares.FirstOrDefault(m => m.GetName() == middlewareName);
             if (middleware != null)
             {
