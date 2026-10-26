@@ -153,6 +153,12 @@ namespace GpuImageProcessing.Api
         {
             try
             {
+                if (string.IsNullOrEmpty(jobName))
+                    return ApiResponse<BatchJobMetadata>.Failure("Job name cannot be null or empty");
+
+                if (imageIds == null || filterIds == null || transformIds == null)
+                    return ApiResponse<BatchJobMetadata>.Failure("Image, filter and transform ID lists cannot be null");
+
                 var job = await _batchProcessingService.CreateJobAsync(
                     jobName,
                     imageIds,
