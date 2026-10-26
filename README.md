@@ -7172,6 +7172,70 @@ PipelineExecutionResult result = await pipeline.ExecuteAsync(passes, Guid.Empty)
 WorkgroupConfiguration workgroup = await pipeline.OptimizeWorkgroupAsync(passes[0], deviceId);
 ```
 
+## ImageCodecRegistry
+
+The `ImageCodecRegistry` class is a static, thread-safe registry of `IImageCodec` implementations. It discovers the codec responsible for a file by extension, by the stream's magic bytes, or by a combination of both. Codecs are registered once at startup; the `PortablePixmapCodec` is registered automatically by the static constructor, and any additional codec can be added with `Register`.
+
+### Key Features
+
+- Static access with no instance to create or inject
+- Codecs are kept in registration order, and the first match wins
+- Duplicate registrations of the same codec instance are ignored
+- Lookup by file path (`FindCodec`) or by extension string (`FindCodecByExtension`)
+- Magic-byte detection (`FindCodecByMagicBytes`) that restores the stream position afterwards
+- Combined detection (`FindCodecForStream`) that tries magic bytes first, then falls back to the extension of a `FileStream`
+- Lookups return `null` when no codec matches instead of throwing
+
+> **Note:** `Codecs` returns a read-only view of the live internal list, not a snapshot. Registration and lookups are guarded by a lock, but enumerating `Codecs` while another thread calls `Register` is not synchronized.
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Imaging;
+using System;
+using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        // Inspect the codecs registered so far (PortablePixmapCodec is registered by default)
+        foreach (var registered in ImageCodecRegistry.Codecs)
+        {
+            Console.WriteLine(registered.Format);
+        }
+
+        // Register a codec; registering the same instance twice has no effect
+        ImageCodecRegistry.Register(PortablePixmapCodec.Instance);
+
+        // Find a codec by file path or by extension
+        IImageCodec? byPath = ImageCodecRegistry.FindCodec("photo.ppm");
+        IImageCodec? byExtension = ImageCodecRegistry.FindCodecByExtension(".pgm");
+
+        // Find a codec by the stream's magic bytes; the stream position is restored afterwards
+        using (var probe = File.OpenRead("input.ppm"))
+        {
+            IImageCodec? byMagic = ImageCodecRegistry.FindCodecByMagicBytes(probe);
+            Console.WriteLine($"Magic match: {byMagic?.Format ?? "none"}");
+        }
+
+        // Magic bytes first, then the extension of a FileStream as a fallback
+        using (var input = File.OpenRead("input.ppm"))
+        {
+            IImageCodec? codec = ImageCodecRegistry.FindCodecForStream(input);
+            if (codec is null)
+            {
+                Console.WriteLine("No codec can read this stream.");
+                return;
+            }
+
+            var image = codec.Read(input);
+            Console.WriteLine($"Loaded {image.Width}x{image.Height} with {codec.Format}");
+        }
+    }
+}
+```
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
