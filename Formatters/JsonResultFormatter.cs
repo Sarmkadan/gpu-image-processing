@@ -196,11 +196,17 @@ namespace GpuImageProcessing.Formatters
     {
         public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
+            ArgumentNullException.ThrowIfNull(typeToConvert);
+            ArgumentNullException.ThrowIfNull(options);
+
             return DateTime.Parse(reader.GetString()).ToUniversalTime();
         }
 
         public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
         {
+            ArgumentNullException.ThrowIfNull(writer);
+            ArgumentNullException.ThrowIfNull(options);
+
             writer.WriteStringValue(value.ToUniversalTime().ToString("O"));
         }
     }
