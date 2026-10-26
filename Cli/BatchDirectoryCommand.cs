@@ -22,8 +22,14 @@ namespace GpuImageProcessing.Cli
     public sealed class BatchDirectoryCommand : CommandHandler
     {
         public BatchDirectoryCommand(IServiceProvider serviceProvider)
-            : base(serviceProvider, "batch-dir")
+            : base(RequireServiceProvider(serviceProvider), "batch-dir")
         {
+        }
+
+        private static IServiceProvider RequireServiceProvider(IServiceProvider serviceProvider)
+        {
+            ArgumentNullException.ThrowIfNull(serviceProvider);
+            return serviceProvider;
         }
 
         public override string GetDescription()
