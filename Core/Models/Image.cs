@@ -61,6 +61,9 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public static Image CreateFromFile(string filePath, string name)
         {
+            ArgumentException.ThrowIfNullOrWhiteSpace(filePath, nameof(filePath));
+            ArgumentNullException.ThrowIfNull(name, nameof(name));
+
             var image = new Image
             {
                 FilePath = filePath,
@@ -112,6 +115,8 @@ namespace GpuImageProcessing.Core.Models
             if (string.IsNullOrWhiteSpace(key))
                 throw new ArgumentException("Metadata key cannot be empty", nameof(key));
 
+            ArgumentNullException.ThrowIfNull(value, nameof(value));
+
             Metadata[key] = value;
         }
 
@@ -120,6 +125,8 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public string GetMetadata(string key, string defaultValue = "")
         {
+            ArgumentException.ThrowIfNullOrWhiteSpace(key, nameof(key));
+
             return Metadata.TryGetValue(key, out var value) ? value : defaultValue;
         }
     }
