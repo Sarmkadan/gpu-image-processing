@@ -56,6 +56,9 @@ namespace GpuImageProcessing.Core.Services
         /// <returns>The newly created transformation.</returns>
         public virtual async Task<Transform> CreateTransformAsync(TransformType type, string name, string description = "")
         {
+            ArgumentException.ThrowIfNullOrEmpty(name);
+            ArgumentNullException.ThrowIfNull(description);
+
             var transform = Transform.CreatePredefined(type);
             transform.Name = name;
             transform.Description = description;
@@ -102,6 +105,8 @@ namespace GpuImageProcessing.Core.Services
         /// <returns><see langword="true"/> if the transform was found and updated; otherwise, <see langword="false"/>.</returns>
         public virtual async Task<bool> SetParameterAsync(Guid transformId, string parameterName, float value)
         {
+            ArgumentException.ThrowIfNullOrEmpty(parameterName);
+
             var transform = await _transformRepository.GetByIdAsync(transformId);
             if (transform == null)
                 return false;
@@ -119,6 +124,8 @@ namespace GpuImageProcessing.Core.Services
         /// <returns><see langword="true"/> if the transform was found and updated; otherwise, <see langword="false"/>.</returns>
         public virtual async Task<bool> SetParametersAsync(Guid transformId, Dictionary<string, float> parameters)
         {
+            ArgumentNullException.ThrowIfNull(parameters);
+
             var transform = await _transformRepository.GetByIdAsync(transformId);
             if (transform == null)
                 return false;
@@ -141,6 +148,8 @@ namespace GpuImageProcessing.Core.Services
         /// <returns>The parameter value, or <paramref name="defaultValue"/> when it is not found.</returns>
         public virtual async Task<float> GetParameterAsync(Guid transformId, string parameterName, float defaultValue = 0f)
         {
+            ArgumentException.ThrowIfNullOrEmpty(parameterName);
+
             var transform = await _transformRepository.GetByIdAsync(transformId);
             if (transform == null)
                 return defaultValue;
@@ -155,6 +164,8 @@ namespace GpuImageProcessing.Core.Services
         /// <returns>The transforms that were found, ordered for sequential execution.</returns>
         public virtual async Task<List<Transform>> ChainTransformsAsync(List<Guid> transformIds)
         {
+            ArgumentNullException.ThrowIfNull(transformIds);
+
             var transforms = new List<Transform>();
             int order = 0;
 
@@ -251,6 +262,8 @@ namespace GpuImageProcessing.Core.Services
         /// <returns>A description of the transform pipeline.</returns>
         public virtual async Task<string> GetPipelineDescriptionAsync(List<Guid> transformIds)
         {
+            ArgumentNullException.ThrowIfNull(transformIds);
+
             var description = "Transform Pipeline:\n";
             int step = 1;
 
