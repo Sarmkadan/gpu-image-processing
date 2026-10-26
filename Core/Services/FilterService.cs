@@ -101,6 +101,8 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public virtual async Task<bool> ApplyFilterAsync(Guid filterId, Dictionary<string, float> parameterValues)
         {
+            ArgumentNullException.ThrowIfNull(parameterValues);
+
             var filter = await _filterRepository.GetByIdAsync(filterId);
             if (filter == null)
                 return false;
@@ -123,6 +125,8 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public virtual async Task<bool> UpdateFilterParametersAsync(Guid filterId, Dictionary<string, float> parameters)
         {
+            ArgumentNullException.ThrowIfNull(parameters);
+
             var filter = await _filterRepository.GetByIdAsync(filterId);
             if (filter == null)
                 return false;
