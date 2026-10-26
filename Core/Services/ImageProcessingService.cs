@@ -84,6 +84,8 @@ namespace GpuImageProcessing.Core.Services
             if (string.IsNullOrWhiteSpace(filePath))
                 throw new ArgumentException("File path cannot be empty", nameof(filePath));
 
+            ArgumentException.ThrowIfNullOrEmpty(name, nameof(name));
+
             var image = Image.CreateFromFile(filePath, name);
             return await _imageRepository.AddAsync(image);
         }
@@ -407,6 +409,8 @@ namespace GpuImageProcessing.Core.Services
         /// <returns><see langword="true"/> if the selected device has sufficient resources; otherwise, <see langword="false"/>.</returns>
         public virtual async Task<bool> CanProcessAsync(List<Guid> imageIds, Guid profileId)
         {
+            ArgumentNullException.ThrowIfNull(imageIds, nameof(imageIds));
+
             var profile = await _profileRepository.GetByIdAsync(profileId) ?? ProcessingProfile.CreateBalanced();
             var device = _deviceService.GetSelectedDevice();
 
@@ -454,6 +458,9 @@ namespace GpuImageProcessing.Core.Services
         /// <returns>The created processing profile.</returns>
         public virtual async Task<ProcessingProfile> CreateProfileAsync(string name, string description)
         {
+            ArgumentException.ThrowIfNullOrEmpty(name, nameof(name));
+            ArgumentException.ThrowIfNullOrEmpty(description, nameof(description));
+
             var profile = new ProcessingProfile
             {
                 Name = name,
