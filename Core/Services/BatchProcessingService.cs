@@ -48,6 +48,11 @@ namespace GpuImageProcessing.Core.Services
         public virtual async Task<ProcessingJob> CreateJobAsync(string jobName, List<Guid> imageIds,
             List<Guid> filterIds, List<Guid> transformIds, Guid profileId)
         {
+            ArgumentException.ThrowIfNullOrEmpty(jobName);
+            ArgumentNullException.ThrowIfNull(imageIds);
+            ArgumentNullException.ThrowIfNull(filterIds);
+            ArgumentNullException.ThrowIfNull(transformIds);
+
             var job = new ProcessingJob
             {
                 Name = jobName,
