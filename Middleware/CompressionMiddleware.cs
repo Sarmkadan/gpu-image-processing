@@ -28,6 +28,8 @@ namespace GpuImageProcessing.Middleware
 
         public async Task<RequestMiddlewareResult> ProcessAsync(RequestMiddlewareContext context)
         {
+            ArgumentNullException.ThrowIfNull(context);
+
             // Store original size for metrics
             if (context.ResponseData is not null && context.ResponseData is string responseStr)
             {
@@ -77,6 +79,8 @@ namespace GpuImageProcessing.Middleware
 
         public static async Task<string> DecompressAsync(byte[] compressedData)
         {
+            ArgumentNullException.ThrowIfNull(compressedData);
+
             using (var memoryStream = new MemoryStream(compressedData))
             {
                 using (var gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
