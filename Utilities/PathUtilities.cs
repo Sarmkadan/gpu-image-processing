@@ -382,5 +382,39 @@ namespace GpuImageProcessing.Utilities
 
             return "N/A";
         }
+
+        /// <summary>
+        /// Checks whether a path resolves to a location inside the given directory (or the directory itself).
+        /// Relative segments such as "..", and path comparison is case-insensitive only on Windows.
+        /// Returns false for invalid or empty input instead of throwing.
+        /// </summary>
+        public static bool IsPathWithinDirectory(string path, string directoryPath)
+        {
+            if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(directoryPath))
+                return false;
+
+            try
+            {
+                string fullPath = Path.GetFullPath(path);
+                string fullDirectory = Path.TrimEndingDirectorySeparator(Path.GetFullPath(directoryPath));
+                StringComparison comparison = OperatingSystem.IsWindows()
+                    ? StringComparison.OrdinalIgnoreCase
+                    : StringComparison.Ordinal;
+
+                if (fullPath.Equals(fullDirectory, comparison))
+                    return true;
+
+                // Root directories ("/" or "C:\") already end with a separator
+                string prefix = fullDirectory.EndsWith(Path.DirectorySeparatorChar)
+                    ? fullDirectory
+                    : fullDirectory + Path.DirectorySeparatorChar;
+
+                return fullPath.StartsWith(prefix, comparison);
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 }
