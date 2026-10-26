@@ -73,6 +73,9 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public static ProcessingResult CreateSuccess(Guid jobId, Guid imageId, string inputPath, string outputPath)
         {
+            ArgumentNullException.ThrowIfNull(inputPath);
+            ArgumentNullException.ThrowIfNull(outputPath);
+
             return new ProcessingResult
             {
                 JobId = jobId,
@@ -91,6 +94,9 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public static ProcessingResult CreateFailure(Guid jobId, Guid imageId, string inputPath, string errorMessage)
         {
+            ArgumentNullException.ThrowIfNull(inputPath);
+            ArgumentNullException.ThrowIfNull(errorMessage);
+
             return new ProcessingResult
             {
                 JobId = jobId,
@@ -109,6 +115,8 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public void RecordAppliedOperation(string operationName)
         {
+            ArgumentException.ThrowIfNullOrEmpty(operationName);
+
             if (!AppliedOperations.Contains(operationName))
                 AppliedOperations.Add(operationName);
         }
@@ -118,6 +126,9 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public void RecordFailedOperation(string operationName, string errorMessage)
         {
+            ArgumentException.ThrowIfNullOrEmpty(operationName);
+            ArgumentNullException.ThrowIfNull(errorMessage);
+
             ErrorMessage = string.IsNullOrEmpty(ErrorMessage)
                 ? $"{operationName}: {errorMessage}"
                 : $"{ErrorMessage}\n{operationName}: {errorMessage}";
@@ -139,6 +150,8 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public object? GetMetric(string key, object? defaultValue = null)
         {
+            ArgumentNullException.ThrowIfNull(key);
+
             return ProcessingMetrics.TryGetValue(key, out var value) ? value : defaultValue;
         }
 
@@ -147,6 +160,8 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public void RecordAppliedFilter(string filterName)
         {
+            ArgumentException.ThrowIfNullOrEmpty(filterName);
+
             if (!AppliedFilters.Contains(filterName))
                 AppliedFilters.Add(filterName);
         }
@@ -156,6 +171,8 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public void RecordAppliedTransform(string transformName)
         {
+            ArgumentException.ThrowIfNullOrEmpty(transformName);
+
             if (!AppliedTransforms.Contains(transformName))
                 AppliedTransforms.Add(transformName);
         }
@@ -190,6 +207,8 @@ namespace GpuImageProcessing.Core.Models
         /// </summary>
         public void AddWarning(string warning)
         {
+            ArgumentNullException.ThrowIfNull(warning);
+
             WarningMessage = string.IsNullOrEmpty(WarningMessage)
                 ? warning
                 : $"{WarningMessage}\n{warning}";
