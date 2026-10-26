@@ -129,6 +129,8 @@ namespace GpuImageProcessing.Core.Services
         /// </summary>
         public virtual async Task<DeviceInfo?> GetDeviceByNameAsync(string deviceName)
         {
+            ArgumentException.ThrowIfNullOrEmpty(deviceName);
+
             return await Task.FromResult(
                 _devices.FirstOrDefault(d => d.Name.Equals(deviceName, StringComparison.OrdinalIgnoreCase))
             );
