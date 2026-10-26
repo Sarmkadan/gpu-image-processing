@@ -206,6 +206,34 @@ namespace GpuImageProcessing.Utilities
         }
 
         /// <summary>
+        /// Calculates the largest dimensions that fit within a maximum box while maintaining aspect ratio.
+        /// Images already within the bounds are returned unchanged (never upscaled).
+        /// </summary>
+        public static (int width, int height) CalculateFitDimensions(int sourceWidth, int sourceHeight, int maxWidth, int maxHeight)
+        {
+            if (sourceWidth <= 0)
+                throw new ArgumentException("Source width must be greater than zero", nameof(sourceWidth));
+
+            if (sourceHeight <= 0)
+                throw new ArgumentException("Source height must be greater than zero", nameof(sourceHeight));
+
+            if (maxWidth <= 0)
+                throw new ArgumentException("Maximum width must be greater than zero", nameof(maxWidth));
+
+            if (maxHeight <= 0)
+                throw new ArgumentException("Maximum height must be greater than zero", nameof(maxHeight));
+
+            if (sourceWidth <= maxWidth && sourceHeight <= maxHeight)
+                return (sourceWidth, sourceHeight);
+
+            double scale = Math.Min((double)maxWidth / sourceWidth, (double)maxHeight / sourceHeight);
+            int newWidth = Math.Max(1, (int)Math.Round(sourceWidth * scale));
+            int newHeight = Math.Max(1, (int)Math.Round(sourceHeight * scale));
+
+            return (Math.Min(newWidth, maxWidth), Math.Min(newHeight, maxHeight));
+        }
+
+        /// <summary>
         /// Gets the total size of all images in a directory.
         /// </summary>
         public static long GetDirectoryImageSize(string directoryPath)
