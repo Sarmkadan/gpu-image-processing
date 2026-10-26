@@ -20,9 +20,15 @@ namespace GpuImageProcessing.Cli
     {
         private readonly BatchProcessingService _batchProcessingService;
 
+        /// <summary>
+        /// Initializes the batch command and resolves <see cref="BatchProcessingService"/>.
+        /// </summary>
+        /// <param name="serviceProvider">Service provider used to resolve dependencies.</param>
+        /// <exception cref="ArgumentNullException">Thrown when <paramref name="serviceProvider"/> is <c>null</c>.</exception>
         public BatchCommand(IServiceProvider serviceProvider)
             : base(serviceProvider, "batch")
         {
+            ArgumentNullException.ThrowIfNull(serviceProvider);
             _batchProcessingService = GetService<BatchProcessingService>();
         }
 
