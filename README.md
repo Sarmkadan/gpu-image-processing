@@ -7113,6 +7113,65 @@ class Program
 }
 ```
 
+## ResilientComputeShaderPipeline
+
+The `ResilientComputeShaderPipeline` class is a sealed decorator for `IComputeShaderPipeline` that adds device-lost recovery and retry handling to compute shader dispatches. It wraps any inner `IComputeShaderPipeline`, re-resolves the target GPU device through `GpuManagementService` before each retry, and classifies failures as transient or fatal so that only recoverable errors are retried.
+
+### Key Features
+
+- Implements `IComputeShaderPipeline`, so it can be used anywhere the inner pipeline is used
+- Retries transient GPU errors (device lost, timeout, out of device memory) up to `MaxRetries` times
+- Re-resolves the device on each retry: uses the best available device when `deviceId` is `Guid.Empty`, otherwise the requested device; a missing or unavailable device raises a `GpuException`
+- Exponential backoff with ±20% jitter: `min(initialDelayMs * 2^(retry - 1), maxDelayMs)`
+- Fatal GPU errors and non-GPU exceptions are not retried; fatal GPU errors are rethrown as a `GpuException`
+- Retry limits default to `AppConstants.Performance` (3 retries, 100 ms initial delay, 5000 ms maximum delay) and can be overridden per instance
+- `ExecuteAsync` rejects an empty pass list and pipelines deeper than 100 passes with an `ArgumentException`
+
+### Public API
+
+| Member | Description |
+|---|---|
+| `ResilientComputeShaderPipeline(IComputeShaderPipeline innerPipeline, GpuManagementService gpuService, ILogger<ResilientComputeShaderPipeline> logger, int? maxRetries = null, int? initialDelayMs = null, int? maxDelayMs = null)` | Creates the decorator. Null retry settings fall back to `AppConstants.Performance`; null required arguments throw `ArgumentNullException`. |
+| `Task<PipelineExecutionResult> ExecuteAsync(IReadOnlyList<ComputeShaderPass> passes, Guid deviceId, CancellationToken cancellationToken = default)` | Runs the passes on the inner pipeline, retrying transient GPU failures. Throws `GpuException` when retries are exhausted or a fatal GPU error occurs. |
+| `Task<WorkgroupConfiguration> OptimizeWorkgroupAsync(ComputeShaderPass pass, Guid deviceId, CancellationToken cancellationToken = default)` | Optimizes the workgroup for one pass, with the same transient-retry behavior. Each retry re-resolves the device, so it can fail over to another device. |
+| `Task<PipelineStatistics> GetStatisticsAsync(CancellationToken cancellationToken = default)` | Returns statistics from the inner pipeline without retries. |
+| `Task ResetStatisticsAsync(CancellationToken cancellationToken = default)` | Resets statistics on the inner pipeline without retries. |
+
+> **Note:** A failed result whose `ErrorMessage` does not mention a GPU failure (`GpuException`, `device lost`, `timeout`, `out of memory`) is returned as-is and is not retried.
+
+### Usage Examples
+
+```csharp
+using GpuImageProcessing.Core;
+using GpuImageProcessing.Domain;
+using GpuImageProcessing.Pipeline;
+using GpuImageProcessing.Services;
+using Microsoft.Extensions.Logging;
+
+// innerPipeline is any IComputeShaderPipeline implementation,
+// and gpuService is the GpuManagementService registered in DI
+IComputeShaderPipeline innerPipeline = ...;
+ILogger<ResilientComputeShaderPipeline> logger = loggerFactory.CreateLogger<ResilientComputeShaderPipeline>();
+
+// Use the default retry policy from AppConstants.Performance
+var pipeline = new ResilientComputeShaderPipeline(innerPipeline, gpuService, logger);
+
+// Or override retry limits per instance
+var aggressive = new ResilientComputeShaderPipeline(
+    innerPipeline,
+    gpuService,
+    logger,
+    maxRetries: 5,
+    initialDelayMs: 50,
+    maxDelayMs: 2000);
+
+// Execute passes on the best available device (Guid.Empty = auto-select)
+PipelineExecutionResult result = await pipeline.ExecuteAsync(passes, Guid.Empty);
+
+// Find the workgroup size for one pass on a specific device
+WorkgroupConfiguration workgroup = await pipeline.OptimizeWorkgroupAsync(passes[0], deviceId);
+```
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
