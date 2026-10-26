@@ -7053,6 +7053,66 @@ Console.WriteLine(FilterPresets.Dramatic.Description);
 // Output: Creates high-contrast dramatic visual effects
 ```
 
+## PortablePixmapCodec
+
+The `PortablePixmapCodec` class is the `IImageCodec` implementation for the Netpbm portable pixmap formats. It is exposed as a thread-safe singleton via `PortablePixmapCodec.Instance` and is registered in `ImageCodecRegistry`. It reads and writes P6 (binary RGB PPM) and P5 (binary grayscale PGM) streams, and recognises the P3 (ASCII RGB PPM) header. The codec works on `Stream` objects, so it can target files or in-memory streams.
+
+### Key Features
+
+- Implements `IImageCodec` for `.ppm` and `.pgm` files
+- Singleton access through `PortablePixmapCodec.Instance`
+- Reads 8-bit P6/P5 data and rescales pixel values when the header's max value is not 255
+- Writes 1-channel images as P5 and 3-channel images as P6 with a max value of 255
+- Detects format by file extension, by extension string, or by the stream's two-byte magic header
+- Skips `#` comment lines in headers during reading
+
+> **Note:** P3 (ASCII) is recognised by `CanReadFromStream` and `Read`, but pixel data is always consumed as raw bytes, so ASCII P3 payloads are not decoded correctly. Use P6 or P5 when interoperating with other tools.
+
+### Usage Examples
+
+```csharp
+
+using GpuImageProcessing.Imaging;
+using GpuImageProcessing.Domain;
+using System;
+using System.IO;
+
+class Program
+{
+    static void Main()
+    {
+        var codec = PortablePixmapCodec.Instance;
+
+        // Inspect codec metadata
+        Console.WriteLine(codec.Format);                 // Output: Portable Pixmap (Netpbm)
+        Console.WriteLine(string.Join(", ", codec.SupportedExtensions)); // Output: .ppm, .pgm
+
+        // Extension and path checks
+        bool byPath = codec.CanRead("photo.PPM");        // True (case-insensitive)
+        bool byExt = codec.CanReadByExtension(".pgm");   // True
+
+        // Check the stream's magic header; the stream position is restored afterwards
+        using (var probe = File.OpenRead("input.ppm"))
+        {
+            bool isPixmap = codec.CanReadFromStream(probe);
+            Console.WriteLine($"Is pixmap: {isPixmap}");
+        }
+
+        // Read an image from disk
+        Image image;
+        using (var input = File.OpenRead("input.ppm"))
+        {
+            image = codec.Read(input);
+            Console.WriteLine($"Loaded {image.Width}x{image.Height}, {image.Channels} channels");
+        }
+
+        // Write an image to a memory stream (3 channels -> P6, 1 channel -> P5)
+        using var buffer = new MemoryStream();
+        codec.Write(image, buffer);
+    }
+}
+```
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
