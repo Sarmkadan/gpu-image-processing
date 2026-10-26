@@ -18,7 +18,7 @@ namespace GpuImageProcessing.Cli
         private readonly CommandDispatcher _dispatcher;
 
         public HelpCommand(IServiceProvider serviceProvider)
-            : base(serviceProvider, "help")
+            : base(serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider)), "help")
         {
             _dispatcher = new CommandDispatcher(serviceProvider);
         }
