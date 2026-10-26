@@ -58,20 +58,18 @@ namespace GpuImageProcessing.Formatters
         /// </summary>
         public string FormatResults(List<ProcessingResult> results)
         {
+            ArgumentNullException.ThrowIfNull(results);
             var sb = new StringBuilder();
 
             // Header
             sb.AppendLine("ID,JobID,ImageID,Status,StartTime,CompletionTime,DurationMs,OutputPath");
 
             // Data rows
-            if (results != null)
+            foreach (var result in results)
             {
-                foreach (var result in results)
-                {
-                    if (result == null) throw new ArgumentNullException(nameof(result));
-                    long durationMs = (long)((result.CompletionTime - result.StartTime)?.TotalMilliseconds ?? 0);
-                    sb.AppendLine($"\"{result.Id}\",\"{result.JobId}\",\"{result.ImageId}\",\"{result.Status}\",\"{result.StartTime:O}\",\"{result.CompletionTime:O}\",{durationMs},\"{EscapeCsvValue(result.OutputImagePath)}\"");
-                }
+                if (result == null) throw new ArgumentNullException(nameof(result));
+                long durationMs = (long)((result.CompletionTime - result.StartTime)?.TotalMilliseconds ?? 0);
+                sb.AppendLine($"\"{result.Id}\",\"{result.JobId}\",\"{result.ImageId}\",\"{result.Status}\",\"{result.StartTime:O}\",\"{result.CompletionTime:O}\",{durationMs},\"{EscapeCsvValue(result.OutputImagePath)}\"");
             }
 
             return sb.ToString();
