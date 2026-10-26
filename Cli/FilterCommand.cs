@@ -21,9 +21,15 @@ namespace GpuImageProcessing.Cli
         private readonly FilterService _filterService;
 
         public FilterCommand(IServiceProvider serviceProvider)
-            : base(serviceProvider, "filter")
+            : base(RequireServiceProvider(serviceProvider), "filter")
         {
             _filterService = GetService<FilterService>();
+        }
+
+        private static IServiceProvider RequireServiceProvider(IServiceProvider serviceProvider)
+        {
+            ArgumentNullException.ThrowIfNull(serviceProvider);
+            return serviceProvider;
         }
 
         public override string GetDescription()
