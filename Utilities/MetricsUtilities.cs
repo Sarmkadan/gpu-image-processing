@@ -21,6 +21,8 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static StatisticalMetrics CalculateStatistics(IEnumerable<double> values)
         {
+            ArgumentNullException.ThrowIfNull(values);
+
             var valuesList = values.ToList();
             if (valuesList.Count == 0)
                 return new StatisticalMetrics();
@@ -50,6 +52,8 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static double GetPercentile(List<double> sortedValues, int percentile)
         {
+            ArgumentNullException.ThrowIfNull(sortedValues);
+
             if (sortedValues.Count == 0)
                 return 0;
 
@@ -72,6 +76,8 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static Histogram CreateHistogram(IEnumerable<double> values, int bucketCount = 20)
         {
+            ArgumentNullException.ThrowIfNull(values);
+
             var valuesList = values.ToList();
             if (valuesList.Count == 0)
                 return new Histogram();
@@ -106,6 +112,8 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static List<double> DetectAnomalies(IEnumerable<double> values, double iqrMultiplier = 1.5)
         {
+            ArgumentNullException.ThrowIfNull(values);
+
             var sortedValues = values.OrderBy(v => v).ToList();
             if (sortedValues.Count < 4)
                 return new List<double>();
@@ -125,6 +133,8 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static List<double> CalculateRateOfChange(IEnumerable<double> values)
         {
+            ArgumentNullException.ThrowIfNull(values);
+
             var valuesList = values.ToList();
             var roc = new List<double>();
 
@@ -142,6 +152,8 @@ namespace GpuImageProcessing.Utilities
         /// </summary>
         public static List<double> CalculateMovingAverage(IEnumerable<double> values, int windowSize)
         {
+            ArgumentNullException.ThrowIfNull(values);
+
             if (windowSize <= 0)
                 throw new ArgumentException("Window size must be positive", nameof(windowSize));
 
