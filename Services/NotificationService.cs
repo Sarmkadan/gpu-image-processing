@@ -44,6 +44,8 @@ namespace GpuImageProcessing.Services
         /// </summary>
         public async Task NotifyProcessingCompletedAsync(string jobId, int processedCount, bool success)
         {
+            ArgumentException.ThrowIfNullOrEmpty(jobId);
+
             var notification = new Notification
             {
                 Id = Guid.NewGuid().ToString("N"),
@@ -62,6 +64,9 @@ namespace GpuImageProcessing.Services
         /// </summary>
         public async Task NotifyProcessingFailedAsync(string jobId, string errorMessage)
         {
+            ArgumentException.ThrowIfNullOrEmpty(jobId);
+            ArgumentException.ThrowIfNullOrEmpty(errorMessage);
+
             var notification = new Notification
             {
                 Id = Guid.NewGuid().ToString("N"),
@@ -80,6 +85,8 @@ namespace GpuImageProcessing.Services
         /// </summary>
         public async Task NotifyResourceLimitAsync(string resourceType, double utilization)
         {
+            ArgumentException.ThrowIfNullOrEmpty(resourceType);
+
             var notification = new Notification
             {
                 Id = Guid.NewGuid().ToString("N"),
@@ -98,6 +105,8 @@ namespace GpuImageProcessing.Services
         /// </summary>
         public async Task NotifyHealthStatusAsync(bool isHealthy, List<string> issues)
         {
+            ArgumentNullException.ThrowIfNull(issues);
+
             var notification = new Notification
             {
                 Id = Guid.NewGuid().ToString("N"),
@@ -121,6 +130,9 @@ namespace GpuImageProcessing.Services
         /// </summary>
         public async Task NotifyAsync(string title, string message, NotificationSeverity severity = NotificationSeverity.Info)
         {
+            ArgumentException.ThrowIfNullOrEmpty(title);
+            ArgumentException.ThrowIfNullOrEmpty(message);
+
             var notification = new Notification
             {
                 Id = Guid.NewGuid().ToString("N"),
