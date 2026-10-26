@@ -234,6 +234,8 @@ namespace GpuImageProcessing.Monitoring
 
         public ResponseTimeHealthCheck(Func<Task> operation, int thresholdMs = 1000)
         {
+            ArgumentNullException.ThrowIfNull(operation);
+
             _operation = operation;
             _thresholdMs = thresholdMs;
         }
