@@ -187,6 +187,8 @@ namespace GpuImageProcessing.Events
         /// </summary>
         public int GetSubscriberCount(string eventType)
         {
+            ArgumentNullException.ThrowIfNull(eventType);
+
             lock (_lockObject)
             {
                 if (_subscribers.TryGetValue(eventType, out var handlers))
