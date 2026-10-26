@@ -129,6 +129,8 @@ namespace GpuImageProcessing.Caching
         /// </summary>
         public async Task<bool> RemoveAsync(string key)
         {
+            ArgumentException.ThrowIfNullOrEmpty(key);
+
             lock (_lockObject)
             {
                 if (_memoryStore.TryGetValue(key, out var entry))
