@@ -35,6 +35,7 @@ namespace GpuImageProcessing.Events
         /// </summary>
         public IDisposable Subscribe<T>(Action<T> handler) where T : DomainEvent
         {
+            ArgumentNullException.ThrowIfNull(handler);
             ThrowIfDisposed();
 
             var eventType = typeof(T).Name;
@@ -67,6 +68,7 @@ namespace GpuImageProcessing.Events
         /// </summary>
         public IDisposable SubscribeAsync<T>(Func<T, Task> handler) where T : DomainEvent
         {
+            ArgumentNullException.ThrowIfNull(handler);
             ThrowIfDisposed();
 
             var eventType = typeof(T).Name;
@@ -102,6 +104,7 @@ namespace GpuImageProcessing.Events
         /// </summary>
         public async Task PublishAsync(DomainEvent @event)
         {
+            ArgumentNullException.ThrowIfNull(@event);
             ThrowIfDisposed();
 
             var eventType = @event.GetType().Name;
@@ -152,6 +155,7 @@ namespace GpuImageProcessing.Events
         /// </summary>
         public void Publish(DomainEvent @event)
         {
+            ArgumentNullException.ThrowIfNull(@event);
             PublishAsync(@event).GetAwaiter().GetResult();
         }
 
