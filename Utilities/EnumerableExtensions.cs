@@ -461,5 +461,16 @@ namespace GpuImageProcessing.Utilities
                 count++;
             }
         }
+
+        /// <summary>
+        /// Returns true if the sequence is null or contains no elements.
+        /// </summary>
+        /// <typeparam name="T">The type of elements in the sequence.</typeparam>
+        /// <param name="source">The sequence to check. May be null.</param>
+        /// <returns>True if <paramref name="source"/> is null or has no elements, false otherwise.</returns>
+        public static bool IsNullOrEmpty<T>(this IEnumerable<T>? source)
+        {
+            return source == null || !source.Any();
+        }
     }
 }
