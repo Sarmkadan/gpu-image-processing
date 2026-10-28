@@ -64,6 +64,9 @@ namespace GpuImageProcessing.Api
 
         public void AddError(string code, string message, string details = null)
         {
+            ArgumentException.ThrowIfNullOrEmpty(code);
+            ArgumentException.ThrowIfNullOrEmpty(message);
+
             if (Errors == null)
                 Errors = new List<ApiError>();
 
@@ -107,6 +110,7 @@ namespace GpuImageProcessing.Api
 
         public static PaginatedResponse<T> Create(List<T> items, int pageNumber, int pageSize, int totalCount)
         {
+            ArgumentNullException.ThrowIfNull(items);
             return new PaginatedResponse<T>
             {
                 Items = items,
