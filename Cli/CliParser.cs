@@ -177,6 +177,7 @@ namespace GpuImageProcessing.Cli
         /// </summary>
         public string GenerateCommandHelp(string commandName)
         {
+            ArgumentException.ThrowIfNullOrEmpty(commandName);
             if (!_commands.ContainsKey(commandName))
                 return $"Unknown command: {commandName}";
 
@@ -210,6 +211,8 @@ namespace GpuImageProcessing.Cli
 
             public CommandBuilder(string name, string description)
             {
+                ArgumentException.ThrowIfNullOrEmpty(name);
+                ArgumentException.ThrowIfNullOrEmpty(description);
                 _name = name;
                 _description = description;
                 _options = new List<OptionDefinition>();
@@ -218,6 +221,8 @@ namespace GpuImageProcessing.Cli
             public CommandBuilder AddOption(string longForm, string shortForm, string description,
                 bool requiresValue = false, bool isRequired = false)
             {
+                ArgumentException.ThrowIfNullOrEmpty(longForm);
+                ArgumentException.ThrowIfNullOrEmpty(description);
                 _options.Add(new OptionDefinition
                 {
                     LongForm = longForm,
@@ -267,11 +272,13 @@ namespace GpuImageProcessing.Cli
 
         public string GetOption(string name, string defaultValue = null)
         {
+            ArgumentException.ThrowIfNullOrEmpty(name);
             return Options.TryGetValue(name, out var value) ? value : defaultValue;
         }
 
         public bool HasOption(string name)
         {
+            ArgumentException.ThrowIfNullOrEmpty(name);
             return Options.ContainsKey(name) && Options[name] == "true";
         }
     }
