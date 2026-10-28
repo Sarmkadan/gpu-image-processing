@@ -48,6 +48,13 @@ namespace GpuImageProcessing.Cli
         /// </summary>
         public void RegisterCommand(string commandName, Type commandType)
         {
+            if (string.IsNullOrEmpty(commandName))
+            {
+                throw new ArgumentException("Command name cannot be null or empty", nameof(commandName));
+            }
+
+            ArgumentNullException.ThrowIfNull(commandType);
+
             if (!typeof(CommandHandler).IsAssignableFrom(commandType))
             {
                 throw new ArgumentException($"Type {commandType.Name} must derive from CommandHandler");
@@ -63,6 +70,8 @@ namespace GpuImageProcessing.Cli
         /// </summary>
         public async Task<int> DispatchAsync(string[] args)
         {
+            ArgumentNullException.ThrowIfNull(args);
+
             if (args.Length == 0 || args[0] == "help" || args[0] == "-h" || args[0] == "--help")
             {
                 return await ExecuteCommandAsync("help", args);
@@ -130,6 +139,11 @@ namespace GpuImageProcessing.Cli
         /// </summary>
         public string GetCommandDescription(string commandName)
         {
+            if (string.IsNullOrEmpty(commandName))
+            {
+                throw new ArgumentException("Command name cannot be null or empty", nameof(commandName));
+            }
+
             if (!_commands.TryGetValue(commandName, out var commandType))
                 return null;
 
