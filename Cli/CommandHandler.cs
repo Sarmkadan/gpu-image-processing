@@ -26,6 +26,7 @@ namespace GpuImageProcessing.Cli
         protected CommandHandler(IServiceProvider serviceProvider, string commandName)
         {
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+            ArgumentException.ThrowIfNullOrEmpty(commandName);
             _commandName = commandName;
             _arguments = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             _positionalArgs = new List<string>();
@@ -57,24 +58,31 @@ namespace GpuImageProcessing.Cli
         /// <summary>
         /// Gets an argument value with optional default.
         /// </summary>
+        /// <exception cref="ArgumentException"><paramref name="key"/> is <c>null</c> or empty.</exception>
         public string GetArgument(string key, string defaultValue = null)
         {
+            ArgumentException.ThrowIfNullOrEmpty(key);
             return _arguments.TryGetValue(key, out var value) ? value : defaultValue;
         }
 
         /// <summary>
         /// Checks if an argument flag is set.
         /// </summary>
+        /// <exception cref="ArgumentException"><paramref name="flag"/> is <c>null</c> or empty.</exception>
         public bool HasFlag(string flag)
         {
+            ArgumentException.ThrowIfNullOrEmpty(flag);
             return _arguments.ContainsKey(flag);
         }
 
         /// <summary>
         /// Parses and sets command arguments from raw args array.
         /// </summary>
+        /// <exception cref="ArgumentNullException"><paramref name="args"/> is <c>null</c>.</exception>
         public void SetArguments(string[] args)
         {
+            ArgumentNullException.ThrowIfNull(args);
+
             for (int i = 1; i < args.Length; i++)
             {
                 string arg = args[i];
