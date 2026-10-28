@@ -123,6 +123,9 @@ namespace GpuImageProcessing.Core.Configuration
         /// </summary>
         public static async System.Threading.Tasks.Task InitializeServicesAsync(IServiceProvider serviceProvider)
         {
+            if (serviceProvider == null)
+                throw new ArgumentNullException(nameof(serviceProvider));
+
             var deviceService = serviceProvider.GetRequiredService<DeviceService>();
             await deviceService.InitializeAsync();
         }
@@ -161,6 +164,12 @@ namespace GpuImageProcessing.Core.Configuration
         /// </summary>
         public static IServiceCollection AddApplicationLogging(this IServiceCollection services, LoggingSettings settings)
         {
+            if (services == null)
+                throw new ArgumentNullException(nameof(services));
+
+            if (settings == null)
+                throw new ArgumentNullException(nameof(settings));
+
             if (settings.LogToConsole)
             {
                 services.AddLogging(builder => builder.AddConsole());
@@ -174,6 +183,9 @@ namespace GpuImageProcessing.Core.Configuration
         /// </summary>
         public static void ConfigureForProduction(this ApplicationSettings settings)
         {
+            if (settings == null)
+                throw new ArgumentNullException(nameof(settings));
+
             settings.Environment = "Production";
             settings.Logging.LogLevel = "Warning";
             settings.Performance.EnableOptimizations = true;
@@ -186,6 +198,9 @@ namespace GpuImageProcessing.Core.Configuration
         /// </summary>
         public static void ConfigureForDevelopment(this ApplicationSettings settings)
         {
+            if (settings == null)
+                throw new ArgumentNullException(nameof(settings));
+
             settings.Environment = "Development";
             settings.Logging.LogLevel = "Debug";
             settings.Logging.LogPerformanceMetrics = true;
