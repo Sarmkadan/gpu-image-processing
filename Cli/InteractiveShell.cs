@@ -175,6 +175,7 @@ namespace GpuImageProcessing.Cli
         /// </summary>
         public List<string> GetSuggestions(string partialInput)
         {
+            ArgumentException.ThrowIfNullOrEmpty(partialInput);
             var suggestions = new List<string>();
             var parts = partialInput.Split(' ');
 
